@@ -57,7 +57,7 @@
 
     <!-- Punong Barangay — Featured Card -->
     <div class="officials-feature-wrap">
-      <article class="official-featured reveal" aria-label="Punong Barangay">
+      <article class="official-featured reveal" id="punong-article" aria-label="Punong Barangay">
         <div class="ofc-photo">
           <img src="images/wilfredo_ocampo.png" alt="Hon. Wilfredo G. Ocampo — Punong Barangay" style="object-position:center top;">
         </div>
@@ -76,7 +76,7 @@
     </div>
 
     <!-- Remaining 10 officials -->
-    <div class="officials-council-grid">
+    <div class="officials-council-grid" id="council-grid">
       <article class="official-card reveal">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" aria-hidden="true" style="border-radius:50%;display:block;"><circle cx="60" cy="60" r="60" fill="#e8f5f5"/><circle cx="60" cy="46" r="22" fill="#2CA6A4" opacity=".55"/><ellipse cx="60" cy="100" rx="36" ry="28" fill="#2CA6A4" opacity=".40"/></svg>
         <h3>Sandra D. Mendoza</h3><span>Sangguniang Barangay Member</span><p>Barangay Council Member</p>
@@ -138,5 +138,38 @@
   </footer>
   <button class="back-to-top" aria-label="Back to top">↑</button>
   <script src="assets/js/main.js"></script>
+  <script>
+  (function(){
+    var PA=document.getElementById('punong-article');
+    var CG=document.getElementById('council-grid');
+    if(!PA&&!CG)return;
+    function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+    function src(u){return u?(u.indexOf('http')===0?u:'/'+u):'';}
+    var PH='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" aria-hidden="true" style="border-radius:50%;display:block;"><circle cx="60" cy="60" r="60" fill="#e8f5f5"/><circle cx="60" cy="46" r="22" fill="#2CA6A4" opacity=".55"/><ellipse cx="60" cy="100" rx="36" ry="28" fill="#2CA6A4" opacity=".40"/></svg>';
+    fetch('/api/officials').then(function(r){return r.json();}).then(function(d){
+      var all=(d.officials||[]).filter(function(o){return o.status==='published';});
+      if(!all.length)return;
+      var punong=null,others=[];
+      all.forEach(function(o){if(o.isPunong)punong=o;else others.push(o);});
+      if(PA&&punong){
+        var ph=punong.photoUrl?'<img src="'+esc(src(punong.photoUrl))+'" alt="'+esc(punong.fullName)+'" style="object-position:center top;">':PH;
+        PA.innerHTML='<div class="ofc-photo">'+ph+'</div>'+
+          '<div class="ofc-details">'+
+          '<span class="ofc-badge">Punong Barangay</span>'+
+          '<h2 class="ofc-name">'+esc(punong.fullName)+'</h2>'+
+          '<div class="ofc-divider"></div>'+
+          '<p class="ofc-role">'+esc(punong.roleDescription||'Overall Barangay Leadership')+'</p>'+
+          '</div>';
+      }
+      if(CG&&others.length){
+        var DL=['','delay-1','delay-2','delay-3'];
+        CG.innerHTML=others.map(function(o,i){
+          var ph=o.photoUrl?'<img src="'+esc(src(o.photoUrl))+'" alt="'+esc(o.fullName)+'" style="width:120px;height:120px;object-fit:cover;object-position:center top;border-radius:50%;display:block;">':PH;
+          return '<article class="official-card reveal'+(DL[i%4]?' '+DL[i%4]:'')+'">'+ph+'<h3>'+esc(o.fullName)+'</h3><span>'+esc(o.position)+'</span><p>'+esc(o.roleDescription||'')+'</p></article>';
+        }).join('');
+      }
+    }).catch(function(){});
+  })();
+  </script>
 </body>
 </html>

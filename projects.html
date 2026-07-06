@@ -55,7 +55,7 @@
     </section>
 
     <section class="section-pad proj-grid-section">
-      <div class="container card-grid proj-card-grid">
+      <div class="container card-grid proj-card-grid" id="proj-grid">
 
         <!-- Road Improvement -->
         <article class="image-card proj-card reveal delay-2">
@@ -183,5 +183,33 @@
   </footer>
   <button class="back-to-top" aria-label="Back to top">↑</button>
   <script src="assets/js/main.js"></script>
+  <script>
+  (function(){
+    var el=document.getElementById('proj-grid');if(!el)return;
+    function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+    function src(u){return u?(u.indexOf('http')===0?u:'/'+u):'';}
+    var CC={'Infrastructure':'blue','Health':'green','Environment':'green','Livelihood':'gold','Education':'teal','Safety':'blue','Technology':'teal','Community Program':'green','Youth Development':'teal'};
+    fetch('/api/community-initiatives').then(function(r){return r.json();}).then(function(d){
+      var items=(d.initiatives||[]).filter(function(p){return p.status==='published';});
+      if(!items.length)return;
+      var DL=['delay-2','','delay-1','delay-2'];
+      el.innerHTML=items.map(function(p,i){
+        var color=CC[p.category]||'blue';
+        var banner=p.imageUrl
+          ?'<img src="'+esc(src(p.imageUrl))+'" alt="'+esc(p.title)+'" style="width:100%;height:180px;object-fit:cover;border-radius:8px 8px 0 0;">'
+          :'<div class="prog-banner prog-banner--'+color+' proj-card-banner" aria-hidden="true">'+
+            '<div class="ict-banner-label"><strong>'+esc(p.category||'')+'</strong>'+
+            (p.subtitle?'<span>'+esc(p.subtitle)+'</span>':'')+
+            '</div></div>';
+        return '<article class="image-card proj-card reveal'+(DL[i%4]?' '+DL[i%4]:'')+'">'+
+          banner+
+          '<div class="proj-card-body">'+
+          '<h3>'+esc(p.title)+'</h3>'+
+          '<p>'+esc(p.shortDescription||'')+'</p>'+
+          '</div></article>';
+      }).join('');
+    }).catch(function(){});
+  })();
+  </script>
 </body>
 </html>

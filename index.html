@@ -180,7 +180,7 @@
     <section class="section-pad soft-bg">
       <div class="container split-layout">
         <div class="reveal"><span class="eyebrow">Latest Updates</span><h2>Announcements</h2><p>Stay informed about barangay assemblies, health programs, cleanup drives, and important public advisories.</p><a class="text-link" href="announcements.html">View all announcements →</a></div>
-        <div class="mini-list reveal delay-1">
+        <div class="mini-list reveal delay-1" id="ann-mini-list">
           <article><span>June 30, 2026</span><h3>Barangay Assembly Schedule</h3><p>Residents are invited to attend the upcoming barangay assembly.</p></article>
           <article><span>July 5, 2026</span><h3>Community Clean-up Drive</h3><p>Join the community in keeping Barangay Bolbok clean and safe.</p></article>
           <article><span>July 12, 2026</span><h3>Health and Wellness Program</h3><p>Free basic health monitoring for residents.</p></article>
@@ -190,7 +190,7 @@
     <section class="section-pad">
       <div class="container">
         <div class="section-heading reveal"><span class="eyebrow">Community Development</span><h2>Community Initiatives</h2></div>
-        <div class="bolbok-init-grid">
+        <div class="bolbok-init-grid" id="init-preview-grid">
 
           <!-- Road Improvement -->
           <article class="bolbok-init-card reveal delay-1">
@@ -266,12 +266,12 @@
         <div class="opc-card reveal delay-1">
           <!-- Photo -->
           <div class="opc-photo">
-            <img src="images/wilfredo_ocampo.png" alt="Hon. Wilfredo G. Ocampo — Punong Barangay">
+            <img id="opc-photo-img" src="images/wilfredo_ocampo.png" alt="Hon. Wilfredo G. Ocampo — Punong Barangay">
           </div>
           <!-- Identity -->
           <div class="opc-identity">
-            <h3 class="opc-name">Hon. Wilfredo G. Ocampo</h3>
-            <p class="opc-position">Punong Barangay</p>
+            <h3 class="opc-name" id="opc-name-text">Hon. Wilfredo G. Ocampo</h3>
+            <p class="opc-position" id="opc-pos-text">Punong Barangay</p>
             <div class="opc-divider"></div>
             <p class="opc-role">
               <svg class="opc-role-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
@@ -284,7 +284,7 @@
           <div class="opc-right">
             <div class="opc-quote-wrap">
               <svg class="opc-qmark" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="#5b8dee"><path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/></svg>
-              <blockquote class="opc-quote">Serving Barangay Bolbok with<br>transparency, integrity, and dedication.</blockquote>
+              <blockquote class="opc-quote" id="opc-quote-text">Serving Barangay Bolbok with<br>transparency, integrity, and dedication.</blockquote>
             </div>
             <div class="opc-features">
               <div class="opc-feature-item">
@@ -380,6 +380,60 @@
   </div>
 
   <script src="assets/js/main.js?v=8"></script>
+  <script>
+  (function(){
+    function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+    function src(u){return u?(u.indexOf('http')===0?u:'/'+u):'';}
+    function fmt(d){if(!d)return'';try{return new Date(d+'T00:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'});}catch(e){return d;}}
+
+    // Announcements mini-list
+    var ML=document.getElementById('ann-mini-list');
+    if(ML){
+      fetch('/api/announcements').then(function(r){return r.json();}).then(function(d){
+        var items=(d.announcements||[]).filter(function(a){return a.status==='published';}).slice(0,3);
+        if(!items.length)return;
+        ML.innerHTML=items.map(function(a){
+          return '<article><span>'+esc(fmt(a.date))+'</span><h3>'+esc(a.title)+'</h3><p>'+esc(a.shortDescription||'')+'</p></article>';
+        }).join('');
+      }).catch(function(){});
+    }
+
+    // Community Initiatives preview
+    var IG=document.getElementById('init-preview-grid');
+    if(IG){
+      fetch('/api/community-initiatives').then(function(r){return r.json();}).then(function(d){
+        var all=(d.initiatives||[]).filter(function(p){return p.status==='published';});
+        var items=all.filter(function(p){return p.featured;});
+        if(!items.length)items=all.slice(0,4);
+        if(!items.length)return;
+        var DL=['delay-1','delay-2','delay-3',''];
+        IG.innerHTML=items.map(function(p,i){
+          return '<article class="bolbok-init-card reveal '+DL[i%4]+'">'+
+            '<span class="bic-category">'+esc(p.category)+'</span>'+
+            '<h3 class="bic-title">'+esc(p.title)+'</h3>'+
+            '<p class="bic-desc">'+esc(p.shortDescription||'')+'</p>'+
+            '</article>';
+        }).join('');
+      }).catch(function(){});
+    }
+
+    // Punong Barangay card
+    var PI=document.getElementById('opc-photo-img');
+    var PN=document.getElementById('opc-name-text');
+    var PP=document.getElementById('opc-pos-text');
+    var PQ=document.getElementById('opc-quote-text');
+    if(PI||PN||PP||PQ){
+      fetch('/api/officials').then(function(r){return r.json();}).then(function(d){
+        var punong=(d.officials||[]).find(function(o){return o.isPunong&&o.status==='published';});
+        if(!punong)return;
+        if(PI&&punong.photoUrl){PI.src=src(punong.photoUrl);PI.alt=esc(punong.fullName)+' — Punong Barangay';}
+        if(PN)PN.textContent=punong.fullName||PN.textContent;
+        if(PP)PP.textContent=punong.position||'Punong Barangay';
+        if(PQ&&punong.quote)PQ.innerHTML=esc(punong.quote).replace(/\n/g,'<br>');
+      }).catch(function(){});
+    }
+  })();
+  </script>
   <script>
   (function () {
     var modal   = document.getElementById('bbcb-hotlines-modal');

@@ -52,7 +52,7 @@
         <h1>Announcements</h1>
         <p>Community events, cleanup drives, health programs, public advisories, and important schedules.</p>
       </div>
-    </section><section class="section-pad"><div class="container card-grid three"><article class="image-card reveal"><img src="assets/images/announcements/announcement-1.jpg" alt="Barangay Assembly Schedule"><div><span class="date">June 30, 2026</span><h3>Barangay Assembly Schedule</h3><p>Residents are encouraged to attend and participate in the barangay assembly.</p><a class="text-link" href="#">Read More →</a></div></article><article class="image-card reveal"><img src="assets/images/announcements/announcement-2.jpg" alt="Community Clean-up Drive"><div><span class="date">July 5, 2026</span><h3>Community Clean-up Drive</h3><p>Join the cleanup activity to help keep Barangay Bolbok safe and beautiful.</p><a class="text-link" href="#">Read More →</a></div></article><article class="image-card reveal"><img src="assets/images/announcements/announcement-3.jpg" alt="Health Program"><div><span class="date">July 12, 2026</span><h3>Health Program</h3><p>Basic health checks and wellness information for residents.</p><a class="text-link" href="#">Read More →</a></div></article><article class="image-card reveal"><img src="assets/images/announcements/announcement-1.jpg" alt="Disaster Preparedness Update"><div><span class="date">July 20, 2026</span><h3>Disaster Preparedness Update</h3><p>Preparedness reminders for rainy season and emergency response.</p><a class="text-link" href="#">Read More →</a></div></article><article class="image-card reveal"><img src="assets/images/announcements/announcement-2.jpg" alt="Public Advisory"><div><span class="date">July 25, 2026</span><h3>Public Advisory</h3><p>Important reminders and local ordinance updates for the community.</p><a class="text-link" href="#">Read More →</a></div></article><article class="image-card reveal"><img src="assets/images/announcements/announcement-3.jpg" alt="Community Event"><div><span class="date">August 1, 2026</span><h3>Community Event</h3><p>Upcoming event for residents and families of Barangay Bolbok.</p><a class="text-link" href="#">Read More →</a></div></article></div></section>  </main>
+    </section><section class="section-pad"><div class="container card-grid three" id="ann-grid"><article class="image-card reveal"><img src="assets/images/announcements/announcement-1.jpg" alt="Barangay Assembly Schedule"><div><span class="date">June 30, 2026</span><h3>Barangay Assembly Schedule</h3><p>Residents are encouraged to attend and participate in the barangay assembly.</p><a class="text-link" href="#">Read More →</a></div></article><article class="image-card reveal"><img src="assets/images/announcements/announcement-2.jpg" alt="Community Clean-up Drive"><div><span class="date">July 5, 2026</span><h3>Community Clean-up Drive</h3><p>Join the cleanup activity to help keep Barangay Bolbok safe and beautiful.</p><a class="text-link" href="#">Read More →</a></div></article><article class="image-card reveal"><img src="assets/images/announcements/announcement-3.jpg" alt="Health Program"><div><span class="date">July 12, 2026</span><h3>Health Program</h3><p>Basic health checks and wellness information for residents.</p><a class="text-link" href="#">Read More →</a></div></article><article class="image-card reveal"><img src="assets/images/announcements/announcement-1.jpg" alt="Disaster Preparedness Update"><div><span class="date">July 20, 2026</span><h3>Disaster Preparedness Update</h3><p>Preparedness reminders for rainy season and emergency response.</p><a class="text-link" href="#">Read More →</a></div></article><article class="image-card reveal"><img src="assets/images/announcements/announcement-2.jpg" alt="Public Advisory"><div><span class="date">July 25, 2026</span><h3>Public Advisory</h3><p>Important reminders and local ordinance updates for the community.</p><a class="text-link" href="#">Read More →</a></div></article><article class="image-card reveal"><img src="assets/images/announcements/announcement-3.jpg" alt="Community Event"><div><span class="date">August 1, 2026</span><h3>Community Event</h3><p>Upcoming event for residents and families of Barangay Bolbok.</p><a class="text-link" href="#">Read More →</a></div></article></div></section>  </main>
   <footer class="site-footer">
     <div class="container footer-grid">
       <div>
@@ -70,5 +70,28 @@
   </footer>
   <button class="back-to-top" aria-label="Back to top">↑</button>
   <script src="assets/js/main.js"></script>
+  <script>
+  (function(){
+    var el=document.getElementById('ann-grid');if(!el)return;
+    var DI=['assets/images/announcements/announcement-1.jpg','assets/images/announcements/announcement-2.jpg','assets/images/announcements/announcement-3.jpg'];
+    function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+    function src(u){return u?(u.indexOf('http')===0?u:'/'+u):'';}
+    function fmt(d){if(!d)return'';try{return new Date(d+'T00:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'});}catch(e){return d;}}
+    fetch('/api/announcements').then(function(r){return r.json();}).then(function(d){
+      var items=(d.announcements||[]).filter(function(a){return a.status==='published';});
+      if(!items.length)return;
+      el.innerHTML=items.map(function(a,i){
+        var s=a.imageUrl?src(a.imageUrl):DI[i%3];
+        return '<article class="image-card reveal">'+
+          '<img src="'+esc(s)+'" alt="'+esc(a.title)+'">'+
+          '<div><span class="date">'+esc(fmt(a.date))+'</span>'+
+          '<h3>'+esc(a.title)+'</h3>'+
+          '<p>'+esc(a.shortDescription||'')+'</p>'+
+          (a.fullDetails?'<a class="text-link" href="#">Read More &#x2192;</a>':'')+
+          '</div></article>';
+      }).join('');
+    }).catch(function(){});
+  })();
+  </script>
 </body>
 </html>

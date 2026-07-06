@@ -52,7 +52,7 @@
         <h1>Downloads</h1>
         <p>Download commonly requested public service forms and documents.</p>
       </div>
-    </section><section class="section-pad"><div class="container downloads-grid"><div class="download-card reveal"><span class="icon">📥</span><div><h3>Barangay Clearance Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/barangay-clearance-form.html" target="_blank">Open Form</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Certificate Request Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/certificate-request-form.html" target="_blank">Open Form</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Complaint Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/complaint-form.html" target="_blank">Open Form</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Business Clearance Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/business-clearance-form.html" target="_blank">Open Form</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Certificate of Indigency Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/certificate-indigency-form.html" target="_blank">Open Form</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Certificate of Residency Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/certificate-residency-form.html" target="_blank">Open Form</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Assistance Request Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/assistance-request-form.html" target="_blank">Open Form</a></div></div></section>  </main>
+    </section><section class="section-pad"><div class="container downloads-grid" id="downloads-grid"><div class="download-card reveal"><span class="icon">📥</span><div><h3>Barangay Clearance Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/barangay-clearance-form.html" target="_blank">Open Form</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Certificate Request Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/certificate-request-form.html" target="_blank">Open Form</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Complaint Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/complaint-form.html" target="_blank">Open Form</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Business Clearance Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/business-clearance-form.html" target="_blank">Open Form</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Certificate of Indigency Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/certificate-indigency-form.html" target="_blank">Open Form</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Certificate of Residency Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/certificate-residency-form.html" target="_blank">Open Form</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Assistance Request Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/assistance-request-form.html" target="_blank">Open Form</a></div></div></section>  </main>
   <footer class="site-footer">
     <div class="container footer-grid">
       <div>
@@ -70,5 +70,36 @@
   </footer>
   <button class="back-to-top" aria-label="Back to top">↑</button>
   <script src="assets/js/main.js"></script>
+  <script>
+  (function(){
+    var el=document.getElementById('downloads-grid');if(!el)return;
+    function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+    function src(u){return u?(u.indexOf('http')===0?u:'/'+u):'';}
+    var LOCAL={
+      'Barangay Clearance Form':'assets/documents/barangay-clearance-form.pdf',
+      'Certificate Request Form':'assets/documents/certificate-request-form.pdf',
+      'Complaint Form':'assets/documents/complaint-form.pdf',
+      'Business Clearance Form':'assets/documents/business-clearance-form.pdf',
+      'Certificate of Indigency Form':'assets/documents/certificate-indigency-form.pdf',
+      'Certificate of Residency Form':'assets/documents/certificate-residency-form.pdf',
+      'Assistance Request Form':'assets/documents/assistance-request-form.pdf'
+    };
+    fetch('/api/forms').then(function(r){return r.json();}).then(function(d){
+      var items=(d.forms||[]).filter(function(f){return f.status==='published';});
+      if(!items.length)return;
+      el.innerHTML=items.map(function(f){
+        var href=f.fileUrl?src(f.fileUrl):(LOCAL[f.title]||null);
+        var btn=href
+          ?'<a class="btn btn-primary btn-small" href="'+esc(href)+'" target="_blank" rel="noopener">Open Form</a>'
+          :'<span class="btn btn-primary btn-small" style="opacity:.5;cursor:default;pointer-events:none;">Coming Soon</span>';
+        return '<div class="download-card reveal">'+
+          '<span class="icon">&#x1F4E5;</span>'+
+          '<div><h3>'+esc(f.title)+'</h3>'+
+          '<p>'+esc(f.description||'Download and complete this form before visiting the Barangay Hall.')+'</p></div>'+
+          btn+'</div>';
+      }).join('');
+    }).catch(function(){});
+  })();
+  </script>
 </body>
 </html>
