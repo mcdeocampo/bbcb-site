@@ -13,7 +13,7 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timezone, timedelta
 from functools import wraps
-from flask import Flask, jsonify, send_from_directory, abort, request, session
+from flask import Flask, jsonify, send_from_directory, abort, request, session, redirect
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -805,6 +805,8 @@ _PUBLIC_PAGES = [
 def public_page(page_name):
     # Strip .html suffix to normalise the lookup
     name = page_name[:-5] if page_name.endswith('.html') else page_name
+    if name == 'index':
+        return redirect('/')
     if name in _PUBLIC_PAGES:
         f = os.path.join(BASE_DIR, name + '.html')
         if os.path.exists(f):
