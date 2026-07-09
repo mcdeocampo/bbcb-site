@@ -609,6 +609,10 @@ a{text-decoration:none;color:inherit}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Download Forms
       </button>
+      <button class="nav-item" data-sec="calendar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Barangay Calendar
+      </button>
       <button class="nav-item" disabled>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         Public Services
@@ -690,6 +694,11 @@ a{text-decoration:none;color:inherit}
         <div class="quick-card" onclick="showSection('officials')">
           <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
           <span class="quick-label">Officials</span>
+          <span class="quick-arrow">&gt;</span>
+        </div>
+        <div class="quick-card" onclick="showSection('calendar')">
+          <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          <span class="quick-label">Barangay Calendar</span>
           <span class="quick-arrow">&gt;</span>
         </div>
         <div class="quick-card" onclick="showSection('settings')">
@@ -823,6 +832,53 @@ a{text-decoration:none;color:inherit}
         <button class="btn-save-order" onclick="saveOfficialOrder()">Save Order</button>
       </div>
       <div class="ann-list" id="off-list"><div class="loading">Loading...</div></div>
+    </section>
+
+    <!-- Barangay Calendar -->
+    <section id="sec-calendar" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Barangay Calendar Management</h2>
+          <p>Create, edit, and manage calendar activities shown on the public homepage.</p>
+        </div>
+        <button class="btn-new" id="btn-new-cal">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Activity
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="cal-search" type="search" placeholder="Search activities...">
+        </div>
+        <div class="tabs" id="cal-tabs">
+          <button class="tab active" data-cf="all">All</button>
+          <button class="tab" data-cf="published">Published</button>
+          <button class="tab" data-cf="draft">Draft</button>
+          <button class="tab" data-cf="hidden">Hidden</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+        <select id="cal-filter-cat" style="padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:.85rem;color:var(--text);background:#fff;cursor:pointer">
+          <option value="">All Categories</option>
+          <option>Government Activities</option>
+          <option>Health Programs</option>
+          <option>Youth Activities</option>
+          <option>Senior Citizen Programs</option>
+          <option>Barangay Meetings</option>
+          <option>Disaster Preparedness</option>
+          <option>Community Outreach</option>
+          <option>Sports Activities</option>
+        </select>
+        <select id="cal-filter-month" style="padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:.85rem;color:var(--text);background:#fff;cursor:pointer">
+          <option value="">All Months</option>
+          <option value="01">January</option><option value="02">February</option><option value="03">March</option>
+          <option value="04">April</option><option value="05">May</option><option value="06">June</option>
+          <option value="07">July</option><option value="08">August</option><option value="09">September</option>
+          <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+        </select>
+      </div>
+      <div class="ann-list" id="cal-list"><div class="loading">Loading...</div></div>
     </section>
 
     <!-- Settings -->
@@ -1593,7 +1649,7 @@ async function adminFetch(url, opts) {
 
 // -- Nav --------------------------------------------------------------------
 function showSection(name) {
-  ['dashboard','announcements','initiatives','forms','officials','settings'].forEach(s => {
+  ['dashboard','announcements','initiatives','forms','officials','calendar','settings'].forEach(s => {
     $('sec-'+s).style.display = s===name ? 'block' : 'none';
   });
   document.querySelectorAll('.nav-item[data-sec]').forEach(b => {
@@ -1603,6 +1659,7 @@ function showSection(name) {
   if (name==='initiatives') renderInitList();
   if (name==='forms') renderFormList();
   if (name==='officials') renderOfficialList();
+  if (name==='calendar') renderCalList();
   if (name==='settings') { resetSettingsForm(); loadSiteSettings(); loadHotlines(); }
 }
 
@@ -1644,6 +1701,7 @@ async function loadAll() {
     }
   } catch {}
   try { await loadOfficials(); } catch {}
+  try { await loadCalendarActivities(); } catch {}
 }
 
 function updateStats() {
@@ -3018,6 +3076,204 @@ async function deleteHotline(id) {
   } catch(e) { if (e.message !== 'unauthorized') toast('Delete failed', 'err'); }
 }
 
+// -- Barangay Calendar ------------------------------------------------------
+const SC = { activities:[], filter:'all', search:'', filterCat:'', filterMonth:'', editingId:null, imageUrl:'' };
+
+const CAL_CATS = ['Government Activities','Health Programs','Youth Activities','Senior Citizen Programs','Barangay Meetings','Disaster Preparedness','Community Outreach','Sports Activities'];
+
+async function loadCalendarActivities() {
+  try {
+    const r = await adminFetch('/admin/api/calendar-activities');
+    if (r.ok) {
+      const d = await r.json();
+      SC.activities = d.activities || [];
+      if ($('sec-calendar').style.display !== 'none') renderCalList();
+    }
+  } catch {}
+}
+
+function renderCalList() {
+  let items = [...SC.activities];
+  if (SC.filter !== 'all') items = items.filter(a => a.status === SC.filter);
+  if (SC.filterCat) items = items.filter(a => a.category === SC.filterCat);
+  if (SC.filterMonth) items = items.filter(a => a.date && a.date.slice(5,7) === SC.filterMonth);
+  if (SC.search) {
+    const q = SC.search.toLowerCase();
+    items = items.filter(a =>
+      (a.title||'').toLowerCase().includes(q) ||
+      (a.category||'').toLowerCase().includes(q) ||
+      (a.location||'').toLowerCase().includes(q) ||
+      (a.shortDescription||'').toLowerCase().includes(q)
+    );
+  }
+  items.sort((a, b) => (a.date||'').localeCompare(b.date||''));
+  const el = $('cal-list');
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon">CAL</div><h3>No activities found</h3><p>${SC.filter==='all'&&!SC.filterCat&&!SC.filterMonth&&!SC.search?'Click "+ New Activity" to create your first calendar entry.':'No activities match the current filters.'}</p></div>`;
+    return;
+  }
+  el.innerHTML = items.map(a => {
+    const img = a.imageUrl
+      ? `<img class="ann-thumb" src="${a.imageUrl.indexOf('http')===0?a.imageUrl:'/'+a.imageUrl}" alt="" onerror="this.style.display='none'">`
+      : `<div class="ann-thumb-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>`;
+    const timeStr = [a.startTime, a.endTime].filter(Boolean).join(' – ');
+    return `<div class="ann-card" data-id="${a.id}">
+      ${img}
+      <div class="ann-body">
+        <div class="ann-meta">
+          <span class="badge badge-${a.status}">${a.status}</span>
+          <span class="ann-date">${esc(fmtDate(a.date))}${timeStr ? ' &bull; '+esc(timeStr) : ''}</span>
+          <span class="cat-tag">${esc(a.category||'')}</span>
+        </div>
+        <div class="ann-title">${esc(a.title||'(no title)')}</div>
+        <div class="ann-desc">${a.location ? '<svg style="display:inline-block;vertical-align:middle;margin-right:3px" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'+esc(a.location) : ''} ${esc(a.shortDescription||'')}</div>
+      </div>
+      <div class="ann-actions">
+        <button class="btn-act" onclick="openCalEdit('${a.id}')">Edit</button>
+        <button class="btn-act" onclick="toggleCalVisibility('${a.id}','${a.status}')">${a.status==='hidden'?'Show':'Hide'}</button>
+        <button class="btn-act danger" onclick="confirmCalDel('${a.id}','${esc(a.title||'')}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function resetCalForm() {
+  SC.editingId = null;
+  $('cf-title').value = '';
+  $('cf-cat').value = CAL_CATS[0];
+  $('cf-date').value = new Date().toISOString().slice(0,10);
+  $('cf-start-time').value = '';
+  $('cf-end-time').value = '';
+  $('cf-location').value = '';
+  $('cf-short').value = '';
+  $('cf-details').value = '';
+  $('cf-requirements').value = '';
+  $('cf-attachment').value = '';
+  $('cf-status-draft').checked = true;
+  $('cf-modal-title').textContent = 'New Activity';
+}
+
+function openCalNew() {
+  resetCalForm();
+  $('cal-form-overlay').style.display = 'flex';
+  setTimeout(() => $('cf-title').focus(), 80);
+}
+
+function openCalEdit(id) {
+  const a = SC.activities.find(x => x.id === id);
+  if (!a) return;
+  resetCalForm();
+  SC.editingId = id;
+  $('cf-modal-title').textContent = 'Edit Activity';
+  $('cf-title').value = a.title || '';
+  $('cf-cat').value = a.category || CAL_CATS[0];
+  $('cf-date').value = a.date || '';
+  $('cf-start-time').value = a.startTime || '';
+  $('cf-end-time').value = a.endTime || '';
+  $('cf-location').value = a.location || '';
+  $('cf-short').value = a.shortDescription || '';
+  $('cf-details').value = a.fullDescription || '';
+  $('cf-requirements').value = a.requirements || '';
+  $('cf-attachment').value = a.attachmentUrl || '';
+  const radios = document.querySelectorAll('input[name="cal-status"]');
+  radios.forEach(r => { if (r.value === (a.status||'draft')) r.checked = true; });
+  $('cal-form-overlay').style.display = 'flex';
+  setTimeout(() => $('cf-title').focus(), 80);
+}
+
+function closeCalForm() {
+  $('cal-form-overlay').style.display = 'none';
+}
+
+async function saveCalForm(statusOverride) {
+  const title = $('cf-title').value.trim();
+  if (!title) { toast('Title is required.', 'err'); $('cf-title').focus(); return; }
+  const status = statusOverride || document.querySelector('input[name="cal-status"]:checked')?.value || 'draft';
+  const payload = {
+    title,
+    category: $('cf-cat').value,
+    date: $('cf-date').value,
+    startTime: $('cf-start-time').value.trim(),
+    endTime: $('cf-end-time').value.trim(),
+    location: $('cf-location').value.trim(),
+    shortDescription: $('cf-short').value.trim(),
+    fullDescription: $('cf-details').value.trim(),
+    requirements: $('cf-requirements').value.trim(),
+    attachmentUrl: $('cf-attachment').value.trim(),
+    status,
+  };
+  const isEdit = !!SC.editingId;
+  const url = isEdit ? `/admin/api/calendar-activities/${SC.editingId}` : '/admin/api/calendar-activities';
+  const method = isEdit ? 'PUT' : 'POST';
+  try {
+    const r = await adminFetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const d = await r.json();
+    if (r.ok) {
+      toast(isEdit ? 'Activity updated.' : 'Activity created.', 'ok');
+      closeCalForm();
+      await loadCalendarActivities();
+    } else {
+      toast(d.error || 'Failed to save.', 'err');
+    }
+  } catch(e) { if(e.message !== 'unauthorized') toast('Connection error.', 'err'); }
+}
+
+async function toggleCalVisibility(id, currentStatus) {
+  const newStatus = currentStatus === 'hidden' ? 'published' : 'hidden';
+  try {
+    const r = await adminFetch(`/admin/api/calendar-activities/${id}`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status: newStatus})
+    });
+    if (r.ok) {
+      const a = SC.activities.find(x => x.id === id);
+      if (a) a.status = newStatus;
+      renderCalList();
+      toast(`Activity ${newStatus === 'hidden' ? 'hidden' : 'shown'}.`, 'ok');
+    } else {
+      toast('Failed to update visibility.', 'err');
+    }
+  } catch(e) { if(e.message !== 'unauthorized') toast('Connection error.', 'err'); }
+}
+
+let calDelId = null;
+function confirmCalDel(id, title) {
+  calDelId = id;
+  $('confirm-title').textContent = 'Delete activity?';
+  $('confirm-msg').textContent = `"${title}" will be permanently removed.`;
+  $('confirm-overlay').style.display = 'flex';
+  $('confirm-yes').onclick = doCalDel;
+}
+
+async function doCalDel() {
+  if (!calDelId) return;
+  $('confirm-overlay').style.display = 'none';
+  try {
+    const r = await adminFetch(`/admin/api/calendar-activities/${calDelId}`, { method:'DELETE' });
+    if (r.ok) {
+      SC.activities = SC.activities.filter(a => a.id !== calDelId);
+      renderCalList();
+      toast('Activity deleted.', 'ok');
+    } else {
+      toast('Failed to delete.', 'err');
+    }
+  } catch(e) { if(e.message !== 'unauthorized') toast('Connection error.', 'err'); }
+  calDelId = null;
+}
+
+// Calendar tab + filter bindings
+document.querySelectorAll('#cal-tabs .tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('#cal-tabs .tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    SC.filter = t.dataset.cf;
+    renderCalList();
+  };
+});
+$('cal-search').addEventListener('input', e => { SC.search = e.target.value; renderCalList(); });
+$('cal-filter-cat').addEventListener('change', e => { SC.filterCat = e.target.value; renderCalList(); });
+$('cal-filter-month').addEventListener('change', e => { SC.filterMonth = e.target.value; renderCalList(); });
+$('btn-new-cal').onclick = openCalNew;
+
 // -- Boot -------------------------------------------------------------------
 initSessionMonitor();
 init();
@@ -3054,6 +3310,85 @@ init();
   </div>
 </div>
 <style>#hl-modal-overlay.open{display:flex!important}</style>
+
+<!-- ================== CALENDAR ACTIVITY MODAL ================== -->
+<div class="overlay" id="cal-form-overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="cf-modal-title">New Activity</h3>
+      <button class="btn-close" onclick="closeCalForm()">X</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-section-label">Activity Details</div>
+        <div class="field field-full">
+          <label>Title <span style="color:#ef4444">*</span></label>
+          <input type="text" id="cf-title" maxlength="200">
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <select id="cf-cat">
+            <option>Government Activities</option>
+            <option>Health Programs</option>
+            <option>Youth Activities</option>
+            <option>Senior Citizen Programs</option>
+            <option>Barangay Meetings</option>
+            <option>Disaster Preparedness</option>
+            <option>Community Outreach</option>
+            <option>Sports Activities</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Date <span style="color:#ef4444">*</span></label>
+          <input type="date" id="cf-date">
+        </div>
+        <div class="field">
+          <label>Start Time <span style="color:#94a3b8;font-size:.7rem">(optional)</span></label>
+          <input type="time" id="cf-start-time">
+        </div>
+        <div class="field">
+          <label>End Time <span style="color:#94a3b8;font-size:.7rem">(optional)</span></label>
+          <input type="time" id="cf-end-time">
+        </div>
+        <div class="field field-full">
+          <label>Location <span style="color:#94a3b8;font-size:.7rem">(optional)</span></label>
+          <input type="text" id="cf-location" maxlength="200" placeholder="e.g. Barangay Hall, Bolbok">
+        </div>
+        <div class="field field-full">
+          <label>Short Description <span style="color:#94a3b8;font-size:.7rem">(shown on calendar cards)</span></label>
+          <textarea id="cf-short" rows="2" maxlength="300"></textarea>
+        </div>
+        <div class="field field-full">
+          <label>Full Description <span style="color:#94a3b8;font-size:.7rem">(shown in activity details modal)</span></label>
+          <textarea id="cf-details" rows="4"></textarea>
+        </div>
+        <div class="field field-full">
+          <label>Requirements / What to Bring <span style="color:#94a3b8;font-size:.7rem">(optional)</span></label>
+          <textarea id="cf-requirements" rows="2" maxlength="500"></textarea>
+        </div>
+        <div class="form-section-label">Document</div>
+        <div class="field field-full">
+          <label>Attachment / Document URL <span style="color:#94a3b8;font-size:.7rem">(optional — link to PDF, memo, or form)</span></label>
+          <input type="url" id="cf-attachment" maxlength="500" placeholder="https://...">
+        </div>
+        <div class="form-section-label">Settings</div>
+        <div class="field">
+          <label>Status</label>
+          <div class="radio-row">
+            <div class="rc"><input type="radio" name="cal-status" id="cf-status-draft" value="draft"><label for="cf-status-draft">Draft</label></div>
+            <div class="rc"><input type="radio" name="cal-status" id="cf-status-pub" value="published"><label for="cf-status-pub">Published</label></div>
+            <div class="rc"><input type="radio" name="cal-status" id="cf-status-hidden" value="hidden"><label for="cf-status-hidden">Hidden</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeCalForm()">Cancel</button>
+      <button class="btn-draft" onclick="saveCalForm('draft')">Save Draft</button>
+      <button class="btn-publish" onclick="saveCalForm('published')">Publish</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
 

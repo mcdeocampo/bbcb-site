@@ -522,49 +522,8 @@
   <!-- ── Barangay Calendar Script ────────────────────────────── -->
   <script>
   (function () {
-    /* ── Activity data ──────────────────────────────────────── */
-    var ACTS = [
-      { id:1, title:'Barangay Assembly',              category:'Barangay Meetings',         date:'2026-07-12', time:'9:00 AM – 12:00 PM', location:'Barangay Hall, Bolbok',
-        desc:'Monthly assembly for residents to discuss community concerns, updates, and upcoming programs.',
-        full:'The monthly Barangay Assembly is an open forum for all residents of Barangay Bolbok. Residents are encouraged to attend and participate in discussions about community concerns, barangay updates, budget utilization, and upcoming programs and projects.',
-        req:'Bring valid ID. All registered residents are welcome.', reg:null, attach:null },
-      { id:2, title:'Free Medical & Dental Mission',  category:'Health Programs',            date:'2026-07-15', time:'8:00 AM – 4:00 PM',  location:'Barangay Health Center',
-        desc:'Free medical consultations, blood pressure monitoring, and dental services for all residents.',
-        full:'The Barangay Health Center, in coordination with the City Health Office, will conduct a free medical and dental mission. Services include general consultation, blood pressure monitoring, blood sugar testing, dental extraction, and oral prophylaxis.',
-        req:'Bring Barangay ID or any valid government ID. Senior citizens and PWDs are prioritized.', reg:null, attach:null },
-      { id:3, title:'Youth Leadership Summit',        category:'Youth Activities',           date:'2026-07-18', time:'1:00 PM – 5:00 PM',  location:'Barangay Multi-Purpose Hall',
-        desc:'Leadership training and skills workshop for youth residents aged 15–30.',
-        full:'The Sangguniang Kabataan (SK) of Barangay Bolbok is hosting a Youth Leadership Summit to empower young residents with leadership skills, community involvement training, and livelihood orientation. Speakers from the local government and private sector will be in attendance.',
-        req:'Open to youth residents aged 15–30. Pre-registration required.', reg:'#', attach:null },
-      { id:4, title:'Senior Citizen Livelihood Program', category:'Senior Citizen Programs', date:'2026-07-21', time:'9:00 AM – 12:00 PM', location:'Barangay Hall, Bolbok',
-        desc:'Livelihood and skills training session for senior citizen residents.',
-        full:'The Office for Senior Citizens Affairs (OSCA) will be conducting a livelihood and skills training session. Activities include handicraft making, basic food processing, and wellness sessions.',
-        req:'For senior citizens aged 60 and above. Bring valid senior citizen ID.', reg:null, attach:null },
-      { id:5, title:'Disaster Preparedness Drill',   category:'Disaster Preparedness',     date:'2026-07-24', time:'7:00 AM – 10:00 AM', location:'Entire Barangay Bolbok',
-        desc:'Community-wide earthquake and fire evacuation drill for all households.',
-        full:'In coordination with the Bureau of Fire Protection (BFP) and the City Disaster Risk Reduction and Management Office (CDRRMO), Barangay Bolbok will conduct a simultaneous earthquake and fire evacuation drill. All households are encouraged to participate.',
-        req:'All residents are encouraged to participate. No registration needed.', reg:null, attach:null },
-      { id:6, title:'Community Outreach Program',    category:'Community Outreach',        date:'2026-07-26', time:'8:00 AM – 3:00 PM',  location:'Various Puroks, Bolbok',
-        desc:'Distribution of relief goods and social services to indigent families in the barangay.',
-        full:'The Barangay Social Development Committee will conduct a community outreach program distributing relief goods, grocery packs, and hygiene kits to indigent families. Social workers will also be available for consultations on assistance programs.',
-        req:'Priority for indigent families. Must bring Barangay ID.', reg:null, attach:null },
-      { id:7, title:'Barangay Basketball League',    category:'Sports Activities',         date:'2026-07-05', time:'4:00 PM – 8:00 PM',  location:'Barangay Basketball Court',
-        desc:'Opening day of the annual Barangay Basketball League for male residents aged 18–40.',
-        full:'The annual Barangay Bolbok Basketball League officially opens. All registered teams will compete in a round-robin format. Medals and prizes await the top finishers. The league promotes sportsmanship, camaraderie, and healthy competition among residents.',
-        req:'Team registration at the Barangay Hall. Players must be residents of Barangay Bolbok.', reg:null, attach:null },
-      { id:8, title:'Flag Raising Ceremony',          category:'Government Activities',     date:'2026-07-06', time:'7:30 AM – 8:00 AM',  location:'Barangay Hall Grounds',
-        desc:'Weekly Monday flag raising ceremony for barangay officials, employees, and residents.',
-        full:'The weekly flag raising ceremony is held every Monday at the Barangay Hall grounds. Barangay officials, employees, and interested residents are invited to participate in this patriotic tradition.',
-        req:'Open to all residents.', reg:null, attach:null },
-      { id:9, title:'Health Awareness Seminar',       category:'Health Programs',            date:'2026-08-03', time:'9:00 AM – 11:00 AM', location:'Barangay Multi-Purpose Hall',
-        desc:'Free seminar on dengue prevention, proper nutrition, and mental health awareness.',
-        full:'The Barangay Health Center will host a health awareness seminar covering dengue prevention, proper nutrition, mental health awareness, and reproductive health for residents of all ages.',
-        req:'Open to all residents. No registration needed.', reg:null, attach:null },
-      { id:10, title:'Livelihood Skills Training',    category:'Community Outreach',        date:'2026-08-10', time:'8:00 AM – 5:00 PM',  location:'Barangay Hall, Bolbok',
-        desc:'Full-day skills training on basic entrepreneurship and product development for residents.',
-        full:'A partnership program with TESDA and the City PESO Office, this livelihood skills training covers basic entrepreneurship, product development, and marketing for residents who want to start small businesses.',
-        req:'Open to unemployed and underemployed residents. Pre-registration required.', reg:'#', attach:null },
-    ];
+    /* ── Activity data (loaded from API) ───────────────────── */
+    var ACTS = [];
 
     /* ── Category config ────────────────────────────────────── */
     var CATS = {
@@ -798,6 +757,24 @@
     });
 
     /* ── Init ───────────────────────────────────────────────── */
+    function mapActivity(a){
+      var timeStr = [a.startTime, a.endTime].filter(Boolean).join(' – ');
+      return {
+        id: a.id,
+        title: a.title || '',
+        category: a.category || 'Other',
+        date: a.date || '',
+        time: timeStr,
+        location: a.location || '',
+        desc: a.shortDescription || '',
+        full: a.fullDescription || '',
+        req: a.requirements || null,
+        reg: a.registrationLink || null,
+        attach: a.attachmentUrl || null,
+        imageUrl: a.imageUrl || null,
+      };
+    }
+
     function init(){
       var now = new Date();
       curYear  = now.getFullYear();
@@ -810,6 +787,17 @@
       });
       renderCalendar();
       renderCards();
+      /* Load published activities from API */
+      fetch('/api/calendar-activities?status=published')
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){
+          if (!d) return;
+          var items = (d.activities || d || []).filter(function(a){ return a.status === 'published' || !a.status; });
+          ACTS = items.map(mapActivity);
+          renderCalendar();
+          renderCards();
+        })
+        .catch(function(){});
     }
 
     if(document.readyState==='loading'){
