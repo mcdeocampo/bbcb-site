@@ -741,7 +741,9 @@
         '</div>'+
         '<p class="brcal-modal-desc">'+esc(act.full)+'</p>'+
         (act.req ? '<div class="brcal-modal-req"><strong>Requirements</strong><p>'+esc(act.req)+'</p></div>' : '')+
-        (act.attach ? '<div class="brcal-modal-req"><strong>Attachment</strong><a href="'+esc(act.attach)+'" class="brcal-download-link" target="_blank" rel="noopener" download>'+'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'+(act.attachmentName ? esc(act.attachmentName) : 'Download Document')+'</a></div>' : '')+
+        (act.photos && act.photos.length ? '<div class="brcal-modal-req"><strong>Photos</strong><div class="brcal-gallery">'+act.photos.map(function(p){ return '<a href="'+esc(p.url)+'" target="_blank" rel="noopener"><img src="'+esc(p.url)+'" alt="'+esc(p.name||'')+'" class="brcal-gallery-img" loading="lazy"></a>'; }).join('')+'</div></div>' : '')+
+        (act.documents && act.documents.length ? '<div class="brcal-modal-req"><strong>Documents</strong><div class="brcal-docs-list">'+act.documents.map(function(d){ return '<a href="'+esc(d.url)+'" class="brcal-download-link" target="_blank" rel="noopener" download><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'+esc(d.name||'Document')+'</a>'; }).join('')+'</div></div>' : '')+
+        (act.attach && !act.documents.length ? '<div class="brcal-modal-req"><strong>Attachment</strong><a href="'+esc(act.attach)+'" class="brcal-download-link" target="_blank" rel="noopener" download>'+'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'+(act.attachmentName ? esc(act.attachmentName) : 'Download Document')+'</a></div>' : '')+
         (act.reg ? '<div class="brcal-modal-register"><a href="'+esc(act.reg)+'" class="btn btn-primary" target="_blank" rel="noopener">Register Now</a></div>' : '');
       overlay.style.display = 'flex';
       document.body.style.overflow = 'hidden';
@@ -772,6 +774,8 @@
         reg: a.registrationLink || null,
         attach: a.attachmentUrl || null,
         attachmentName: a.attachmentName || null,
+        photos: Array.isArray(a.photos) ? a.photos : [],
+        documents: Array.isArray(a.documents) ? a.documents : [],
         imageUrl: a.imageUrl || null,
       };
     }

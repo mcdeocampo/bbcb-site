@@ -3085,7 +3085,7 @@ async function deleteHotline(id) {
 }
 
 // -- Barangay Calendar ------------------------------------------------------
-const SC = { activities:[], filter:'all', search:'', filterCat:'', filterMonth:'', editingId:null, attachmentUrl:'', attachmentName:'' };
+const SC = { activities:[], filter:'all', search:'', filterCat:'', filterMonth:'', editingId:null, photos:[], documents:[] };
 
 const CAL_CATS = ['Government Activities','Health Programs','Youth Activities','Senior Citizen Programs','Barangay Meetings','Disaster Preparedness','Community Outreach','Sports Activities'];
 
@@ -3156,32 +3156,42 @@ function resetCalForm() {
   $('cf-requirements').value = '';
   $('cf-status-draft').checked = true;
   $('cf-modal-title').textContent = 'New Activity';
-  _calDocShowEmpty();
+  SC.photos = []; SC.documents = [];
+  _renderCalPhotos(); _renderCalDocs();
 }
 
-function _calDocShowEmpty() {
-  $('cf-doc-empty').style.display = '';
-  $('cf-doc-attached').style.display = 'none';
-  $('cf-doc-uploading').style.display = 'none';
-  $('cf-doc-name').textContent = '';
-  const fi = $('cf-doc-file'); if (fi) fi.value = '';
+function _renderCalPhotos() {
+  const wrap = $('cf-photos-wrap'); if (!wrap) return;
+  wrap.innerHTML = SC.photos.map((p, i) =>
+    `<div style="position:relative;display:inline-block">
+       <img src="${esc(p.url)}" style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">
+       <button type="button" onclick="removeCalPhoto(${i})" title="Remove" style="position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:13px;cursor:pointer;line-height:20px;text-align:center;padding:0">×</button>
+     </div>`
+  ).join('');
 }
 
-function _calDocShowAttached(name) {
-  $('cf-doc-empty').style.display = 'none';
-  $('cf-doc-attached').style.display = 'flex';
-  $('cf-doc-uploading').style.display = 'none';
-  $('cf-doc-name').textContent = name || 'Attached document';
+function _renderCalDocs() {
+  const wrap = $('cf-docs-wrap'); if (!wrap) return;
+  wrap.innerHTML = SC.documents.map((d, i) =>
+    `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f1f5f9">
+       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+       <a href="${esc(d.url)}" target="_blank" rel="noopener" style="flex:1;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--blue)">${esc(d.name)}</a>
+       <button type="button" onclick="removeCalDoc(${i})" style="background:none;border:none;color:#ef4444;font-size:.78rem;cursor:pointer;padding:2px 6px;border-radius:4px;flex-shrink:0">✕</button>
+     </div>`
+  ).join('');
 }
 
-function clearCalDoc() {
-  SC.attachmentUrl = ''; SC.attachmentName = '';
-  _calDocShowEmpty();
+function removeCalPhoto(i) { SC.photos.splice(i,1); _renderCalPhotos(); }
+function removeCalDoc(i)   { SC.documents.splice(i,1); _renderCalDocs(); }
+
+function _bindCalUploads() {
+  document.getElementById('cf-photo-file').onchange = _handleCalPhotoUpload;
+  document.getElementById('cf-doc-file').onchange   = _handleCalDocUpload;
 }
 
 function openCalNew() {
   resetCalForm();
-  document.getElementById('cf-doc-file').onchange = _handleCalDocChange;
+  _bindCalUploads();
   $('cal-form-overlay').style.display = 'flex';
   setTimeout(() => $('cf-title').focus(), 80);
 }
@@ -3201,16 +3211,12 @@ function openCalEdit(id) {
   $('cf-short').value = a.shortDescription || '';
   $('cf-details').value = a.fullDescription || '';
   $('cf-requirements').value = a.requirements || '';
-  if (a.attachmentUrl) {
-    SC.attachmentUrl = a.attachmentUrl;
-    SC.attachmentName = a.attachmentName || a.attachmentUrl.split('/').pop();
-    _calDocShowAttached(SC.attachmentName);
-  } else {
-    _calDocShowEmpty();
-  }
+  SC.photos    = Array.isArray(a.photos)    ? [...a.photos]    : [];
+  SC.documents = Array.isArray(a.documents) ? [...a.documents] : [];
+  _renderCalPhotos(); _renderCalDocs();
   const radios = document.querySelectorAll('input[name="cal-status"]');
   radios.forEach(r => { if (r.value === (a.status||'draft')) r.checked = true; });
-  document.getElementById('cf-doc-file').onchange = _handleCalDocChange;
+  _bindCalUploads();
   $('cal-form-overlay').style.display = 'flex';
   setTimeout(() => $('cf-title').focus(), 80);
 }
@@ -3233,8 +3239,8 @@ async function saveCalForm(statusOverride) {
     shortDescription: $('cf-short').value.trim(),
     fullDescription: $('cf-details').value.trim(),
     requirements: $('cf-requirements').value.trim(),
-    attachmentUrl: SC.attachmentUrl,
-    attachmentName: SC.attachmentName,
+    photos: SC.photos,
+    documents: SC.documents,
     status,
   };
   const isEdit = !!SC.editingId;
@@ -3295,31 +3301,29 @@ async function doCalDel() {
   calDelId = null;
 }
 
-// -- Calendar document upload --------------------------------------------------
-async function _handleCalDocChange() {
-  const fileInput = document.getElementById('cf-doc-file');
-  if (!fileInput) return;
-  const file = fileInput.files[0];
-  if (!file) return;
-  if (file.size > 10 * 1024 * 1024) { toast('File must be under 10 MB.', 'err'); fileInput.value=''; return; }
-  $('cf-doc-empty').style.display = 'none';
-  $('cf-doc-uploading').style.display = '';
-  const fd = new FormData();
-  fd.append('file', file);
-  try {
-    const r = await adminFetch('/admin/api/upload/calendar-attachment', { method:'POST', body: fd });
-    const d = await r.json();
-    if (r.ok && d.url) {
-      SC.attachmentUrl = d.url;
-      SC.attachmentName = d.fileName || file.name;
-      _calDocShowAttached(SC.attachmentName);
-      toast('Document uploaded.', 'ok');
-    } else {
-      toast(d.error || 'Upload failed.', 'err');
-      _calDocShowEmpty();
-    }
-  } catch { toast('Upload error.', 'err'); _calDocShowEmpty(); }
+// -- Calendar file uploads --------------------------------------------------
+async function _calUploadFiles(fileInput, targetArray, renderFn, uploadingId) {
+  if (!fileInput || !fileInput.files.length) return;
+  const uploading = $(uploadingId);
+  if (uploading) uploading.style.display = '';
+  for (const file of Array.from(fileInput.files)) {
+    if (file.size > 10 * 1024 * 1024) { toast(`"${file.name}" exceeds 10 MB.`, 'err'); continue; }
+    const fd = new FormData(); fd.append('file', file);
+    try {
+      const r = await adminFetch('/admin/api/upload/calendar-attachment', { method:'POST', body: fd });
+      const d = await r.json();
+      if (r.ok && d.url) { targetArray.push({ url: d.url, name: d.fileName || file.name }); renderFn(); }
+      else toast(d.error || 'Upload failed.', 'err');
+    } catch { toast('Upload error.', 'err'); }
+  }
+  if (uploading) uploading.style.display = 'none';
   fileInput.value = '';
+}
+async function _handleCalPhotoUpload() {
+  await _calUploadFiles(document.getElementById('cf-photo-file'), SC.photos, _renderCalPhotos, 'cf-photo-uploading');
+}
+async function _handleCalDocUpload() {
+  await _calUploadFiles(document.getElementById('cf-doc-file'), SC.documents, _renderCalDocs, 'cf-doc-uploading');
 }
 
 // Calendar tab + filter bindings
@@ -3439,24 +3443,25 @@ init();
           <label>Requirements / What to Bring</label>
           <textarea id="cf-requirements" rows="2" maxlength="500"></textarea>
         </div>
-        <div class="form-section-label">Document</div>
+        <div class="form-section-label">Photos</div>
         <div class="field field-full">
-          <label>Attachment</label>
-          <div class="img-area" style="padding:14px 16px">
-            <div id="cf-doc-empty">
-              <div class="img-upload-row">
-                <label class="btn-upload-file" for="cf-doc-file">Upload Document</label>
-                <input type="file" id="cf-doc-file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none">
-              </div>
-              <div class="img-hint">PDF, DOC, DOCX, JPG, PNG · max 10 MB</div>
-            </div>
-            <div id="cf-doc-attached" style="display:none;align-items:center;gap:10px;flex-wrap:wrap">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              <span id="cf-doc-name" style="font-size:.85rem;color:var(--text);flex:1;word-break:break-all;min-width:0"></span>
-              <button type="button" onclick="clearCalDoc()" style="background:none;border:none;color:var(--red,#ef4444);font-size:.78rem;cursor:pointer;white-space:nowrap;padding:2px 6px;border-radius:4px;flex-shrink:0">✕ Remove</button>
-            </div>
-            <div id="cf-doc-uploading" style="display:none;font-size:.82rem;color:var(--gray)">Uploading...</div>
+          <div id="cf-photos-wrap" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px"></div>
+          <div class="img-upload-row">
+            <label class="btn-upload-file" for="cf-photo-file">+ Add Photos</label>
+            <input type="file" id="cf-photo-file" accept=".jpg,.jpeg,.png,.webp" style="display:none" multiple>
+            <span id="cf-photo-uploading" style="display:none;font-size:.82rem;color:var(--gray);margin-left:10px">Uploading…</span>
           </div>
+          <div class="img-hint">JPG, PNG, WebP · max 10 MB each · multiple allowed</div>
+        </div>
+        <div class="form-section-label">Documents</div>
+        <div class="field field-full">
+          <div id="cf-docs-wrap" style="margin-bottom:8px"></div>
+          <div class="img-upload-row">
+            <label class="btn-upload-file" for="cf-doc-file">+ Add Document</label>
+            <input type="file" id="cf-doc-file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none" multiple>
+            <span id="cf-doc-uploading" style="display:none;font-size:.82rem;color:var(--gray);margin-left:10px">Uploading…</span>
+          </div>
+          <div class="img-hint">PDF, DOC, DOCX, JPG, PNG · max 10 MB each</div>
         </div>
       </div>
     </div>

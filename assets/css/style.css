@@ -20911,6 +20911,12 @@ body[data-page="projects.html"] #proj-grid .image-card .text-link {
 .brcal-modal-req a { color: var(--blue-2); text-decoration: underline; }
 .brcal-download-link { display:inline-flex; align-items:center; gap:4px; font-weight:600; }
 
+.brcal-gallery { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.brcal-gallery-img { width:90px; height:90px; object-fit:cover; border-radius:8px; border:1px solid rgba(0,0,0,.08); cursor:pointer; transition:opacity .15s; }
+.brcal-gallery-img:hover { opacity:.85; }
+.brcal-docs-list { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+.brcal-docs-list .brcal-download-link { font-size:.88rem; }
+
 .brcal-modal-register { padding-top: 4px; }
 
 /* ── Responsive ────────────────────────────────────────────── */

@@ -1696,6 +1696,8 @@ def _row_to_cal(row):
         'requirements':     row.get('requirements', ''),
         'attachmentUrl':    row.get('attachment_url', ''),
         'attachmentName':   row.get('attachment_name', ''),
+        'photos':           row.get('photos') or [],
+        'documents':        row.get('documents') or [],
         'status':           row.get('status', 'draft'),
         'createdAt':        row.get('created_at', ''),
         'updatedAt':        row.get('updated_at', ''),
@@ -1734,6 +1736,8 @@ def _cal_create(data):
         'requirements':      data.get('requirements', ''),
         'attachment_url':    data.get('attachmentUrl', ''),
         'attachment_name':   data.get('attachmentName', ''),
+        'photos':            data.get('photos') or [],
+        'documents':         data.get('documents') or [],
         'status':            data.get('status', 'draft'),
         'created_at':        now,
         'updated_at':        now,
@@ -1765,6 +1769,9 @@ def _cal_update(act_id, patch):
             if camel == 'status' and patch[camel] not in valid_statuses:
                 continue
             row[snake] = _clean(patch[camel], maxlen)
+    for json_field in ('photos', 'documents'):
+        if json_field in patch and isinstance(patch[json_field], list):
+            row[json_field] = patch[json_field]
     supabase.table('calendar_activities').update(row).eq('id', act_id).execute()
     res = supabase.table('calendar_activities').select('*').eq('id', act_id).execute()
     return _row_to_cal(res.data[0]) if res.data else None
@@ -1817,6 +1824,8 @@ def admin_cal_create():
             'requirements':     _clean(d.get('requirements'), 1000),
             'attachmentUrl':    _clean(d.get('attachmentUrl'), 500),
             'attachmentName':   _clean(d.get('attachmentName'), 200),
+            'photos':           d.get('photos') if isinstance(d.get('photos'), list) else [],
+            'documents':        d.get('documents') if isinstance(d.get('documents'), list) else [],
             'status':           status,
             'createdAt':        now,
             'updatedAt':        now,
