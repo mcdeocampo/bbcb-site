@@ -3288,33 +3288,32 @@ async function doCalDel() {
 }
 
 // -- Calendar document upload --------------------------------------------------
-(function() {
-  const fileInput = document.getElementById('cf-doc-file');
-  if (!fileInput) return;
-  fileInput.addEventListener('change', async () => {
-    const file = fileInput.files[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { toast('File must be under 10 MB.', 'err'); fileInput.value=''; return; }
-    $('cf-doc-empty').style.display = 'none';
-    $('cf-doc-uploading').style.display = '';
-    const fd = new FormData();
-    fd.append('file', file);
-    try {
-      const r = await adminFetch('/admin/api/upload/calendar-attachment', { method:'POST', body: fd });
-      const d = await r.json();
-      if (r.ok && d.url) {
-        SC.attachmentUrl = d.url;
-        SC.attachmentName = d.fileName || file.name;
-        _calDocShowAttached(SC.attachmentName);
-        toast('Document uploaded.', 'ok');
-      } else {
-        toast(d.error || 'Upload failed.', 'err');
-        _calDocShowEmpty();
-      }
-    } catch { toast('Upload error.', 'err'); _calDocShowEmpty(); }
-    fileInput.value = '';
-  });
-})();
+// Event delegation so this works even though #cf-doc-file is defined after </script>
+document.addEventListener('change', async function(e) {
+  if (e.target.id !== 'cf-doc-file') return;
+  const fileInput = e.target;
+  const file = fileInput.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) { toast('File must be under 10 MB.', 'err'); fileInput.value=''; return; }
+  $('cf-doc-empty').style.display = 'none';
+  $('cf-doc-uploading').style.display = '';
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const r = await adminFetch('/admin/api/upload/calendar-attachment', { method:'POST', body: fd });
+    const d = await r.json();
+    if (r.ok && d.url) {
+      SC.attachmentUrl = d.url;
+      SC.attachmentName = d.fileName || file.name;
+      _calDocShowAttached(SC.attachmentName);
+      toast('Document uploaded.', 'ok');
+    } else {
+      toast(d.error || 'Upload failed.', 'err');
+      _calDocShowEmpty();
+    }
+  } catch { toast('Upload error.', 'err'); _calDocShowEmpty(); }
+  fileInput.value = '';
+});
 
 // Calendar tab + filter bindings
 document.querySelectorAll('#cal-tabs .tab').forEach(t => {
