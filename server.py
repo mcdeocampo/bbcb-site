@@ -1702,11 +1702,16 @@ def _row_to_cal(row):
     }
 
 
+_CAL_PUBLIC_STATUSES = ['scheduled', 'ongoing', 'completed', 'cancelled']
+
 def _load_cal_activities(status_filter=None):
     try:
         q = supabase.table('calendar_activities').select('*')
         if status_filter:
-            q = q.eq('status', status_filter)
+            if isinstance(status_filter, list):
+                q = q.in_('status', status_filter)
+            else:
+                q = q.eq('status', status_filter)
         res = q.order('date').execute()
         return [_row_to_cal(r) for r in (res.data or [])]
     except Exception:
@@ -1771,10 +1776,7 @@ def _cal_delete(act_id):
 # ── Public — calendar activities ──────────────────────────────────────────────
 @app.route('/api/calendar-activities')
 def api_calendar_activities():
-    status = request.args.get('status', 'published')
-    if status not in ('published',):
-        status = 'published'
-    activities = _load_cal_activities(status_filter=status)
+    activities = _load_cal_activities(status_filter=_CAL_PUBLIC_STATUSES)
     return jsonify({'status': 'ok', 'activities': activities})
 
 

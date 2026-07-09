@@ -267,6 +267,11 @@ a{text-decoration:none;color:inherit}
 .badge-published{background:#dcfce7;color:#15803d}
 .badge-draft{background:#fef3c7;color:#b45309}
 .badge-hidden{background:#f1f5f9;color:#64748b}
+.badge-scheduled{background:#dbeafe;color:#1d4ed8}
+.badge-ongoing{background:#dcfce7;color:#15803d}
+.badge-completed{background:#e0f2fe;color:#0369a1}
+.badge-cancelled{background:#fee2e2;color:#dc2626}
+.badge-archived{background:#f1f5f9;color:#64748b}
 .ann-date{font-size:.72rem;color:var(--gray)}
 .cat-tag{font-size:.68rem;color:var(--blue);font-weight:500;
   background:rgba(37,99,235,.08);padding:1px 7px;border-radius:10px}
@@ -853,9 +858,12 @@ a{text-decoration:none;color:inherit}
         </div>
         <div class="tabs" id="cal-tabs">
           <button class="tab active" data-cf="all">All</button>
-          <button class="tab" data-cf="published">Published</button>
+          <button class="tab" data-cf="scheduled">Scheduled</button>
+          <button class="tab" data-cf="ongoing">Ongoing</button>
+          <button class="tab" data-cf="completed">Completed</button>
+          <button class="tab" data-cf="cancelled">Cancelled</button>
           <button class="tab" data-cf="draft">Draft</button>
-          <button class="tab" data-cf="hidden">Hidden</button>
+          <button class="tab" data-cf="archived">Archived</button>
         </div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
@@ -3112,16 +3120,15 @@ function renderCalList() {
     el.innerHTML = `<div class="empty-state"><div class="es-icon">CAL</div><h3>No activities found</h3><p>${SC.filter==='all'&&!SC.filterCat&&!SC.filterMonth&&!SC.search?'Click "+ New Activity" to create your first calendar entry.':'No activities match the current filters.'}</p></div>`;
     return;
   }
+  const CAL_STATUS_LABEL = { draft:'Draft', scheduled:'Scheduled', ongoing:'Ongoing', completed:'Completed', cancelled:'Cancelled', archived:'Archived' };
   el.innerHTML = items.map(a => {
-    const img = a.imageUrl
-      ? `<img class="ann-thumb" src="${a.imageUrl.indexOf('http')===0?a.imageUrl:'/'+a.imageUrl}" alt="" onerror="this.style.display='none'">`
-      : `<div class="ann-thumb-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>`;
     const timeStr = [a.startTime, a.endTime].filter(Boolean).join(' – ');
+    const statusLabel = CAL_STATUS_LABEL[a.status] || a.status;
     return `<div class="ann-card" data-id="${a.id}">
-      ${img}
+      <div class="ann-thumb-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
       <div class="ann-body">
         <div class="ann-meta">
-          <span class="badge badge-${a.status}">${a.status}</span>
+          <span class="badge badge-${a.status}">${statusLabel}</span>
           <span class="ann-date">${esc(fmtDate(a.date))}${timeStr ? ' &bull; '+esc(timeStr) : ''}</span>
           <span class="cat-tag">${esc(a.category||'')}</span>
         </div>
@@ -3130,7 +3137,6 @@ function renderCalList() {
       </div>
       <div class="ann-actions">
         <button class="btn-act" onclick="openCalEdit('${a.id}')">Edit</button>
-        <button class="btn-act" onclick="toggleCalVisibility('${a.id}','${a.status}')">${a.status==='hidden'?'Show':'Hide'}</button>
         <button class="btn-act danger" onclick="confirmCalDel('${a.id}','${esc(a.title||'')}')">Delete</button>
       </div>
     </div>`;
@@ -3445,17 +3451,19 @@ init();
         <div class="field">
           <label>Status</label>
           <div class="radio-row">
-            <div class="rc"><input type="radio" name="cal-status" id="cf-status-draft" value="draft"><label for="cf-status-draft">Draft</label></div>
-            <div class="rc"><input type="radio" name="cal-status" id="cf-status-pub" value="published"><label for="cf-status-pub">Published</label></div>
-            <div class="rc"><input type="radio" name="cal-status" id="cf-status-hidden" value="hidden"><label for="cf-status-hidden">Hidden</label></div>
+            <div class="rc"><input type="radio" name="cal-status" id="cf-status-draft" value="draft" checked><label for="cf-status-draft">Draft</label></div>
+            <div class="rc"><input type="radio" name="cal-status" id="cf-status-scheduled" value="scheduled"><label for="cf-status-scheduled">Scheduled</label></div>
+            <div class="rc"><input type="radio" name="cal-status" id="cf-status-ongoing" value="ongoing"><label for="cf-status-ongoing">Ongoing</label></div>
+            <div class="rc"><input type="radio" name="cal-status" id="cf-status-completed" value="completed"><label for="cf-status-completed">Completed</label></div>
+            <div class="rc"><input type="radio" name="cal-status" id="cf-status-cancelled" value="cancelled"><label for="cf-status-cancelled">Cancelled</label></div>
+            <div class="rc"><input type="radio" name="cal-status" id="cf-status-archived" value="archived"><label for="cf-status-archived">Archived</label></div>
           </div>
         </div>
       </div>
     </div>
     <div class="modal-foot">
       <button class="btn-cancel" onclick="closeCalForm()">Cancel</button>
-      <button class="btn-draft" onclick="saveCalForm('draft')">Save Draft</button>
-      <button class="btn-publish" onclick="saveCalForm('published')">Publish</button>
+      <button class="btn-publish" onclick="saveCalForm()">Save Activity</button>
     </div>
   </div>
 </div>

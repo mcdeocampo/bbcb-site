@@ -789,7 +789,7 @@
       renderCalendar();
       renderCards();
       /* Load published activities from API */
-      fetch('/api/calendar-activities?status=published')
+      fetch('/api/calendar-activities')
         .then(function(r){ return r.ok ? r.json() : null; })
         .then(function(d){
           if (!d) return;
