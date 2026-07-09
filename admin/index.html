@@ -3175,6 +3175,7 @@ function clearCalDoc() {
 
 function openCalNew() {
   resetCalForm();
+  document.getElementById('cf-doc-file').onchange = _handleCalDocChange;
   $('cal-form-overlay').style.display = 'flex';
   setTimeout(() => $('cf-title').focus(), 80);
 }
@@ -3203,6 +3204,7 @@ function openCalEdit(id) {
   }
   const radios = document.querySelectorAll('input[name="cal-status"]');
   radios.forEach(r => { if (r.value === (a.status||'draft')) r.checked = true; });
+  document.getElementById('cf-doc-file').onchange = _handleCalDocChange;
   $('cal-form-overlay').style.display = 'flex';
   setTimeout(() => $('cf-title').focus(), 80);
 }
@@ -3288,10 +3290,9 @@ async function doCalDel() {
 }
 
 // -- Calendar document upload --------------------------------------------------
-// Event delegation so this works even though #cf-doc-file is defined after </script>
-document.addEventListener('change', async function(e) {
-  if (e.target.id !== 'cf-doc-file') return;
-  const fileInput = e.target;
+async function _handleCalDocChange() {
+  const fileInput = document.getElementById('cf-doc-file');
+  if (!fileInput) return;
   const file = fileInput.files[0];
   if (!file) return;
   if (file.size > 10 * 1024 * 1024) { toast('File must be under 10 MB.', 'err'); fileInput.value=''; return; }
@@ -3313,7 +3314,7 @@ document.addEventListener('change', async function(e) {
     }
   } catch { toast('Upload error.', 'err'); _calDocShowEmpty(); }
   fileInput.value = '';
-});
+}
 
 // Calendar tab + filter bindings
 document.querySelectorAll('#cal-tabs .tab').forEach(t => {
