@@ -20509,5 +20509,7 @@ body[data-page="announcements.html"] #ann-grid .image-card .text-link,
 body[data-page="projects.html"] #proj-grid .image-card .text-link {
   margin-top: auto;
   padding-top: 12px;
+  align-self: flex-start;
+  text-align: left;
 }
 
