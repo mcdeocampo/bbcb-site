@@ -1650,6 +1650,167 @@ def admin_hotlines_delete(hotline_id):
     return jsonify({'ok': True})
 
 
+# ── Calendar activities helpers ───────────────────────────────────────────────
+def _row_to_cal(row):
+    return {
+        'id':               row['id'],
+        'title':            row.get('title', ''),
+        'category':         row.get('category', ''),
+        'date':             row.get('date', ''),
+        'startTime':        row.get('start_time', ''),
+        'endTime':          row.get('end_time', ''),
+        'location':         row.get('location', ''),
+        'shortDescription': row.get('short_description', ''),
+        'fullDescription':  row.get('full_description', ''),
+        'requirements':     row.get('requirements', ''),
+        'attachmentUrl':    row.get('attachment_url', ''),
+        'status':           row.get('status', 'draft'),
+        'createdAt':        row.get('created_at', ''),
+        'updatedAt':        row.get('updated_at', ''),
+    }
+
+
+def _load_cal_activities(status_filter=None):
+    try:
+        q = supabase.table('calendar_activities').select('*')
+        if status_filter:
+            q = q.eq('status', status_filter)
+        res = q.order('date').execute()
+        return [_row_to_cal(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def _cal_create(data):
+    now = datetime.now(timezone.utc).isoformat()
+    row = {
+        'id':                data['id'],
+        'title':             data.get('title', ''),
+        'category':          data.get('category', 'Government Activities'),
+        'date':              data.get('date', ''),
+        'start_time':        data.get('startTime', ''),
+        'end_time':          data.get('endTime', ''),
+        'location':          data.get('location', ''),
+        'short_description': data.get('shortDescription', ''),
+        'full_description':  data.get('fullDescription', ''),
+        'requirements':      data.get('requirements', ''),
+        'attachment_url':    data.get('attachmentUrl', ''),
+        'status':            data.get('status', 'draft'),
+        'created_at':        now,
+        'updated_at':        now,
+    }
+    res = supabase.table('calendar_activities').insert(row).execute()
+    return _row_to_cal(res.data[0]) if res.data else data
+
+
+def _cal_update(act_id, patch):
+    now = datetime.now(timezone.utc).isoformat()
+    row = {'updated_at': now}
+    field_map = {
+        'title':            ('title', 200),
+        'category':         ('category', 50),
+        'date':             ('date', 20),
+        'startTime':        ('start_time', 20),
+        'endTime':          ('end_time', 20),
+        'location':         ('location', 200),
+        'shortDescription': ('short_description', 500),
+        'fullDescription':  ('full_description', 10000),
+        'requirements':     ('requirements', 1000),
+        'attachmentUrl':    ('attachment_url', 500),
+        'status':           ('status', 20),
+    }
+    for camel, (snake, maxlen) in field_map.items():
+        if camel in patch:
+            if camel == 'status' and patch[camel] not in ('draft', 'published', 'hidden'):
+                continue
+            row[snake] = _clean(patch[camel], maxlen)
+    res = (supabase.table('calendar_activities')
+           .update(row).eq('id', act_id).execute())
+    return _row_to_cal(res.data[0]) if res.data else None
+
+
+def _cal_delete(act_id):
+    res = supabase.table('calendar_activities').delete().eq('id', act_id).execute()
+    return bool(res.data)
+
+
+# ── Public — calendar activities ──────────────────────────────────────────────
+@app.route('/api/calendar-activities')
+def api_calendar_activities():
+    status = request.args.get('status', 'published')
+    if status not in ('published',):
+        status = 'published'
+    activities = _load_cal_activities(status_filter=status)
+    return jsonify({'status': 'ok', 'activities': activities})
+
+
+# ── Admin — calendar activities CRUD ─────────────────────────────────────────
+@app.route('/admin/api/calendar-activities')
+@admin_required
+def admin_cal_list():
+    activities = _load_cal_activities()
+    return jsonify({'status': 'ok', 'activities': activities})
+
+
+@app.route('/admin/api/calendar-activities', methods=['POST'])
+@admin_required
+def admin_cal_create():
+    d      = request.get_json(silent=True) or {}
+    title  = _clean(d.get('title'), 200)
+    if not title:
+        return jsonify({'error': 'Title is required.'}), 400
+    status = d.get('status', 'draft')
+    if status not in ('draft', 'published', 'hidden'):
+        status = 'draft'
+    now = datetime.now(timezone.utc).isoformat()
+    act = {
+        'id':               uuid.uuid4().hex,
+        'title':            title,
+        'category':         _clean(d.get('category', 'Government Activities'), 50),
+        'date':             _clean(d.get('date'), 20),
+        'startTime':        _clean(d.get('startTime'), 20),
+        'endTime':          _clean(d.get('endTime'), 20),
+        'location':         _clean(d.get('location'), 200),
+        'shortDescription': _clean(d.get('shortDescription'), 500),
+        'fullDescription':  _clean(d.get('fullDescription'), 10000),
+        'requirements':     _clean(d.get('requirements'), 1000),
+        'attachmentUrl':    _clean(d.get('attachmentUrl'), 500),
+        'status':           status,
+        'createdAt':        now,
+        'updatedAt':        now,
+    }
+    act = _cal_create(act)
+    return jsonify({'status': 'ok', 'activity': act}), 201
+
+
+@app.route('/admin/api/calendar-activities/<act_id>', methods=['PUT'])
+@admin_required
+def admin_cal_update(act_id):
+    d = request.get_json(silent=True) or {}
+    act = _cal_update(act_id, d)
+    if not act:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'activity': act})
+
+
+@app.route('/admin/api/calendar-activities/<act_id>', methods=['PATCH'])
+@admin_required
+def admin_cal_patch(act_id):
+    d = request.get_json(silent=True) or {}
+    act = _cal_update(act_id, d)
+    if not act:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'activity': act})
+
+
+@app.route('/admin/api/calendar-activities/<act_id>', methods=['DELETE'])
+@admin_required
+def admin_cal_delete(act_id):
+    if not _cal_delete(act_id):
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok'})
+
+
 # ── Static file serving ───────────────────────────────────────────────────────
 @app.route('/')
 def index():
