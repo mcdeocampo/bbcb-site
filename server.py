@@ -801,12 +801,21 @@ _PUBLIC_PAGES = [
     'announcements', 'projects', 'transparency', 'downloads', 'contact',
 ]
 
+# Friendly URL aliases → actual file base names
+_PAGE_ALIASES = {
+    'public-services':       'services',
+    'service-standards':     'citizens-charter',
+    'community-initiatives': 'projects',
+}
+
 @app.route('/<page_name>')
 def public_page(page_name):
     # Strip .html suffix to normalise the lookup
     name = page_name[:-5] if page_name.endswith('.html') else page_name
     if name == 'index':
         return redirect('/')
+    # Resolve friendly URL alias if present
+    name = _PAGE_ALIASES.get(name, name)
     if name in _PUBLIC_PAGES:
         f = os.path.join(BASE_DIR, name + '.html')
         if os.path.exists(f):
