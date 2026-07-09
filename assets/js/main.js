@@ -344,3 +344,26 @@
     }
   }
 })();
+
+// ── Site settings sync ────────────────────────────────────────────────────────
+(function () {
+  fetch('/api/site-settings').then(function (r) { return r.json(); }).then(function (s) {
+    // Text content
+    document.querySelectorAll('[data-setting]').forEach(function (el) {
+      var key = el.getAttribute('data-setting');
+      if (key === 'copyright') {
+        var yr = s.copyright_year || '';
+        var ow = s.copyright_owner || '';
+        var sx = s.copyright_suffix || '';
+        if (yr || ow || sx) el.textContent = '© ' + yr + ' ' + ow + '. ' + sx;
+      } else if (s[key]) {
+        el.textContent = s[key];
+      }
+    });
+    // href attributes
+    document.querySelectorAll('[data-setting-href]').forEach(function (el) {
+      var key = el.getAttribute('data-setting-href');
+      if (s[key]) el.href = s[key];
+    });
+  }).catch(function () {});
+})();
