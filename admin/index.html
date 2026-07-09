@@ -3387,6 +3387,17 @@ init();
           <label>Title <span style="color:#ef4444">*</span></label>
           <input type="text" id="cf-title" maxlength="200">
         </div>
+        <div class="field field-full">
+          <label>Status</label>
+          <div class="radio-row">
+            <div class="rc"><input type="radio" name="cal-status" id="cf-status-draft" value="draft" checked><label for="cf-status-draft">Draft</label></div>
+            <div class="rc"><input type="radio" name="cal-status" id="cf-status-scheduled" value="scheduled"><label for="cf-status-scheduled">Scheduled</label></div>
+            <div class="rc"><input type="radio" name="cal-status" id="cf-status-ongoing" value="ongoing"><label for="cf-status-ongoing">Ongoing</label></div>
+            <div class="rc"><input type="radio" name="cal-status" id="cf-status-completed" value="completed"><label for="cf-status-completed">Completed</label></div>
+            <div class="rc"><input type="radio" name="cal-status" id="cf-status-cancelled" value="cancelled"><label for="cf-status-cancelled">Cancelled</label></div>
+            <div class="rc"><input type="radio" name="cal-status" id="cf-status-archived" value="archived"><label for="cf-status-archived">Archived</label></div>
+          </div>
+        </div>
         <div class="field">
           <label>Category</label>
           <select id="cf-cat">
@@ -3445,18 +3456,6 @@ init();
               <button type="button" onclick="clearCalDoc()" style="background:none;border:none;color:var(--red,#ef4444);font-size:.78rem;cursor:pointer;white-space:nowrap;padding:2px 6px;border-radius:4px;flex-shrink:0">✕ Remove</button>
             </div>
             <div id="cf-doc-uploading" style="display:none;font-size:.82rem;color:var(--gray)">Uploading...</div>
-          </div>
-        </div>
-        <div class="form-section-label">Settings</div>
-        <div class="field">
-          <label>Status</label>
-          <div class="radio-row">
-            <div class="rc"><input type="radio" name="cal-status" id="cf-status-draft" value="draft" checked><label for="cf-status-draft">Draft</label></div>
-            <div class="rc"><input type="radio" name="cal-status" id="cf-status-scheduled" value="scheduled"><label for="cf-status-scheduled">Scheduled</label></div>
-            <div class="rc"><input type="radio" name="cal-status" id="cf-status-ongoing" value="ongoing"><label for="cf-status-ongoing">Ongoing</label></div>
-            <div class="rc"><input type="radio" name="cal-status" id="cf-status-completed" value="completed"><label for="cf-status-completed">Completed</label></div>
-            <div class="rc"><input type="radio" name="cal-status" id="cf-status-cancelled" value="cancelled"><label for="cf-status-cancelled">Cancelled</label></div>
-            <div class="rc"><input type="radio" name="cal-status" id="cf-status-archived" value="archived"><label for="cf-status-archived">Archived</label></div>
           </div>
         </div>
       </div>
