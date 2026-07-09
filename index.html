@@ -793,8 +793,7 @@
         .then(function(r){ return r.ok ? r.json() : null; })
         .then(function(d){
           if (!d) return;
-          var items = (d.activities || d || []).filter(function(a){ return a.status === 'published' || !a.status; });
-          ACTS = items.map(mapActivity);
+          ACTS = (d.activities || []).map(mapActivity);
           renderCalendar();
           renderCards();
         })
