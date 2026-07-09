@@ -684,7 +684,7 @@
             '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(act.location)+'</span></div>'+
           '</div>'+
           '<p class="brcal-feat-desc">'+esc(act.desc)+'</p>'+
-          '<button class="btn btn-primary brcal-feat-btn" onclick="brcalOpenModal('+act.id+')">View Details</button>'+
+          '<button class="btn btn-primary brcal-feat-btn" onclick="brcalOpenModal(\''+act.id+'\')">View Details</button>'+
         '</div>';
     }
 
@@ -716,7 +716,7 @@
             '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(a.location)+'</span></div>'+
           '</div>'+
           '<p class="brcal-card-desc">'+esc(a.desc)+'</p>'+
-          '<button class="brcal-card-btn" onclick="brcalOpenModal('+a.id+')">View Details →</button>'+
+          '<button class="brcal-card-btn" onclick="brcalOpenModal(\''+a.id+'\')">View Details →</button>'+
         '</article>';
       }).join('');
     }
