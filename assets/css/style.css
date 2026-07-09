@@ -20528,93 +20528,6 @@ body[data-page="projects.html"] #proj-grid .image-card .text-link {
   position: relative;
 }
 
-/* ── Hero Banner ───────────────────────────────────────────── */
-.brcal-hero {
-  background: linear-gradient(125deg, var(--blue-dark) 0%, #0d47a1 55%, #1565d8 80%, var(--teal-dark) 100%);
-  position: relative;
-  overflow: hidden;
-  padding: 64px 0 56px;
-}
-.brcal-hero-deco {
-  position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(circle, rgba(255,255,255,.13) 1.5px, transparent 1.5px);
-  background-size: 32px 32px;
-  pointer-events: none;
-}
-.brcal-hero::before {
-  content: '';
-  position: absolute;
-  top: -80px; right: -80px;
-  width: 360px; height: 360px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,.07) 0%, transparent 70%);
-  pointer-events: none;
-}
-.brcal-hero::after {
-  content: '';
-  position: absolute;
-  bottom: -60px; left: 10%;
-  width: 260px; height: 260px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(0,168,132,.18) 0%, transparent 70%);
-  pointer-events: none;
-}
-.brcal-hero-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 32px;
-  position: relative;
-  z-index: 1;
-}
-.brcal-hero-text { flex: 1; }
-.brcal-hero-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--gold);
-  text-transform: uppercase;
-  letter-spacing: .14em;
-  font-size: .75rem;
-  font-weight: 900;
-  margin-bottom: 12px;
-}
-.brcal-hero-eyebrow::before {
-  content: '';
-  display: inline-block;
-  width: 20px; height: 2px;
-  background: var(--gold);
-  border-radius: 2px;
-}
-.brcal-hero-title {
-  font-size: clamp(1.9rem, 3.5vw, 2.8rem);
-  font-weight: 800;
-  color: #fff;
-  line-height: 1.1;
-  letter-spacing: -.045em;
-  margin-bottom: 14px;
-  text-wrap: balance;
-}
-.brcal-hero-sub {
-  font-size: .95rem;
-  color: rgba(255,255,255,.75);
-  line-height: 1.65;
-  max-width: 480px;
-}
-.brcal-hero-graphic {
-  flex-shrink: 0;
-  width: 130px;
-  opacity: .9;
-}
-.brcal-hero-graphic svg { width: 100%; height: auto; }
-
-/* ── Calendar Body ─────────────────────────────────────────── */
-.brcal-content {
-  padding: 56px 0 72px;
-}
-
 /* ── Calendar Grid Layout ──────────────────────────────────── */
 .brcal-main {
   display: grid;
@@ -21140,15 +21053,12 @@ body[data-page="projects.html"] #proj-grid .image-card .text-link {
 
 /* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  .brcal-hero-graphic { display: none; }
   .brcal-main { grid-template-columns: 1fr; }
   .brcal-featured { order: -1; }
   .brcal-cards-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 640px) {
-  .brcal-hero { padding: 48px 0 40px; }
-  .brcal-content { padding: 40px 0 56px; }
   .brcal-main { gap: 16px; margin-bottom: 40px; }
   .brcal-cal-wrap { padding: 18px 14px; }
   .brcal-feat-inner { padding: 22px; }
@@ -21161,6 +21071,5 @@ body[data-page="projects.html"] #proj-grid .image-card .text-link {
   .brcal-modal-box { border-radius: 22px; }
   .brcal-modal-head { padding: 20px 18px 18px; }
   .brcal-modal-body-scroll { padding: 18px; }
-  .brcal-hero-title { font-size: 1.75rem; }
 }
 
