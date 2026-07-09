@@ -1733,7 +1733,7 @@ def _cal_create(data):
         'requirements':      data.get('requirements', ''),
         'attachment_url':    data.get('attachmentUrl', ''),
         'attachment_name':   data.get('attachmentName', ''),
-        'status':            data.get('status', 'draft'),
+        'status':            data.get('status', 'draft') if data.get('status') in {'draft', 'scheduled', 'ongoing', 'completed', 'cancelled', 'archived'} else 'draft',
         'created_at':        now,
         'updated_at':        now,
     }
@@ -1758,13 +1758,14 @@ def _cal_update(act_id, patch):
         'attachmentName':   ('attachment_name', 200),
         'status':           ('status', 20),
     }
+    valid_statuses = {'draft', 'scheduled', 'ongoing', 'completed', 'cancelled', 'archived'}
     for camel, (snake, maxlen) in field_map.items():
         if camel in patch:
-            if camel == 'status' and patch[camel] not in ('draft', 'published', 'hidden'):
+            if camel == 'status' and patch[camel] not in valid_statuses:
                 continue
             row[snake] = _clean(patch[camel], maxlen)
     res = (supabase.table('calendar_activities')
-           .update(row).eq('id', act_id).execute())
+           .update(row).eq('id', act_id).select().execute())
     return _row_to_cal(res.data[0]) if res.data else None
 
 
