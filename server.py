@@ -1471,6 +1471,37 @@ def admin_upload_official_photo():
     return jsonify({'status': 'ok', 'url': url})
 
 
+@app.route('/admin/api/upload/calendar-attachment', methods=['POST'])
+@admin_required
+def admin_upload_calendar_attachment():
+    """Upload a calendar activity attachment (PDF, DOC, DOCX, JPG, PNG). Max 10 MB."""
+    f = request.files.get('file')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    allowed = {'pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'}
+    if ext not in allowed:
+        return jsonify({'error': 'Invalid file type. Allowed: PDF, DOC, DOCX, JPG, PNG.'}), 400
+    max_bytes = 10 * 1024 * 1024
+    data = f.read(max_bytes + 1)
+    if len(data) > max_bytes:
+        return jsonify({'error': 'File too large (max 10 MB)'}), 400
+    original_name = os.path.basename(f.filename)
+    if ext in {'jpg', 'jpeg', 'png'}:
+        data, ext = _optimize_image(data, ext)
+    try:
+        url = _upload_to_storage(data, 'calendar', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({
+        'status':   'ok',
+        'url':      url,
+        'fileName': original_name,
+        'fileType': ext,
+        'fileSize': len(data),
+    })
+
+
 # ── Site settings helpers ─────────────────────────────────────────────────────
 def _load_site_settings():
     """Return site_settings as a flat {key: value} dict. Empty dict on error."""
@@ -1664,6 +1695,7 @@ def _row_to_cal(row):
         'fullDescription':  row.get('full_description', ''),
         'requirements':     row.get('requirements', ''),
         'attachmentUrl':    row.get('attachment_url', ''),
+        'attachmentName':   row.get('attachment_name', ''),
         'status':           row.get('status', 'draft'),
         'createdAt':        row.get('created_at', ''),
         'updatedAt':        row.get('updated_at', ''),
@@ -1695,6 +1727,7 @@ def _cal_create(data):
         'full_description':  data.get('fullDescription', ''),
         'requirements':      data.get('requirements', ''),
         'attachment_url':    data.get('attachmentUrl', ''),
+        'attachment_name':   data.get('attachmentName', ''),
         'status':            data.get('status', 'draft'),
         'created_at':        now,
         'updated_at':        now,
@@ -1717,6 +1750,7 @@ def _cal_update(act_id, patch):
         'fullDescription':  ('full_description', 10000),
         'requirements':     ('requirements', 1000),
         'attachmentUrl':    ('attachment_url', 500),
+        'attachmentName':   ('attachment_name', 200),
         'status':           ('status', 20),
     }
     for camel, (snake, maxlen) in field_map.items():
@@ -1775,6 +1809,7 @@ def admin_cal_create():
         'fullDescription':  _clean(d.get('fullDescription'), 10000),
         'requirements':     _clean(d.get('requirements'), 1000),
         'attachmentUrl':    _clean(d.get('attachmentUrl'), 500),
+        'attachmentName':   _clean(d.get('attachmentName'), 200),
         'status':           status,
         'createdAt':        now,
         'updatedAt':        now,

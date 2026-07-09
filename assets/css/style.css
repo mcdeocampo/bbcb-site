@@ -20909,6 +20909,7 @@ body[data-page="projects.html"] #proj-grid .image-card .text-link {
 }
 .brcal-modal-req p { color: var(--charcoal); }
 .brcal-modal-req a { color: var(--blue-2); text-decoration: underline; }
+.brcal-download-link { display:inline-flex; align-items:center; gap:4px; font-weight:600; }
 
 .brcal-modal-register { padding-top: 4px; }
 
