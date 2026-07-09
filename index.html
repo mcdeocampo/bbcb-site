@@ -739,7 +739,7 @@
     /* ── Upcoming cards ─────────────────────────────────────── */
     function renderCards(){
       var now = new Date(); now.setHours(0,0,0,0);
-      var upcoming = ACTS.filter(function(a){ return new Date(a.date+'T00:00:00')>=now; })
+      var upcoming = ACTS.filter(function(a){ return new Date(a.date+'T00:00:00')>=now && a.status !== 'completed' && a.status !== 'archived'; })
         .sort(function(a,b){ return a.date<b.date?-1:a.date>b.date?1:0; }).slice(0,6);
       var grid = document.getElementById('brcal-cards-grid');
       if(!upcoming.length){
