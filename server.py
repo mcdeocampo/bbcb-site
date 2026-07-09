@@ -1764,8 +1764,8 @@ def _cal_update(act_id, patch):
             if camel == 'status' and patch[camel] not in valid_statuses:
                 continue
             row[snake] = _clean(patch[camel], maxlen)
-    res = (supabase.table('calendar_activities')
-           .update(row).eq('id', act_id).select().execute())
+    supabase.table('calendar_activities').update(row).eq('id', act_id).execute()
+    res = supabase.table('calendar_activities').select('*').eq('id', act_id).execute()
     return _row_to_cal(res.data[0]) if res.data else None
 
 
