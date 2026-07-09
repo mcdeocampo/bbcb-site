@@ -3154,6 +3154,7 @@ function resetCalForm() {
   $('cf-short').value = '';
   $('cf-details').value = '';
   $('cf-requirements').value = '';
+  $('cf-summary').value = '';
   $('cf-status-draft').checked = true;
   $('cf-modal-title').textContent = 'New Activity';
   SC.photos = []; SC.documents = [];
@@ -3211,6 +3212,7 @@ function openCalEdit(id) {
   $('cf-short').value = a.shortDescription || '';
   $('cf-details').value = a.fullDescription || '';
   $('cf-requirements').value = a.requirements || '';
+  $('cf-summary').value = a.summary || '';
   SC.photos    = Array.isArray(a.photos)    ? [...a.photos]    : [];
   SC.documents = Array.isArray(a.documents) ? [...a.documents] : [];
   _renderCalPhotos(); _renderCalDocs();
@@ -3239,6 +3241,7 @@ async function saveCalForm(statusOverride) {
     shortDescription: $('cf-short').value.trim(),
     fullDescription: $('cf-details').value.trim(),
     requirements: $('cf-requirements').value.trim(),
+    summary: $('cf-summary').value.trim(),
     photos: SC.photos,
     documents: SC.documents,
     status,
@@ -3442,6 +3445,10 @@ init();
         <div class="field field-full">
           <label>Requirements / What to Bring</label>
           <textarea id="cf-requirements" rows="2" maxlength="500"></textarea>
+        </div>
+        <div class="field field-full">
+          <label>Activity Summary / Results <span style="font-weight:400;color:var(--gray);font-size:.82rem">(shown publicly for completed activities)</span></label>
+          <textarea id="cf-summary" rows="3" maxlength="5000" placeholder="Summarize what happened, outcomes, attendance, accomplishments…"></textarea>
         </div>
         <div class="form-section-label">Photos</div>
         <div class="field field-full">
