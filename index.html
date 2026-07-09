@@ -176,6 +176,49 @@
         </div>
       </div>
     </section>
+
+    <!-- ══ Barangay Calendar ══════════════════════════════════════ -->
+    <section class="section-pad brcal-section" id="barangay-calendar">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Official Schedule</span>
+          <h2>Barangay Calendar</h2>
+          <p>Stay updated on upcoming barangay activities, programs, meetings, and important events for all residents.</p>
+        </div>
+        <!-- Main: Calendar (left) + Featured Activity (right) -->
+        <div class="brcal-main reveal">
+          <!-- Left: Monthly Calendar -->
+          <div class="brcal-cal-wrap">
+            <div class="brcal-cal-header">
+              <button class="brcal-nav-btn" id="brcal-prev" aria-label="Previous month">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <span class="brcal-month-label" id="brcal-month-label"></span>
+              <button class="brcal-nav-btn" id="brcal-next" aria-label="Next month">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+            </div>
+            <div class="brcal-weekdays" aria-hidden="true">
+              <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+            </div>
+            <div class="brcal-grid" id="brcal-grid" role="grid" aria-label="Activity calendar"></div>
+          </div>
+          <!-- Right: Featured Activity -->
+          <div class="brcal-featured" id="brcal-featured">
+            <div class="brcal-featured-empty">
+              <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              <p>Select a highlighted date<br>to view scheduled activities</p>
+            </div>
+          </div>
+        </div>
+        <!-- Upcoming Activity Cards -->
+        <div class="brcal-upcoming-wrap reveal delay-1">
+          <h3 class="brcal-upcoming-heading">Upcoming Activities</h3>
+          <div class="brcal-cards-grid" id="brcal-cards-grid"></div>
+        </div>
+      </div>
+    </section>
+
     <section class="section-pad soft-bg">
       <div class="container split-layout">
         <div class="reveal"><span class="eyebrow">Latest Updates</span><h2>Announcements</h2><p>Stay informed about barangay assemblies, health programs, cleanup drives, and important public advisories.</p><a class="text-link" href="announcements.html">View all announcements →</a></div>
@@ -330,6 +373,14 @@
   </footer>
   <button class="back-to-top" aria-label="Back to top">↑</button>
 
+  <!-- ── Barangay Calendar — Activity Details Modal ─────────── -->
+  <div id="brcal-modal-overlay" role="dialog" aria-modal="true" onclick="if(event.target===this)brcalCloseModal()" style="display:none;position:fixed;inset:0;z-index:9997;background:rgba(8,38,77,.52);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:20px;">
+    <div class="brcal-modal-box">
+      <div class="brcal-modal-head" id="brcal-modal-head-el"></div>
+      <div class="brcal-modal-body-scroll" id="brcal-modal-body-el"></div>
+    </div>
+  </div>
+
   <!-- ── Other Hotlines Modal ──────────────────────────────── -->
   <div id="bbcb-hotlines-modal" class="bbcb-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="bbcb-modal-title" hidden>
     <div class="bbcb-modal">
@@ -466,6 +517,306 @@
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && !modal.hasAttribute('hidden')) closeModal();
     });
+  })();
+  </script>
+  <!-- ── Barangay Calendar Script ────────────────────────────── -->
+  <script>
+  (function () {
+    /* ── Activity data ──────────────────────────────────────── */
+    var ACTS = [
+      { id:1, title:'Barangay Assembly',              category:'Barangay Meetings',         date:'2026-07-12', time:'9:00 AM – 12:00 PM', location:'Barangay Hall, Bolbok',
+        desc:'Monthly assembly for residents to discuss community concerns, updates, and upcoming programs.',
+        full:'The monthly Barangay Assembly is an open forum for all residents of Barangay Bolbok. Residents are encouraged to attend and participate in discussions about community concerns, barangay updates, budget utilization, and upcoming programs and projects.',
+        req:'Bring valid ID. All registered residents are welcome.', reg:null, attach:null },
+      { id:2, title:'Free Medical & Dental Mission',  category:'Health Programs',            date:'2026-07-15', time:'8:00 AM – 4:00 PM',  location:'Barangay Health Center',
+        desc:'Free medical consultations, blood pressure monitoring, and dental services for all residents.',
+        full:'The Barangay Health Center, in coordination with the City Health Office, will conduct a free medical and dental mission. Services include general consultation, blood pressure monitoring, blood sugar testing, dental extraction, and oral prophylaxis.',
+        req:'Bring Barangay ID or any valid government ID. Senior citizens and PWDs are prioritized.', reg:null, attach:null },
+      { id:3, title:'Youth Leadership Summit',        category:'Youth Activities',           date:'2026-07-18', time:'1:00 PM – 5:00 PM',  location:'Barangay Multi-Purpose Hall',
+        desc:'Leadership training and skills workshop for youth residents aged 15–30.',
+        full:'The Sangguniang Kabataan (SK) of Barangay Bolbok is hosting a Youth Leadership Summit to empower young residents with leadership skills, community involvement training, and livelihood orientation. Speakers from the local government and private sector will be in attendance.',
+        req:'Open to youth residents aged 15–30. Pre-registration required.', reg:'#', attach:null },
+      { id:4, title:'Senior Citizen Livelihood Program', category:'Senior Citizen Programs', date:'2026-07-21', time:'9:00 AM – 12:00 PM', location:'Barangay Hall, Bolbok',
+        desc:'Livelihood and skills training session for senior citizen residents.',
+        full:'The Office for Senior Citizens Affairs (OSCA) will be conducting a livelihood and skills training session. Activities include handicraft making, basic food processing, and wellness sessions.',
+        req:'For senior citizens aged 60 and above. Bring valid senior citizen ID.', reg:null, attach:null },
+      { id:5, title:'Disaster Preparedness Drill',   category:'Disaster Preparedness',     date:'2026-07-24', time:'7:00 AM – 10:00 AM', location:'Entire Barangay Bolbok',
+        desc:'Community-wide earthquake and fire evacuation drill for all households.',
+        full:'In coordination with the Bureau of Fire Protection (BFP) and the City Disaster Risk Reduction and Management Office (CDRRMO), Barangay Bolbok will conduct a simultaneous earthquake and fire evacuation drill. All households are encouraged to participate.',
+        req:'All residents are encouraged to participate. No registration needed.', reg:null, attach:null },
+      { id:6, title:'Community Outreach Program',    category:'Community Outreach',        date:'2026-07-26', time:'8:00 AM – 3:00 PM',  location:'Various Puroks, Bolbok',
+        desc:'Distribution of relief goods and social services to indigent families in the barangay.',
+        full:'The Barangay Social Development Committee will conduct a community outreach program distributing relief goods, grocery packs, and hygiene kits to indigent families. Social workers will also be available for consultations on assistance programs.',
+        req:'Priority for indigent families. Must bring Barangay ID.', reg:null, attach:null },
+      { id:7, title:'Barangay Basketball League',    category:'Sports Activities',         date:'2026-07-05', time:'4:00 PM – 8:00 PM',  location:'Barangay Basketball Court',
+        desc:'Opening day of the annual Barangay Basketball League for male residents aged 18–40.',
+        full:'The annual Barangay Bolbok Basketball League officially opens. All registered teams will compete in a round-robin format. Medals and prizes await the top finishers. The league promotes sportsmanship, camaraderie, and healthy competition among residents.',
+        req:'Team registration at the Barangay Hall. Players must be residents of Barangay Bolbok.', reg:null, attach:null },
+      { id:8, title:'Flag Raising Ceremony',          category:'Government Activities',     date:'2026-07-06', time:'7:30 AM – 8:00 AM',  location:'Barangay Hall Grounds',
+        desc:'Weekly Monday flag raising ceremony for barangay officials, employees, and residents.',
+        full:'The weekly flag raising ceremony is held every Monday at the Barangay Hall grounds. Barangay officials, employees, and interested residents are invited to participate in this patriotic tradition.',
+        req:'Open to all residents.', reg:null, attach:null },
+      { id:9, title:'Health Awareness Seminar',       category:'Health Programs',            date:'2026-08-03', time:'9:00 AM – 11:00 AM', location:'Barangay Multi-Purpose Hall',
+        desc:'Free seminar on dengue prevention, proper nutrition, and mental health awareness.',
+        full:'The Barangay Health Center will host a health awareness seminar covering dengue prevention, proper nutrition, mental health awareness, and reproductive health for residents of all ages.',
+        req:'Open to all residents. No registration needed.', reg:null, attach:null },
+      { id:10, title:'Livelihood Skills Training',    category:'Community Outreach',        date:'2026-08-10', time:'8:00 AM – 5:00 PM',  location:'Barangay Hall, Bolbok',
+        desc:'Full-day skills training on basic entrepreneurship and product development for residents.',
+        full:'A partnership program with TESDA and the City PESO Office, this livelihood skills training covers basic entrepreneurship, product development, and marketing for residents who want to start small businesses.',
+        req:'Open to unemployed and underemployed residents. Pre-registration required.', reg:'#', attach:null },
+    ];
+
+    /* ── Category config ────────────────────────────────────── */
+    var CATS = {
+      'Government Activities':   { color:'#0d47a1', bg:'#e8f0fe' },
+      'Health Programs':         { color:'#b91c1c', bg:'#fee2e2' },
+      'Youth Activities':        { color:'#7c3aed', bg:'#ede9fe' },
+      'Senior Citizen Programs': { color:'#b45309', bg:'#fef3c7' },
+      'Barangay Meetings':       { color:'#0f766e', bg:'#ccfbf1' },
+      'Disaster Preparedness':   { color:'#9a3412', bg:'#ffedd5' },
+      'Community Outreach':      { color:'#15803d', bg:'#dcfce7' },
+      'Sports Activities':       { color:'#1565c0', bg:'#dbeafe' },
+    };
+
+    /* ── State ──────────────────────────────────────────────── */
+    var curYear, curMonth, selDate = null;
+    var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+    /* ── Helpers ────────────────────────────────────────────── */
+    function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function pad(n){ return n < 10 ? '0'+n : ''+n; }
+    function fmtDate(d){
+      try{ return new Date(d+'T00:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}); }
+      catch(e){ return d; }
+    }
+    function catStyle(cat){
+      var c = CATS[cat] || {color:'#0d47a1', bg:'#e8f0fe'};
+      return 'color:'+c.color+';background:'+c.bg;
+    }
+    function metaIcon(type){
+      var i = {
+        date:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+        time:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+        loc: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>',
+      };
+      return i[type]||'';
+    }
+    function catIcon(cat, color){
+      var i = {
+        'Government Activities':  '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="'+color+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 10v11M16 10v11M12 10v11"/></svg>',
+        'Health Programs':        '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="'+color+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
+        'Youth Activities':       '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="'+color+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2.5"/><path d="M9 8.5h6l-1 5H10l-1-5z"/><path d="M10 13.5l-2 6.5M14 13.5l2 6.5M9 8.5L6 11M15 8.5L18 11"/></svg>',
+        'Senior Citizen Programs':'<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="'+color+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3"/><path d="M6 21v-2a6 6 0 0 1 12 0v2"/><path d="M17 12l2 2-3 3"/></svg>',
+        'Barangay Meetings':      '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="'+color+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+        'Disaster Preparedness':  '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="'+color+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg>',
+        'Community Outreach':     '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="'+color+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+        'Sports Activities':      '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="'+color+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l14.14 14.14M9 3.54A10 10 0 0 1 15 20.46M3.54 9a10 10 0 0 1 16.92 6"/></svg>',
+      };
+      return i[cat] || i['Government Activities'];
+    }
+
+    /* ── Calendar render ────────────────────────────────────── */
+    function renderCalendar(){
+      document.getElementById('brcal-month-label').textContent = MONTHS[curMonth]+' '+curYear;
+      var grid = document.getElementById('brcal-grid');
+      grid.innerHTML = '';
+
+      var firstDay = new Date(curYear, curMonth, 1).getDay();
+      var daysInMonth = new Date(curYear, curMonth+1, 0).getDate();
+      var daysInPrev  = new Date(curYear, curMonth, 0).getDate();
+      var today = new Date();
+
+      /* build map: day → activities */
+      var actMap = {};
+      for(var i=0;i<ACTS.length;i++){
+        var a = ACTS[i];
+        var d = new Date(a.date+'T00:00:00');
+        if(d.getFullYear()===curYear && d.getMonth()===curMonth){
+          var day = d.getDate();
+          if(!actMap[day]) actMap[day]=[];
+          actMap[day].push(a);
+        }
+      }
+
+      /* prev-month trailing cells */
+      for(var p=0;p<firstDay;p++){
+        var cell = makeCell(daysInPrev-firstDay+1+p, true);
+        grid.appendChild(cell);
+      }
+
+      /* current-month days */
+      for(var d=1;d<=daysInMonth;d++){
+        var dateStr = curYear+'-'+pad(curMonth+1)+'-'+pad(d);
+        var isToday = (d===today.getDate() && curMonth===today.getMonth() && curYear===today.getFullYear());
+        var acts    = actMap[d] || [];
+        var cell    = document.createElement('button');
+        cell.className = 'brcal-day';
+        if(isToday)   cell.classList.add('today');
+        if(acts.length) cell.classList.add('has-event');
+        if(selDate===dateStr) cell.classList.add('selected');
+
+        var numEl = document.createElement('span');
+        numEl.className = 'brcal-day-num';
+        numEl.textContent = d;
+        cell.appendChild(numEl);
+
+        if(acts.length){
+          var dotsEl = document.createElement('span');
+          dotsEl.className = 'brcal-dots';
+          for(var k=0;k<Math.min(acts.length,3);k++){
+            var dot = document.createElement('span');
+            dot.className = 'brcal-dot';
+            var cc = CATS[acts[k].category];
+            if(cc) dot.style.background = cc.color;
+            dotsEl.appendChild(dot);
+          }
+          cell.appendChild(dotsEl);
+          cell.addEventListener('click', (function(ds,as){
+            return function(){
+              var prev = document.querySelector('#brcal-grid .brcal-day.selected');
+              if(prev) prev.classList.remove('selected');
+              this.classList.add('selected');
+              selDate = ds;
+              showFeatured(as[0]);
+            };
+          })(dateStr, acts));
+        } else {
+          cell.addEventListener('click', function(){
+            var prev = document.querySelector('#brcal-grid .brcal-day.selected');
+            if(prev) prev.classList.remove('selected');
+            this.classList.add('selected');
+            showFeaturedEmpty('No activities scheduled for this date.');
+          });
+        }
+        grid.appendChild(cell);
+      }
+
+      /* next-month leading cells */
+      var total = firstDay + daysInMonth;
+      var trail = total%7===0 ? 0 : 7-(total%7);
+      for(var t=1;t<=trail;t++){
+        var cell = makeCell(t, true);
+        grid.appendChild(cell);
+      }
+    }
+
+    function makeCell(num, disabled){
+      var cell = document.createElement('button');
+      cell.className = 'brcal-day other-month';
+      cell.disabled = disabled;
+      var numEl = document.createElement('span');
+      numEl.className = 'brcal-day-num';
+      numEl.textContent = num;
+      cell.appendChild(numEl);
+      return cell;
+    }
+
+    /* ── Featured panel ─────────────────────────────────────── */
+    function showFeatured(act){
+      var cc = CATS[act.category] || {color:'#0d47a1', bg:'#e8f0fe'};
+      document.getElementById('brcal-featured').innerHTML =
+        '<div class="brcal-feat-inner">'+
+          '<span class="brcal-feat-cat" style="'+catStyle(act.category)+'">'+esc(act.category)+'</span>'+
+          '<div class="brcal-feat-icon-wrap" style="background:'+cc.bg+'">'+catIcon(act.category, cc.color)+'</div>'+
+          '<h3 class="brcal-feat-title">'+esc(act.title)+'</h3>'+
+          '<div class="brcal-feat-metas">'+
+            '<div class="brcal-feat-meta">'+metaIcon('date')+'<span>'+fmtDate(act.date)+'</span></div>'+
+            '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>'+esc(act.time)+'</span></div>'+
+            '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(act.location)+'</span></div>'+
+          '</div>'+
+          '<p class="brcal-feat-desc">'+esc(act.desc)+'</p>'+
+          '<button class="btn btn-primary brcal-feat-btn" onclick="brcalOpenModal('+act.id+')">View Details</button>'+
+        '</div>';
+    }
+
+    function showFeaturedEmpty(msg){
+      document.getElementById('brcal-featured').innerHTML =
+        '<div class="brcal-featured-empty">'+
+          '<svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'+
+          '<p>'+(msg||'Select a highlighted date to view scheduled activities')+'</p>'+
+        '</div>';
+    }
+
+    /* ── Upcoming cards ─────────────────────────────────────── */
+    function renderCards(){
+      var now = new Date(); now.setHours(0,0,0,0);
+      var upcoming = ACTS.filter(function(a){ return new Date(a.date+'T00:00:00')>=now; })
+        .sort(function(a,b){ return a.date<b.date?-1:a.date>b.date?1:0; }).slice(0,6);
+      var grid = document.getElementById('brcal-cards-grid');
+      if(!upcoming.length){
+        grid.innerHTML='<p class="brcal-no-upcoming">No upcoming activities at this time.</p>';
+        return;
+      }
+      grid.innerHTML = upcoming.map(function(a){
+        return '<article class="brcal-card">'+
+          '<span class="brcal-feat-cat" style="'+catStyle(a.category)+'">'+esc(a.category)+'</span>'+
+          '<h4 class="brcal-card-title">'+esc(a.title)+'</h4>'+
+          '<div class="brcal-card-metas">'+
+            '<div class="brcal-feat-meta">'+metaIcon('date')+'<span>'+fmtDate(a.date)+'</span></div>'+
+            '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>'+esc(a.time)+'</span></div>'+
+            '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(a.location)+'</span></div>'+
+          '</div>'+
+          '<p class="brcal-card-desc">'+esc(a.desc)+'</p>'+
+          '<button class="brcal-card-btn" onclick="brcalOpenModal('+a.id+')">View Details →</button>'+
+        '</article>';
+      }).join('');
+    }
+
+    /* ── Modal ──────────────────────────────────────────────── */
+    window.brcalOpenModal = function(id){
+      var act = null;
+      for(var i=0;i<ACTS.length;i++){ if(ACTS[i].id===id){ act=ACTS[i]; break; } }
+      if(!act) return;
+      var overlay = document.getElementById('brcal-modal-overlay');
+      document.getElementById('brcal-modal-head-el').innerHTML =
+        '<div>'+
+          '<span class="brcal-feat-cat" style="'+catStyle(act.category)+'">'+esc(act.category)+'</span>'+
+          '<h3 class="brcal-modal-mtitle">'+esc(act.title)+'</h3>'+
+        '</div>'+
+        '<button class="brcal-modal-close-btn" onclick="brcalCloseModal()" aria-label="Close">&#x2715;</button>';
+      document.getElementById('brcal-modal-body-el').innerHTML =
+        '<div class="brcal-modal-metas">'+
+          '<div class="brcal-feat-meta">'+metaIcon('date')+'<span>'+fmtDate(act.date)+'</span></div>'+
+          '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>'+esc(act.time)+'</span></div>'+
+          '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(act.location)+'</span></div>'+
+        '</div>'+
+        '<p class="brcal-modal-desc">'+esc(act.full)+'</p>'+
+        (act.req ? '<div class="brcal-modal-req"><strong>Requirements</strong><p>'+esc(act.req)+'</p></div>' : '')+
+        (act.attach ? '<div class="brcal-modal-req"><strong>Attachment</strong><a href="'+esc(act.attach)+'" target="_blank" rel="noopener">Download Document</a></div>' : '')+
+        (act.reg ? '<div class="brcal-modal-register"><a href="'+esc(act.reg)+'" class="btn btn-primary" target="_blank" rel="noopener">Register Now</a></div>' : '');
+      overlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    };
+
+    window.brcalCloseModal = function(){
+      document.getElementById('brcal-modal-overlay').style.display = 'none';
+      document.body.style.overflow = '';
+    };
+
+    document.addEventListener('keydown', function(e){
+      if(e.key==='Escape') brcalCloseModal();
+    });
+
+    /* ── Init ───────────────────────────────────────────────── */
+    function init(){
+      var now = new Date();
+      curYear  = now.getFullYear();
+      curMonth = now.getMonth();
+      document.getElementById('brcal-prev').addEventListener('click', function(){
+        curMonth--; if(curMonth<0){curMonth=11;curYear--;} renderCalendar();
+      });
+      document.getElementById('brcal-next').addEventListener('click', function(){
+        curMonth++; if(curMonth>11){curMonth=0;curYear++;} renderCalendar();
+      });
+      renderCalendar();
+      renderCards();
+    }
+
+    if(document.readyState==='loading'){
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
   })();
   </script>
 </body>
