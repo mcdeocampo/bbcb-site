@@ -563,6 +563,15 @@
 
     /* ── State ──────────────────────────────────────────────── */
     var curYear, curMonth, selDate = null;
+
+    function pickEarliest(acts) {
+      if (!acts || !acts.length) return null;
+      return acts.slice().sort(function(a, b) {
+        var ta = a.startTime || 'zz:zz';
+        var tb = b.startTime || 'zz:zz';
+        return ta < tb ? -1 : ta > tb ? 1 : 0;
+      })[0];
+    }
     var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
     /* ── Helpers ────────────────────────────────────────────── */
@@ -660,16 +669,19 @@
               if(prev) prev.classList.remove('selected');
               this.classList.add('selected');
               selDate = ds;
-              showFeatured(as[0]);
+              showFeatured(pickEarliest(as));
             };
           })(dateStr, acts));
         } else {
-          cell.addEventListener('click', function(){
-            var prev = document.querySelector('#brcal-grid .brcal-day.selected');
-            if(prev) prev.classList.remove('selected');
-            this.classList.add('selected');
-            showFeaturedEmpty('No activities scheduled for this date.');
-          });
+          cell.addEventListener('click', (function(ds){
+            return function(){
+              var prev = document.querySelector('#brcal-grid .brcal-day.selected');
+              if(prev) prev.classList.remove('selected');
+              this.classList.add('selected');
+              selDate = ds;
+              showFeaturedEmpty('No scheduled activities for this date.');
+            };
+          })(dateStr));
         }
         grid.appendChild(cell);
       }
@@ -697,17 +709,21 @@
     /* ── Featured panel ─────────────────────────────────────── */
     function showFeatured(act){
       var cc = CATS[act.category] || {color:'#0d47a1', bg:'#e8f0fe'};
+      var timeMetas = '';
+      if (act.startTime) timeMetas += '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>Start: '+esc(act.startTime)+'</span></div>';
+      if (act.endTime)   timeMetas += '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>End: '+esc(act.endTime)+'</span></div>';
+      if (!act.startTime && !act.endTime && act.time) timeMetas += '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>'+esc(act.time)+'</span></div>';
       document.getElementById('brcal-featured').innerHTML =
         '<div class="brcal-feat-inner">'+
-          '<span class="brcal-feat-cat" style="'+catStyle(act.category)+'">'+esc(act.category)+'</span>'+
+          (act.category ? '<span class="brcal-feat-cat" style="'+catStyle(act.category)+'">'+esc(act.category)+'</span>' : '')+
           '<div class="brcal-feat-icon-wrap" style="background:'+cc.bg+'">'+catIcon(act.category, cc.color)+'</div>'+
           '<h3 class="brcal-feat-title">'+esc(act.title)+'</h3>'+
           '<div class="brcal-feat-metas">'+
             '<div class="brcal-feat-meta">'+metaIcon('date')+'<span>'+fmtDate(act.date)+'</span></div>'+
-            '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>'+esc(act.time)+'</span></div>'+
-            '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(act.location)+'</span></div>'+
+            timeMetas+
+            (act.location ? '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(act.location)+'</span></div>' : '')+
           '</div>'+
-          '<p class="brcal-feat-desc">'+esc(act.desc)+'</p>'+
+          (act.desc ? '<p class="brcal-feat-desc">'+esc(act.desc)+'</p>' : '')+
           '<button class="btn btn-primary brcal-feat-btn" onclick="brcalOpenModal(\''+act.id+'\')">View Details</button>'+
         '</div>';
     }
@@ -852,6 +868,8 @@
         category: a.category || 'Other',
         date: a.date || '',
         time: timeStr,
+        startTime: a.startTime || '',
+        endTime: a.endTime || '',
         location: a.location || '',
         desc: a.shortDescription || '',
         full: a.fullDescription || '',
@@ -867,10 +885,21 @@
       };
     }
 
+    function showTodayDefault(){
+      var todayActs = ACTS.filter(function(a){ return a.date === selDate; });
+      var earliest = pickEarliest(todayActs);
+      if (earliest) {
+        showFeatured(earliest);
+      } else {
+        showFeaturedEmpty('No scheduled activities for today.');
+      }
+    }
+
     function init(){
       var now = new Date();
       curYear  = now.getFullYear();
       curMonth = now.getMonth();
+      selDate  = curYear + '-' + pad(curMonth + 1) + '-' + pad(now.getDate());
       document.getElementById('brcal-prev').addEventListener('click', function(){
         curMonth--; if(curMonth<0){curMonth=11;curYear--;} renderCalendar();
       });
@@ -879,6 +908,7 @@
       });
       renderCalendar();
       renderCards();
+      showFeaturedEmpty('No scheduled activities for today.');
       /* Load published activities from API */
       fetch('/api/calendar-activities')
         .then(function(r){ return r.ok ? r.json() : null; })
@@ -888,6 +918,7 @@
           renderCalendar();
           renderCards();
           renderPastActivities();
+          showTodayDefault();
         })
         .catch(function(){});
     }
