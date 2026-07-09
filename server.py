@@ -1706,15 +1706,16 @@ _CAL_PUBLIC_STATUSES = ['scheduled', 'ongoing', 'completed', 'cancelled']
 
 def _load_cal_activities(status_filter=None):
     try:
-        q = supabase.table('calendar_activities').select('*')
+        res = supabase.table('calendar_activities').select('*').order('date').execute()
+        rows = res.data or []
         if status_filter:
             if isinstance(status_filter, list):
-                q = q.in_('status', status_filter)
+                rows = [r for r in rows if r.get('status') in status_filter]
             else:
-                q = q.eq('status', status_filter)
-        res = q.order('date').execute()
-        return [_row_to_cal(r) for r in (res.data or [])]
-    except Exception:
+                rows = [r for r in rows if r.get('status') == status_filter]
+        return [_row_to_cal(r) for r in rows]
+    except Exception as exc:
+        app.logger.error('_load_cal_activities error: %s', exc)
         return []
 
 
