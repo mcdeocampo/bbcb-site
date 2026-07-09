@@ -247,7 +247,7 @@
       el.innerHTML=items.map(function(p,i){
         var color=CC[p.category]||'blue';
         var banner=p.imageUrl
-          ?'<img src="'+esc(src(p.imageUrl))+'" alt="'+esc(p.title)+'" style="width:100%;height:180px;object-fit:cover;border-radius:12px 12px 12px 12px;">'
+          ?'<img src="'+esc(src(p.imageUrl))+'" alt="'+esc(p.title)+'" style="width:100%;height:180px;object-fit:cover;border-radius:28px 28px 0 0;">'
           :'<div class="prog-banner prog-banner--'+color+' proj-card-banner" aria-hidden="true">'+
             '<div class="ict-banner-label"><strong>'+esc(p.category||'')+'</strong>'+
             (p.subtitle?'<span>'+esc(p.subtitle)+'</span>':'')+
