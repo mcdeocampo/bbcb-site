@@ -22,3 +22,7 @@ CREATE TABLE IF NOT EXISTS calendar_activities (
 -- Index for fast public-facing queries filtered by status and ordered by date
 CREATE INDEX IF NOT EXISTS idx_calendar_activities_status_date
     ON calendar_activities (status, date);
+
+-- Disable RLS so the server-side Python client (service role) can read/write freely.
+-- This matches the setup of all other tables in this project.
+ALTER TABLE calendar_activities DISABLE ROW LEVEL SECURITY;

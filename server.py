@@ -1699,7 +1699,7 @@ def _cal_create(data):
         'created_at':        now,
         'updated_at':        now,
     }
-    res = supabase.table('calendar_activities').insert(row).execute()
+    res = supabase.table('calendar_activities').insert(row).select().execute()
     return _row_to_cal(res.data[0]) if res.data else data
 
 
