@@ -1733,7 +1733,7 @@ def _cal_create(data):
         'requirements':      data.get('requirements', ''),
         'attachment_url':    data.get('attachmentUrl', ''),
         'attachment_name':   data.get('attachmentName', ''),
-        'status':            data.get('status', 'draft') if data.get('status') in {'draft', 'scheduled', 'ongoing', 'completed', 'cancelled', 'archived'} else 'draft',
+        'status':            data.get('status', 'draft'),
         'created_at':        now,
         'updated_at':        now,
     }
@@ -1789,56 +1789,67 @@ def admin_cal_list():
     return jsonify({'status': 'ok', 'activities': activities})
 
 
+_CAL_VALID_STATUSES = {'draft', 'scheduled', 'ongoing', 'completed', 'cancelled', 'archived'}
+
 @app.route('/admin/api/calendar-activities', methods=['POST'])
 @admin_required
 def admin_cal_create():
-    d      = request.get_json(silent=True) or {}
-    title  = _clean(d.get('title'), 200)
-    if not title:
-        return jsonify({'error': 'Title is required.'}), 400
-    status = d.get('status', 'draft')
-    if status not in ('draft', 'published', 'hidden'):
-        status = 'draft'
-    now = datetime.now(timezone.utc).isoformat()
-    act = {
-        'id':               uuid.uuid4().hex,
-        'title':            title,
-        'category':         _clean(d.get('category', 'Government Activities'), 50),
-        'date':             _clean(d.get('date'), 20),
-        'startTime':        _clean(d.get('startTime'), 20),
-        'endTime':          _clean(d.get('endTime'), 20),
-        'location':         _clean(d.get('location'), 200),
-        'shortDescription': _clean(d.get('shortDescription'), 500),
-        'fullDescription':  _clean(d.get('fullDescription'), 10000),
-        'requirements':     _clean(d.get('requirements'), 1000),
-        'attachmentUrl':    _clean(d.get('attachmentUrl'), 500),
-        'attachmentName':   _clean(d.get('attachmentName'), 200),
-        'status':           status,
-        'createdAt':        now,
-        'updatedAt':        now,
-    }
-    act = _cal_create(act)
-    return jsonify({'status': 'ok', 'activity': act}), 201
+    try:
+        d      = request.get_json(silent=True) or {}
+        title  = _clean(d.get('title'), 200)
+        if not title:
+            return jsonify({'error': 'Title is required.'}), 400
+        status = d.get('status', 'draft')
+        if status not in _CAL_VALID_STATUSES:
+            status = 'draft'
+        now = datetime.now(timezone.utc).isoformat()
+        act = {
+            'id':               uuid.uuid4().hex,
+            'title':            title,
+            'category':         _clean(d.get('category', 'Government Activities'), 50),
+            'date':             _clean(d.get('date'), 20),
+            'startTime':        _clean(d.get('startTime'), 20),
+            'endTime':          _clean(d.get('endTime'), 20),
+            'location':         _clean(d.get('location'), 200),
+            'shortDescription': _clean(d.get('shortDescription'), 500),
+            'fullDescription':  _clean(d.get('fullDescription'), 10000),
+            'requirements':     _clean(d.get('requirements'), 1000),
+            'attachmentUrl':    _clean(d.get('attachmentUrl'), 500),
+            'attachmentName':   _clean(d.get('attachmentName'), 200),
+            'status':           status,
+            'createdAt':        now,
+            'updatedAt':        now,
+        }
+        act = _cal_create(act)
+        return jsonify({'status': 'ok', 'activity': act}), 201
+    except Exception as exc:
+        return jsonify({'error': f'Save failed: {exc}'}), 500
 
 
 @app.route('/admin/api/calendar-activities/<act_id>', methods=['PUT'])
 @admin_required
 def admin_cal_update(act_id):
-    d = request.get_json(silent=True) or {}
-    act = _cal_update(act_id, d)
-    if not act:
-        return jsonify({'error': 'Not found'}), 404
-    return jsonify({'status': 'ok', 'activity': act})
+    try:
+        d = request.get_json(silent=True) or {}
+        act = _cal_update(act_id, d)
+        if not act:
+            return jsonify({'error': 'Activity not found.'}), 404
+        return jsonify({'status': 'ok', 'activity': act})
+    except Exception as exc:
+        return jsonify({'error': f'Update failed: {exc}'}), 500
 
 
 @app.route('/admin/api/calendar-activities/<act_id>', methods=['PATCH'])
 @admin_required
 def admin_cal_patch(act_id):
-    d = request.get_json(silent=True) or {}
-    act = _cal_update(act_id, d)
-    if not act:
-        return jsonify({'error': 'Not found'}), 404
-    return jsonify({'status': 'ok', 'activity': act})
+    try:
+        d = request.get_json(silent=True) or {}
+        act = _cal_update(act_id, d)
+        if not act:
+            return jsonify({'error': 'Activity not found.'}), 404
+        return jsonify({'status': 'ok', 'activity': act})
+    except Exception as exc:
+        return jsonify({'error': f'Update failed: {exc}'}), 500
 
 
 @app.route('/admin/api/calendar-activities/<act_id>', methods=['DELETE'])
