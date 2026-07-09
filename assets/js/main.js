@@ -358,6 +358,12 @@
         if (yr || ow || sx) el.textContent = '© ' + yr + ' ' + ow + '. ' + sx;
       } else if (s[key]) {
         el.textContent = s[key];
+        if (el.tagName === 'A') {
+          var phoneKeys = { footer_phone: 1, barangay_phone: 1, homepage_hotline_number: 1, emergency_card_number: 1, police_card_number: 1 };
+          var emailKeys = { footer_email: 1, barangay_email: 1 };
+          if (phoneKeys[key]) el.href = 'tel:' + s[key].replace(/[\s\-().\/]/g, '');
+          else if (emailKeys[key]) el.href = 'mailto:' + s[key];
+        }
       }
     });
     // href attributes
