@@ -3886,9 +3886,13 @@ async function eaSaveCreate(status) {
 
   if (!title)   { eaShowFormErr('Alert title is required.'); $('ea-f-title').focus(); return; }
   if (!message) { eaShowFormErr('Emergency message is required.'); $('ea-f-message').focus(); return; }
-  if (!start)   { eaShowFormErr('Start date and time is required.'); $('ea-f-start').focus(); return; }
-  if (!expiry)  { eaShowFormErr('Expiration date and time is required.'); $('ea-f-expiry').focus(); return; }
-  if (expiry <= start) { eaShowFormErr('Expiration must be after Start date/time.'); return; }
+  if (status === 'active') {
+    if (!start)  { eaShowFormErr('Start date and time is required.'); $('ea-f-start').focus(); return; }
+    if (!expiry) { eaShowFormErr('Expiration date and time is required.'); $('ea-f-expiry').focus(); return; }
+    if (expiry <= start) { eaShowFormErr('Expiration must be after Start date/time.'); return; }
+  } else if (start && expiry && expiry <= start) {
+    eaShowFormErr('Expiration must be after Start date/time.'); return;
+  }
   if (audience === 'Specific Area / Zone' && !area) { eaShowFormErr('Target area is required for Specific Area / Zone.'); $('ea-f-area').focus(); return; }
 
   const errEl = $('ea-form-err');

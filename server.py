@@ -1998,11 +1998,13 @@ def admin_alerts_create():
         return jsonify({'error': 'Emergency message is required.'}), 400
     start  = _clean(d.get('startDatetime'), 30)
     expiry = _clean(d.get('expirationDatetime'), 30)
-    if not start:
-        return jsonify({'error': 'Start date and time is required.'}), 400
-    if not expiry:
-        return jsonify({'error': 'Expiration date and time is required.'}), 400
-    if expiry <= start:
+    req_status = d.get('status', 'draft')
+    if req_status == 'active':
+        if not start:
+            return jsonify({'error': 'Start date and time is required.'}), 400
+        if not expiry:
+            return jsonify({'error': 'Expiration date and time is required.'}), 400
+    if start and expiry and expiry <= start:
         return jsonify({'error': 'Expiration must be after Start date/time.'}), 400
 
     priority = _clean(d.get('priority', 'Advisory'), 20)
@@ -2010,7 +2012,6 @@ def admin_alerts_create():
         priority = 'Advisory'
     show_banner, enable_popup = _compute_banner_popup(priority)
 
-    req_status = d.get('status', 'draft')
     status = 'active' if req_status == 'active' else 'draft'
 
     admin_name = _current_admin_name()
