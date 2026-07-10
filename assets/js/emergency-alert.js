@@ -138,7 +138,7 @@
           areaHtml +
         '</div>' +
         '<div class="ea-popup-foot">' +
-          '<a class="ea-popup-btn-detail" href="' + detailUrl + '">View Details</a>' +
+          '<a class="ea-popup-btn-detail" href="' + detailUrl + '" id="ea-popup-detail-btn">View Details</a>' +
           '<button class="ea-popup-btn-close" id="ea-popup-close-btn">Close</button>' +
         '</div>' +
       '</div>';
@@ -150,10 +150,17 @@
     }
 
     document.getElementById('ea-popup-close-btn').addEventListener('click', closePopup);
+    // Acknowledge when navigating to detail page so popup doesn't reappear there
+    document.getElementById('ea-popup-detail-btn').addEventListener('click', function () {
+      acknowledge(alert.id, alert.version);
+    });
     overlay.addEventListener('click', function (e) {
       if (e.target === overlay) closePopup();
     });
   }
+
+  // ── Skip popup on the detail page itself ─────────────────────────────────────
+  var _isDetailPage = document.body.getAttribute('data-page') === 'emergency-alert-detail.html';
 
   // ── Core logic ───────────────────────────────────────────────────────────────
   function applyAlert(data) {
@@ -175,7 +182,7 @@
     _currentId = data.id;
     _currentVersion = data.version;
 
-    if (showingPopup) {
+    if (showingPopup && !_isDetailPage) {
       showPopup(data);
     } else {
       removePopup();
