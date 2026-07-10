@@ -468,6 +468,50 @@ a{text-decoration:none;color:inherit}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .file-current-meta{font-size:.7rem;color:var(--gray)}
 
+/* --- EMERGENCY ALERTS MODULE ------------------------------ */
+.ea-subtab-bar{display:flex;gap:3px;background:#e2e8f0;padding:3px;border-radius:8px;margin-bottom:20px;flex-wrap:wrap}
+.ea-subtab{padding:6px 16px;border:none;background:none;border-radius:6px;font-size:.82rem;font-weight:500;color:var(--gray);transition:all .15s;white-space:nowrap;cursor:pointer}
+.ea-subtab.active{background:#fff;color:var(--blue);box-shadow:0 1px 3px rgba(0,0,0,.08);font-weight:600}
+.ea-panel{display:block}
+.ea-alert-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:10px;transition:box-shadow .2s;position:relative;overflow:hidden}
+.ea-alert-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:10px 0 0 10px}
+.ea-alert-card.priority-advisory::before{background:#f59e0b}
+.ea-alert-card.priority-warning::before{background:#f97316}
+.ea-alert-card.priority-critical::before{background:#dc2626}
+.ea-alert-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.09)}
+.ea-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ea-card-title{font-size:.95rem;font-weight:700;color:var(--navy);margin-bottom:4px}
+.ea-card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.ea-card-body{font-size:.82rem;color:var(--gray);line-height:1.5;margin-bottom:10px}
+.ea-card-dates{display:flex;gap:14px;flex-wrap:wrap;font-size:.75rem;color:#64748b}
+.ea-card-date-item{display:flex;align-items:center;gap:4px}
+.ea-card-actions{display:flex;gap:6px;flex-shrink:0;align-items:flex-start;flex-wrap:wrap}
+.badge-alert-draft{background:#f1f5f9;color:#475569}
+.badge-alert-active{background:#dcfce7;color:#15803d}
+.badge-alert-expired{background:#fee2e2;color:#b91c1c}
+.badge-alert-resolved{background:#e0f2fe;color:#0369a1}
+.badge-alert-archived{background:#f1f5f9;color:#64748b}
+.badge-priority-advisory{background:#fef3c7;color:#b45309}
+.badge-priority-warning{background:#fff7ed;color:#c2410c}
+.badge-priority-critical{background:#fee2e2;color:#dc2626}
+.ea-form-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px 26px;max-width:780px}
+.ea-form-card h3{font-size:1rem;font-weight:700;margin-bottom:4px;color:var(--navy)}
+.ea-form-card p{font-size:.8rem;color:var(--gray);margin-bottom:20px}
+.ea-field-note{font-size:.74rem;color:#94a3b8;margin-top:4px}
+.ea-form-foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.btn-activate{padding:8px 22px;background:linear-gradient(135deg,#dc2626,#b91c1c);border:none;border-radius:10px;font-size:.82rem;font-weight:700;color:#fff;transition:all .15s;box-shadow:0 2px 8px rgba(220,38,38,.28)}
+.btn-activate:hover{filter:brightness(1.08);box-shadow:0 4px 12px rgba(220,38,38,.35)}
+.btn-activate:disabled{opacity:.6;cursor:not-allowed}
+.btn-resolve{padding:6px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;font-size:.76rem;font-weight:600;color:#c2410c;transition:all .15s;white-space:nowrap}
+.btn-resolve:hover{background:#ffedd5;border-color:#fb923c}
+.ea-nav-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;background:#dc2626;color:#fff;border-radius:20px;font-size:.6rem;font-weight:700;margin-left:auto;line-height:1}
+.ea-history-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px}
+.ea-history-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ea-history-title{font-size:.88rem;font-weight:600;color:var(--navy);margin-bottom:3px}
+.ea-history-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:4px}
+.ea-history-details{font-size:.74rem;color:#94a3b8;display:flex;gap:14px;flex-wrap:wrap}
+.ea-section-notice{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;font-size:.82rem;color:#1d4ed8;margin-bottom:16px}
+
 /* --- RESPONSIVE ------------------------------------------- */
 @media(max-width:900px){.sidebar{width:200px}.form-grid{grid-template-columns:1fr}}
 @media(max-width:640px){
@@ -622,6 +666,12 @@ a{text-decoration:none;color:inherit}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         Public Services
         <span class="soon-badge">Soon</span>
+      </button>
+      <div class="nav-label">Alerts</div>
+      <button class="nav-item" data-sec="alerts">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Emergency Alerts
+        <span class="ea-nav-count" id="ea-nav-active-count" style="display:none">0</span>
       </button>
       <div class="nav-label">Account</div>
       <button class="nav-item" data-sec="settings">
@@ -887,6 +937,102 @@ a{text-decoration:none;color:inherit}
         </select>
       </div>
       <div class="ann-list" id="cal-list"><div class="loading">Loading...</div></div>
+    </section>
+
+    <!-- Emergency Alerts -->
+    <section id="sec-alerts" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Emergency Alert Management</h2>
+          <p>Create, activate, and manage emergency alerts for Barangay Bolbok residents.</p>
+        </div>
+      </div>
+      <!-- Sub-tab navigation -->
+      <div class="ea-subtab-bar">
+        <button class="ea-subtab active" data-panel="active" onclick="eaSwitchPanel('active',this)">Active Alerts</button>
+        <button class="ea-subtab" data-panel="create" onclick="eaSwitchPanel('create',this)">Create New Alert</button>
+        <button class="ea-subtab" data-panel="history" onclick="eaSwitchPanel('history',this)">Alert History</button>
+      </div>
+
+      <!-- Panel: Active Alerts -->
+      <div id="ea-panel-active">
+        <div id="ea-active-list"><div class="loading">Loading...</div></div>
+      </div>
+
+      <!-- Panel: Create New Alert -->
+      <div id="ea-panel-create" style="display:none">
+        <div class="ea-form-card">
+          <h3>Create New Emergency Alert</h3>
+          <p>Fill in the details below. Save as Draft to review before activating, or Activate Alert to make it live immediately.</p>
+          <div class="form-grid">
+            <div class="field field-full">
+              <label>Alert Title <span style="color:#ef4444">*</span></label>
+              <input type="text" id="ea-f-title" maxlength="200" placeholder="e.g. Flood Evacuation Notice">
+            </div>
+            <div class="field">
+              <label>Alert Type <span style="color:#ef4444">*</span></label>
+              <select id="ea-f-type">
+                <option>Weather Emergency</option>
+                <option>Flood Warning</option>
+                <option>Fire Incident</option>
+                <option>Earthquake</option>
+                <option>Health Emergency</option>
+                <option>Security Alert</option>
+                <option>Public Safety Notice</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Priority <span style="color:#ef4444">*</span></label>
+              <select id="ea-f-priority" onchange="eaUpdatePriorityNote()">
+                <option value="Advisory">Advisory</option>
+                <option value="Warning">Warning</option>
+                <option value="Critical">Critical</option>
+              </select>
+              <div class="ea-field-note" id="ea-priority-note">Banner: Allowed &nbsp;|&nbsp; Popup: Disabled</div>
+            </div>
+            <div class="field">
+              <label>Target Audience</label>
+              <select id="ea-f-audience" onchange="eaToggleTargetArea()">
+                <option value="All Residents">All Residents</option>
+                <option value="Specific Area / Zone">Specific Area / Zone</option>
+              </select>
+            </div>
+            <div class="field" id="ea-target-area-wrap" style="display:none">
+              <label>Target Area <span style="color:#ef4444">*</span></label>
+              <input type="text" id="ea-f-area" maxlength="200" placeholder="e.g. Zone 3, Purok 5">
+            </div>
+            <div class="field field-full">
+              <label>Emergency Message <span style="color:#ef4444">*</span></label>
+              <textarea id="ea-f-message" rows="4" maxlength="5000" placeholder="Describe the emergency situation clearly..."></textarea>
+            </div>
+            <div class="field field-full">
+              <label>Resident Instructions</label>
+              <textarea id="ea-f-instructions" rows="3" maxlength="5000" placeholder="What should residents do? e.g. Proceed to the nearest evacuation center."></textarea>
+            </div>
+            <div class="field">
+              <label>Start Date &amp; Time <span style="color:#ef4444">*</span></label>
+              <input type="datetime-local" id="ea-f-start">
+            </div>
+            <div class="field">
+              <label>Expiration Date &amp; Time <span style="color:#ef4444">*</span></label>
+              <input type="datetime-local" id="ea-f-expiry">
+            </div>
+          </div>
+          <div id="ea-form-err" style="color:var(--red);font-size:.82rem;margin-top:10px;display:none"></div>
+          <div class="ea-form-foot">
+            <button class="btn-cancel" onclick="eaCancelCreate()">Cancel</button>
+            <button class="btn-draft" onclick="eaSaveCreate('draft')" id="ea-btn-draft">Save Draft</button>
+            <button class="btn-activate" onclick="eaSaveCreate('active')" id="ea-btn-activate">Activate Alert</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Alert History -->
+      <div id="ea-panel-history" style="display:none">
+        <div class="ea-section-notice">Alert History shows all resolved, expired, and archived emergency alerts for record keeping.</div>
+        <div id="ea-history-list"><div class="loading">Loading...</div></div>
+      </div>
     </section>
 
     <!-- Settings -->
@@ -1656,7 +1802,7 @@ async function adminFetch(url, opts) {
 
 // -- Nav --------------------------------------------------------------------
 function showSection(name) {
-  ['dashboard','announcements','initiatives','forms','officials','calendar','settings'].forEach(s => {
+  ['dashboard','announcements','initiatives','forms','officials','calendar','alerts','settings'].forEach(s => {
     $('sec-'+s).style.display = s===name ? 'block' : 'none';
   });
   document.querySelectorAll('.nav-item[data-sec]').forEach(b => {
@@ -1667,6 +1813,7 @@ function showSection(name) {
   if (name==='forms') renderFormList();
   if (name==='officials') renderOfficialList();
   if (name==='calendar') renderCalList();
+  if (name==='alerts') { eaSwitchPanel('active', document.querySelector('.ea-subtab[data-panel="active"]')); loadAlerts(); }
   if (name==='settings') { resetSettingsForm(); loadSiteSettings(); loadHotlines(); }
 }
 
@@ -1709,6 +1856,7 @@ async function loadAll() {
   } catch {}
   try { await loadOfficials(); } catch {}
   try { await loadCalendarActivities(); } catch {}
+  try { await loadAlerts(); } catch {}
 }
 
 function updateStats() {
@@ -3342,6 +3490,368 @@ $('cal-filter-cat').addEventListener('change', e => { SC.filterCat = e.target.va
 $('cal-filter-month').addEventListener('change', e => { SC.filterMonth = e.target.value; renderCalList(); });
 $('btn-new-cal').onclick = openCalNew;
 
+// -- Emergency Alerts -------------------------------------------------------
+const EA = { alerts: [], currentPanel: 'active' };
+
+const EA_ALERT_TYPES = ['Weather Emergency','Flood Warning','Fire Incident','Earthquake','Health Emergency','Security Alert','Public Safety Notice','Other'];
+
+const EA_STATUS_LABEL = { draft:'Draft', active:'Active', expired:'Expired', resolved:'Resolved', archived:'Archived' };
+
+function eaSwitchPanel(panel, btn) {
+  EA.currentPanel = panel;
+  ['active','create','history'].forEach(p => {
+    const el = $('ea-panel-'+p);
+    if (el) el.style.display = p===panel ? 'block' : 'none';
+  });
+  document.querySelectorAll('.ea-subtab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (panel === 'active') renderEaActiveList();
+  if (panel === 'history') renderEaHistoryList();
+  if (panel === 'create') eaResetForm();
+}
+
+async function loadAlerts() {
+  try {
+    const r = await adminFetch('/admin/api/emergency-alerts');
+    if (r.ok) {
+      const d = await r.json();
+      EA.alerts = d.alerts || [];
+      eaUpdateNavBadge();
+      if (EA.currentPanel === 'active' && $('sec-alerts').style.display !== 'none') renderEaActiveList();
+      if (EA.currentPanel === 'history' && $('sec-alerts').style.display !== 'none') renderEaHistoryList();
+    }
+  } catch(e) { if (e.message !== 'unauthorized') toast('Failed to load alerts', 'err'); }
+}
+
+function eaUpdateNavBadge() {
+  const active = EA.alerts.filter(a => a.status === 'active');
+  const badge = $('ea-nav-active-count');
+  if (!badge) return;
+  if (active.length) {
+    badge.textContent = active.length;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function eaPriorityClass(priority) {
+  return 'priority-' + (priority||'advisory').toLowerCase();
+}
+
+function eaFmtDatetime(dt) {
+  if (!dt) return '—';
+  try {
+    const d = new Date(dt);
+    return d.toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'}) + ' ' +
+           d.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit',hour12:true});
+  } catch { return dt; }
+}
+
+function renderEaActiveList() {
+  const el = $('ea-active-list');
+  if (!el) return;
+  const items = EA.alerts.filter(a => a.status === 'active');
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon" style="font-size:2rem">🟢</div><h3>No Active Alerts</h3><p>No emergency alerts are currently active. Use "Create New Alert" to issue one.</p></div>';
+    return;
+  }
+  el.innerHTML = items.map(a => `
+    <div class="ea-alert-card ${eaPriorityClass(a.priority)}">
+      <div class="ea-card-head">
+        <div style="flex:1;min-width:0">
+          <div class="ea-card-title">${esc(a.title)}</div>
+          <div class="ea-card-meta">
+            <span class="badge badge-alert-active">Active</span>
+            <span class="badge badge-priority-${(a.priority||'advisory').toLowerCase()}">${esc(a.priority)}</span>
+            <span class="cat-tag">${esc(a.alertType)}</span>
+            ${a.version > 1 ? `<span style="font-size:.68rem;color:#94a3b8">v${a.version}</span>` : ''}
+          </div>
+          <div class="ea-card-body">${esc(a.message.length > 160 ? a.message.slice(0,160)+'…' : a.message)}</div>
+          ${a.targetAudience === 'Specific Area / Zone' && a.targetArea ? `<div style="font-size:.75rem;color:var(--blue);margin-bottom:6px">📍 ${esc(a.targetArea)}</div>` : ''}
+          <div class="ea-card-dates">
+            <span class="ea-card-date-item">▶ Start: ${eaFmtDatetime(a.startDatetime)}</span>
+            <span class="ea-card-date-item">⏹ Expires: ${eaFmtDatetime(a.expirationDatetime)}</span>
+          </div>
+        </div>
+        <div class="ea-card-actions">
+          <button class="btn-act" onclick="openEaEdit('${esc(a.id)}')">Edit</button>
+          <button class="btn-resolve" onclick="eaConfirmResolve('${esc(a.id)}','${esc(a.title)}')">Resolve</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:.72rem;color:#94a3b8">
+        <span>Created by: <strong>${esc(a.createdBy||'Admin')}</strong></span>
+        <span>•</span>
+        <span>Phase 2: Banner ${a.showBanner ? '✅' : '—'} &nbsp; Popup ${a.enablePopup ? '✅' : '—'}</span>
+      </div>
+    </div>`).join('');
+}
+
+function renderEaHistoryList() {
+  const el = $('ea-history-list');
+  if (!el) return;
+  const items = EA.alerts.filter(a => ['expired','resolved','archived'].includes(a.status));
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon" style="font-size:2rem">📋</div><h3>No History Yet</h3><p>Resolved, expired, and archived alerts will appear here.</p></div>';
+    return;
+  }
+  el.innerHTML = items.map(a => `
+    <div class="ea-history-card">
+      <div class="ea-history-head">
+        <div style="flex:1;min-width:0">
+          <div class="ea-history-title">${esc(a.title)}</div>
+          <div class="ea-history-meta">
+            <span class="badge badge-alert-${a.status}">${EA_STATUS_LABEL[a.status]||a.status}</span>
+            <span class="badge badge-priority-${(a.priority||'advisory').toLowerCase()}">${esc(a.priority)}</span>
+            <span class="cat-tag">${esc(a.alertType)}</span>
+          </div>
+          <div class="ea-history-details">
+            <span>Created: ${eaFmtDatetime(a.createdAt)}</span>
+            ${a.resolvedBy ? `<span>Resolved by: ${esc(a.resolvedBy)}</span>` : ''}
+            ${a.resolvedAt ? `<span>Resolved: ${eaFmtDatetime(a.resolvedAt)}</span>` : ''}
+            <span>Created by: ${esc(a.createdBy||'Admin')}</span>
+          </div>
+          ${a.message ? `<div style="font-size:.78rem;color:var(--gray);margin-top:6px;line-height:1.5">${esc(a.message.length>120?a.message.slice(0,120)+'…':a.message)}</div>` : ''}
+        </div>
+        <div class="ea-card-actions">
+          ${a.status !== 'archived' ? `<button class="btn-act" onclick="eaArchive('${esc(a.id)}')">Archive</button>` : ''}
+          <button class="btn-act danger" onclick="eaConfirmDelete('${esc(a.id)}','${esc(a.title)}')">Delete</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// --- Create form ---
+function eaUpdatePriorityNote() {
+  const p = $('ea-f-priority') ? $('ea-f-priority').value : 'Advisory';
+  const note = $('ea-priority-note');
+  if (!note) return;
+  if (p === 'Critical') note.textContent = 'Banner: Required (Phase 2) | Popup: Enabled Automatically';
+  else if (p === 'Warning') note.textContent = 'Banner: Required (Phase 2) | Popup: Disabled';
+  else note.textContent = 'Banner: Allowed (Phase 2) | Popup: Disabled';
+}
+
+function eaToggleTargetArea() {
+  const aud = $('ea-f-audience');
+  const wrap = $('ea-target-area-wrap');
+  if (!aud || !wrap) return;
+  wrap.style.display = aud.value === 'Specific Area / Zone' ? 'block' : 'none';
+}
+
+function eaResetForm() {
+  ['ea-f-title','ea-f-area','ea-f-message','ea-f-instructions','ea-f-start','ea-f-expiry'].forEach(id => {
+    const el=$(id); if(el) el.value='';
+  });
+  if ($('ea-f-type')) $('ea-f-type').value = 'Weather Emergency';
+  if ($('ea-f-priority')) $('ea-f-priority').value = 'Advisory';
+  if ($('ea-f-audience')) $('ea-f-audience').value = 'All Residents';
+  eaToggleTargetArea();
+  eaUpdatePriorityNote();
+  const now = new Date();
+  now.setMinutes(Math.ceil(now.getMinutes()/5)*5, 0, 0);
+  const pad = n => String(n).padStart(2,'0');
+  const fmtLocal = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  if ($('ea-f-start')) $('ea-f-start').value = fmtLocal(now);
+  const exp = new Date(now.getTime() + 24*60*60*1000);
+  if ($('ea-f-expiry')) $('ea-f-expiry').value = fmtLocal(exp);
+  const errEl = $('ea-form-err');
+  if (errEl) { errEl.style.display='none'; errEl.textContent=''; }
+}
+
+function eaCancelCreate() {
+  eaSwitchPanel('active', document.querySelector('.ea-subtab[data-panel="active"]'));
+}
+
+function eaShowFormErr(msg) {
+  const el=$('ea-form-err'); if(el){el.textContent=msg;el.style.display='block';}
+}
+
+async function eaSaveCreate(status) {
+  const title = ($('ea-f-title')||{}).value?.trim();
+  const message = ($('ea-f-message')||{}).value?.trim();
+  const start = ($('ea-f-start')||{}).value;
+  const expiry = ($('ea-f-expiry')||{}).value;
+  const audience = ($('ea-f-audience')||{}).value;
+  const area = ($('ea-f-area')||{}).value?.trim();
+
+  if (!title)   { eaShowFormErr('Alert title is required.'); $('ea-f-title').focus(); return; }
+  if (!message) { eaShowFormErr('Emergency message is required.'); $('ea-f-message').focus(); return; }
+  if (!start)   { eaShowFormErr('Start date and time is required.'); $('ea-f-start').focus(); return; }
+  if (!expiry)  { eaShowFormErr('Expiration date and time is required.'); $('ea-f-expiry').focus(); return; }
+  if (expiry <= start) { eaShowFormErr('Expiration must be after Start date/time.'); return; }
+  if (audience === 'Specific Area / Zone' && !area) { eaShowFormErr('Target area is required for Specific Area / Zone.'); $('ea-f-area').focus(); return; }
+
+  const errEl = $('ea-form-err');
+  if (errEl) errEl.style.display='none';
+  const draftBtn=$('ea-btn-draft'), actBtn=$('ea-btn-activate');
+  if(draftBtn)draftBtn.disabled=true; if(actBtn)actBtn.disabled=true;
+
+  const payload = {
+    title,
+    alertType:        ($('ea-f-type')||{}).value || 'Other',
+    priority:         ($('ea-f-priority')||{}).value || 'Advisory',
+    targetAudience:   audience,
+    targetArea:       area,
+    message,
+    instructions:     ($('ea-f-instructions')||{}).value?.trim()||'',
+    startDatetime:    start,
+    expirationDatetime: expiry,
+    status,
+  };
+  try {
+    const r = await adminFetch('/admin/api/emergency-alerts', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (r.ok) {
+      toast(status==='active' ? 'Alert activated successfully.' : 'Alert saved as draft.', 'ok');
+      await loadAlerts();
+      eaSwitchPanel('active', document.querySelector('.ea-subtab[data-panel="active"]'));
+    } else {
+      eaShowFormErr(d.error || 'Save failed.');
+    }
+  } catch(e) { if(e.message!=='unauthorized') eaShowFormErr('Connection error.'); }
+  finally { if(draftBtn)draftBtn.disabled=false; if(actBtn)actBtn.disabled=false; }
+}
+
+// --- Edit modal ---
+const EAE = { editingId: null };
+
+function openEaEdit(id) {
+  const a = EA.alerts.find(x => x.id === id);
+  if (!a) return;
+  EAE.editingId = id;
+  $('eae-modal-title').textContent = `Edit Alert (v${a.version})`;
+  $('eae-title').value       = a.title || '';
+  $('eae-type').value        = a.alertType || 'Other';
+  $('eae-priority').value    = a.priority || 'Advisory';
+  $('eae-audience').value    = a.targetAudience || 'All Residents';
+  $('eae-area').value        = a.targetArea || '';
+  $('eae-message').value     = a.message || '';
+  $('eae-instructions').value= a.instructions || '';
+  $('eae-start').value       = (a.startDatetime||'').slice(0,16);
+  $('eae-expiry').value      = (a.expirationDatetime||'').slice(0,16);
+  eaeToggleTargetArea();
+  eaeUpdatePriorityNote();
+  const errEl=$('eae-err'); if(errEl){errEl.style.display='none';errEl.textContent='';}
+  $('eae-overlay').style.display='flex';
+}
+
+function closeEaEdit() {
+  $('eae-overlay').style.display='none';
+  EAE.editingId = null;
+}
+
+function eaeToggleTargetArea() {
+  const aud=$('eae-audience'), wrap=$('eae-area-wrap');
+  if(!aud||!wrap) return;
+  wrap.style.display = aud.value==='Specific Area / Zone'?'block':'none';
+}
+
+function eaeUpdatePriorityNote() {
+  const p = ($('eae-priority')||{}).value||'Advisory';
+  const note=$('eae-priority-note'); if(!note) return;
+  if(p==='Critical') note.textContent='Banner: Required (Phase 2) | Popup: Enabled Automatically';
+  else if(p==='Warning') note.textContent='Banner: Required (Phase 2) | Popup: Disabled';
+  else note.textContent='Banner: Allowed (Phase 2) | Popup: Disabled';
+}
+
+async function saveEaEdit() {
+  if (!EAE.editingId) return;
+  const title   = ($('eae-title')||{}).value?.trim();
+  const message = ($('eae-message')||{}).value?.trim();
+  const start   = ($('eae-start')||{}).value;
+  const expiry  = ($('eae-expiry')||{}).value;
+  const audience= ($('eae-audience')||{}).value;
+  const area    = ($('eae-area')||{}).value?.trim();
+  const errEl   = $('eae-err');
+
+  if(!title)   { if(errEl){errEl.textContent='Alert title is required.';errEl.style.display='block';} return; }
+  if(!message) { if(errEl){errEl.textContent='Emergency message is required.';errEl.style.display='block';} return; }
+  if(!start)   { if(errEl){errEl.textContent='Start date and time is required.';errEl.style.display='block';} return; }
+  if(!expiry)  { if(errEl){errEl.textContent='Expiration date and time is required.';errEl.style.display='block';} return; }
+  if(expiry<=start){ if(errEl){errEl.textContent='Expiration must be after Start date/time.';errEl.style.display='block';} return; }
+  if(audience==='Specific Area / Zone'&&!area){ if(errEl){errEl.textContent='Target area is required.';errEl.style.display='block';} return; }
+  if(errEl) errEl.style.display='none';
+
+  const saveBtn=$('eae-save'); if(saveBtn) saveBtn.disabled=true;
+  const payload={
+    title, alertType:($('eae-type')||{}).value||'Other',
+    priority:($('eae-priority')||{}).value||'Advisory',
+    targetAudience:audience, targetArea:area,
+    message, instructions:($('eae-instructions')||{}).value?.trim()||'',
+    startDatetime:start, expirationDatetime:expiry,
+  };
+  try {
+    const r = await adminFetch(`/admin/api/emergency-alerts/${EAE.editingId}`, {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (r.ok) {
+      toast('Alert updated.', 'ok');
+      closeEaEdit();
+      await loadAlerts();
+    } else {
+      if(errEl){errEl.textContent=d.error||'Save failed.';errEl.style.display='block';}
+    }
+  } catch(e){ if(e.message!=='unauthorized'&&errEl){errEl.textContent='Connection error.';errEl.style.display='block';}}
+  finally { if(saveBtn)saveBtn.disabled=false; }
+}
+
+// --- Actions ---
+function eaConfirmResolve(id, title) {
+  $('confirm-title').textContent = 'Resolve this alert?';
+  $('confirm-msg').textContent = `"${title}" will be marked as Resolved and moved to Alert History.`;
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').textContent = 'Resolve';
+  $('confirm-yes').onclick = async () => {
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r = await adminFetch(`/admin/api/emergency-alerts/${id}/resolve`, {method:'POST'});
+      const d = await r.json();
+      if (r.ok) { toast('Alert resolved.', 'ok'); await loadAlerts(); }
+      else toast(d.error||'Resolve failed.','err');
+    } catch(e){ if(e.message!=='unauthorized') toast('Connection error.','err'); }
+    $('confirm-yes').textContent = 'Delete';
+  };
+}
+
+async function eaArchive(id) {
+  try {
+    const r = await adminFetch(`/admin/api/emergency-alerts/${id}/archive`, {method:'POST'});
+    const d = await r.json();
+    if (r.ok) { toast('Alert archived.','ok'); await loadAlerts(); renderEaHistoryList(); }
+    else toast(d.error||'Archive failed.','err');
+  } catch(e){ if(e.message!=='unauthorized') toast('Connection error.','err'); }
+}
+
+function eaConfirmDelete(id, title) {
+  $('confirm-title').textContent = 'Delete this alert?';
+  $('confirm-msg').textContent = `"${title}" will be permanently deleted. This cannot be undone.`;
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').textContent = 'Delete';
+  $('confirm-yes').onclick = async () => {
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r = await adminFetch(`/admin/api/emergency-alerts/${id}`, {method:'DELETE'});
+      const d = await r.json();
+      if (r.ok) { toast('Alert deleted.','ok'); await loadAlerts(); renderEaHistoryList(); }
+      else toast(d.error||'Delete failed.','err');
+    } catch(e){ if(e.message!=='unauthorized') toast('Connection error.','err'); }
+    $('confirm-yes').textContent = 'Delete';
+  };
+}
+
+// Also enable draft alerts to be activated from history-style draft panel view
+async function eaActivateDraft(id) {
+  try {
+    const r = await adminFetch(`/admin/api/emergency-alerts/${id}/activate`, {method:'POST'});
+    const d = await r.json();
+    if (r.ok) { toast('Alert activated.','ok'); await loadAlerts(); }
+    else toast(d.error||'Activate failed.','err');
+  } catch(e){ if(e.message!=='unauthorized') toast('Connection error.','err'); }
+}
+
 // -- Boot -------------------------------------------------------------------
 initSessionMonitor();
 init();
@@ -3378,6 +3888,82 @@ init();
   </div>
 </div>
 <style>#hl-modal-overlay.open{display:flex!important}</style>
+
+<!-- ================== EMERGENCY ALERT EDIT MODAL ================== -->
+<div class="overlay" id="eae-overlay" onclick="if(event.target===this)closeEaEdit()" style="display:none">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-head">
+      <h3 id="eae-modal-title">Edit Alert</h3>
+      <button class="btn-close" onclick="closeEaEdit()">X</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field field-full">
+          <label>Alert Title <span style="color:#ef4444">*</span></label>
+          <input type="text" id="eae-title" maxlength="200">
+        </div>
+        <div class="field">
+          <label>Alert Type</label>
+          <select id="eae-type">
+            <option>Weather Emergency</option>
+            <option>Flood Warning</option>
+            <option>Fire Incident</option>
+            <option>Earthquake</option>
+            <option>Health Emergency</option>
+            <option>Security Alert</option>
+            <option>Public Safety Notice</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Priority</label>
+          <select id="eae-priority" onchange="eaeUpdatePriorityNote()">
+            <option value="Advisory">Advisory</option>
+            <option value="Warning">Warning</option>
+            <option value="Critical">Critical</option>
+          </select>
+          <div class="ea-field-note" id="eae-priority-note">Banner: Allowed | Popup: Disabled</div>
+        </div>
+        <div class="field">
+          <label>Target Audience</label>
+          <select id="eae-audience" onchange="eaeToggleTargetArea()">
+            <option value="All Residents">All Residents</option>
+            <option value="Specific Area / Zone">Specific Area / Zone</option>
+          </select>
+        </div>
+        <div class="field" id="eae-area-wrap" style="display:none">
+          <label>Target Area</label>
+          <input type="text" id="eae-area" maxlength="200" placeholder="e.g. Zone 3, Purok 5">
+        </div>
+        <div class="field field-full">
+          <label>Emergency Message <span style="color:#ef4444">*</span></label>
+          <textarea id="eae-message" rows="4" maxlength="5000"></textarea>
+        </div>
+        <div class="field field-full">
+          <label>Resident Instructions</label>
+          <textarea id="eae-instructions" rows="3" maxlength="5000"></textarea>
+        </div>
+        <div class="field">
+          <label>Start Date &amp; Time <span style="color:#ef4444">*</span></label>
+          <input type="datetime-local" id="eae-start">
+        </div>
+        <div class="field">
+          <label>Expiration Date &amp; Time <span style="color:#ef4444">*</span></label>
+          <input type="datetime-local" id="eae-expiry">
+        </div>
+        <div class="field field-full" style="background:#eff6ff;border-radius:8px;padding:10px 14px;border:1px solid #bfdbfe">
+          <div style="font-size:.73rem;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Audit Note</div>
+          <div style="font-size:.78rem;color:#1d4ed8">Saving this edit will increment the version number and record who updated it.</div>
+        </div>
+      </div>
+      <div id="eae-err" style="color:var(--red);font-size:.82rem;margin-top:10px;display:none"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeEaEdit()">Cancel</button>
+      <button class="btn-publish" id="eae-save" onclick="saveEaEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
 
 <!-- ================== CALENDAR ACTIVITY MODAL ================== -->
 <div class="overlay" id="cal-form-overlay" style="display:none">
