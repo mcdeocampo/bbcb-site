@@ -4223,17 +4223,28 @@ function eaConfirmDelete(id, title) {
   };
 }
 
-async function eaActivateDraft(id, title) {
-  if (!confirm(`Activate "${title}"?\n\nThis will make the alert live immediately on the public website.`)) return;
-  try {
-    const r = await adminFetch(`/admin/api/emergency-alerts/${id}/activate`, {method:'POST'});
-    const d = await r.json();
-    if (r.ok) {
-      toast('Alert activated successfully.','ok');
-      await loadAlerts();
-      eaSwitchPanel('active', document.querySelector('.ea-subtab[data-panel="active"]'));
-    } else toast(d.error||'Activate failed.','err');
-  } catch(e){ if(e.message!=='unauthorized') toast('Connection error.','err'); }
+function eaActivateDraft(id, title) {
+  $('confirm-icon-wrap').style.cssText = 'background:#e0f2fe;color:#0369a1';
+  $('confirm-icon-wrap').innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+  $('confirm-title').textContent = `Activate "${title}"?`;
+  $('confirm-msg').textContent = 'This will make the alert live immediately on the public website.';
+  $('confirm-yes').className = 'btn-activate';
+  $('confirm-yes').textContent = 'Activate';
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick = async () => {
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r = await adminFetch(`/admin/api/emergency-alerts/${id}/activate`, {method:'POST'});
+      const d = await r.json();
+      if (r.ok) {
+        toast('Alert activated successfully.','ok');
+        await loadAlerts();
+        eaSwitchPanel('active', document.querySelector('.ea-subtab[data-panel="active"]'));
+      } else toast(d.error||'Activate failed.','err');
+    } catch(e){ if(e.message!=='unauthorized') toast('Connection error.','err'); }
+    $('confirm-yes').className = 'btn-del';
+    $('confirm-yes').textContent = 'Delete';
+  };
 }
 
 function eaDeleteDraft(id, title) {
