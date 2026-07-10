@@ -1921,6 +1921,7 @@ function showSection(name) {
   document.querySelectorAll('.nav-item[data-sec]').forEach(b => {
     b.classList.toggle('active', b.dataset.sec===name);
   });
+  if (name==='dashboard')     updateStats();
   if (name==='announcements') renderList();
   if (name==='initiatives') renderInitList();
   if (name==='forms') renderFormList();
@@ -1947,7 +1948,6 @@ async function loadAll() {
     if (r.ok) {
       const d = await r.json();
       S.announcements = d.announcements || [];
-      updateStats();
       if ($('sec-announcements').style.display !== 'none') renderList();
     }
   } catch {}
@@ -1970,6 +1970,8 @@ async function loadAll() {
   try { await loadOfficials(); } catch {}
   try { await loadCalendarActivities(); } catch {}
   try { await loadAlerts(); } catch {}
+  // Update dashboard stats once all sources are loaded
+  updateStats();
 }
 
 function updateStats() {
@@ -2360,6 +2362,11 @@ async function loadInitiatives() {
     if (!r.ok) return;
     const d = await r.json();
     SI.initiatives = d.initiatives || [];
+    const ini = SI.initiatives;
+    $('dash-init-total').textContent  = ini.length;
+    $('dash-init-pub').textContent    = ini.filter(x=>x.status==='published').length;
+    $('dash-init-draft').textContent  = ini.filter(x=>x.status==='draft').length;
+    $('dash-init-hidden').textContent = ini.filter(x=>x.status==='hidden').length;
     renderInitList();
   } catch {}
 }
@@ -2645,6 +2652,10 @@ async function loadForms() {
     if (!r.ok) return;
     const d = await r.json();
     SF.forms = d.forms || [];
+    const frms = SF.forms;
+    $('dash-forms-total').textContent = frms.length;
+    $('dash-forms-pub').textContent   = frms.filter(x=>x.status==='published').length;
+    $('dash-forms-hint').textContent  = frms.length === 1 ? '1 form total' : frms.length + ' forms total';
     renderFormList();
   } catch {}
 }
@@ -2937,6 +2948,7 @@ async function loadOfficials() {
   if (!r.ok) return;
   const d = await r.json();
   SO.officials = d.officials || [];
+  $('dash-officials-total').textContent = SO.officials.length;
   if ($('sec-officials').style.display !== 'none') renderOfficialList();
 }
 
@@ -3419,6 +3431,14 @@ async function loadCalendarActivities() {
     if (r.ok) {
       const d = await r.json();
       SC.activities = d.activities || [];
+      // Update upcoming-events counter on dashboard
+      const now = Date.now(), in30 = now + 30 * 24 * 60 * 60 * 1000;
+      const upcoming = SC.activities.filter(function(x) {
+        if (!x.date) return false;
+        const t = new Date(x.date).getTime();
+        return t >= now && t <= in30;
+      });
+      $('dash-cal-upcoming').textContent = upcoming.length;
       if ($('sec-calendar').style.display !== 'none') renderCalList();
     }
   } catch {}
@@ -3695,6 +3715,7 @@ async function loadAlerts() {
       const d = await r.json();
       EA.alerts = d.alerts || [];
       eaUpdateNavBadge();
+      updateEAStats();
       if (EA.currentPanel === 'active' && $('sec-alerts').style.display !== 'none') renderEaActiveList();
       if (EA.currentPanel === 'history' && $('sec-alerts').style.display !== 'none') renderEaHistoryList();
     }

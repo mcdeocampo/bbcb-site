@@ -1996,8 +1996,8 @@ def admin_alerts_create():
         return jsonify({'error': 'Alert title is required.'}), 400
     if not message:
         return jsonify({'error': 'Emergency message is required.'}), 400
-    start  = _clean(d.get('startDatetime'), 30)
-    expiry = _clean(d.get('expirationDatetime'), 30)
+    start  = _clean(d.get('startDatetime'), 30) or None
+    expiry = _clean(d.get('expirationDatetime'), 30) or None
     req_status = d.get('status', 'draft')
     if req_status == 'active':
         if not start:
@@ -2059,8 +2059,8 @@ def admin_alerts_update(alert_id):
     except Exception as exc:
         return jsonify({'error': f'Fetch failed: {exc}'}), 500
 
-    start  = _clean(d.get('startDatetime',      cur.get('start_datetime', '')), 30)
-    expiry = _clean(d.get('expirationDatetime', cur.get('expiration_datetime', '')), 30)
+    start  = _clean(d.get('startDatetime',      cur.get('start_datetime',  '')), 30) or None
+    expiry = _clean(d.get('expirationDatetime', cur.get('expiration_datetime', '')), 30) or None
     if expiry and start and expiry <= start:
         return jsonify({'error': 'Expiration must be after Start date/time.'}), 400
 
