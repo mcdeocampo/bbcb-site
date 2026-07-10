@@ -711,12 +711,42 @@ a{text-decoration:none;color:inherit}
           <span class="dash-badge"><span class="dash-badge-dot"></span>System Online</span>
         </div>
       </div>
-      <div class="dash-section-label">Announcements Overview</div>
+      <!-- ── Emergency Alerts ── -->
+      <div class="dash-section-label">Emergency Alerts</div>
+      <div class="stat-grid">
+        <div class="stat-card" id="dash-ea-active-card" onclick="showSection('alerts')" style="cursor:pointer">
+          <div class="stat-icon" id="dash-ea-active-icon" style="background:#fee2e2;color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <div class="stat-num" id="dash-ea-active">-</div>
+          <div class="stat-label">Active Now</div>
+          <div class="stat-hint" id="dash-ea-active-hint">No active alert</div>
+        </div>
+        <div class="stat-card" onclick="showSection('alerts')" style="cursor:pointer">
+          <div class="stat-icon" style="background:#eff6ff;color:#2563c4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></div>
+          <div class="stat-num" id="dash-ea-total">-</div>
+          <div class="stat-label">Total Alerts</div>
+          <div class="stat-hint">All time</div>
+        </div>
+        <div class="stat-card" onclick="showSection('alerts')" style="cursor:pointer">
+          <div class="stat-icon" style="background:#e6f9f0;color:#16a34a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div class="stat-num" id="dash-ea-resolved">-</div>
+          <div class="stat-label">Resolved</div>
+          <div class="stat-hint">Successfully closed</div>
+        </div>
+        <div class="stat-card" onclick="showSection('alerts')" style="cursor:pointer">
+          <div class="stat-icon" style="background:#fff3e0;color:#d97706"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></div>
+          <div class="stat-num" id="dash-ea-draft">-</div>
+          <div class="stat-label">Drafts</div>
+          <div class="stat-hint">Awaiting activation</div>
+        </div>
+      </div>
+
+      <!-- ── Announcements ── -->
+      <div class="dash-section-label">Announcements</div>
       <div class="stat-grid">
         <div class="stat-card stat-total" onclick="goAnnouncements('all')">
           <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></div>
           <div class="stat-num" id="stat-total">-</div>
-          <div class="stat-label">Total Announcements</div>
+          <div class="stat-label">Total</div>
           <div class="stat-hint">Click to view all</div>
         </div>
         <div class="stat-card stat-published" onclick="goAnnouncements('published')">
@@ -738,33 +768,66 @@ a{text-decoration:none;color:inherit}
           <div class="stat-hint">Not publicly visible</div>
         </div>
       </div>
-      <div class="dash-section-label">Emergency Alerts Overview</div>
+
+      <!-- ── Community Initiatives ── -->
+      <div class="dash-section-label">Community Initiatives</div>
       <div class="stat-grid">
-        <div class="stat-card" id="dash-ea-active-card" onclick="showSection('alerts')" style="cursor:pointer">
-          <div class="stat-icon" id="dash-ea-active-icon" style="background:#fee2e2;color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-          <div class="stat-num" id="dash-ea-active">-</div>
-          <div class="stat-label">Active Now</div>
-          <div class="stat-hint" id="dash-ea-active-hint">Click to manage</div>
+        <div class="stat-card stat-total" onclick="showSection('initiatives')" style="cursor:pointer">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.2 2 7-6.5-4.2-6.5 4.2 2-7L2 9h7l3-7z"/></svg></div>
+          <div class="stat-num" id="dash-init-total">-</div>
+          <div class="stat-label">Total</div>
+          <div class="stat-hint">All initiatives</div>
         </div>
-        <div class="stat-card" onclick="showSection('alerts')" style="cursor:pointer">
-          <div class="stat-icon" style="background:#eff6ff;color:#2563c4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></div>
-          <div class="stat-num" id="dash-ea-total">-</div>
-          <div class="stat-label">Total Alerts</div>
-          <div class="stat-hint">All time</div>
-        </div>
-        <div class="stat-card" onclick="showSection('alerts')" style="cursor:pointer">
+        <div class="stat-card stat-published" onclick="showSection('initiatives')" style="cursor:pointer">
           <div class="stat-icon" style="background:#e6f9f0;color:#16a34a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
-          <div class="stat-num" id="dash-ea-resolved">-</div>
-          <div class="stat-label">Resolved</div>
-          <div class="stat-hint">Successfully closed</div>
+          <div class="stat-num" id="dash-init-pub">-</div>
+          <div class="stat-label">Published</div>
+          <div class="stat-hint">Live on website</div>
         </div>
-        <div class="stat-card" onclick="showSection('alerts')" style="cursor:pointer">
+        <div class="stat-card stat-draft" onclick="showSection('initiatives')" style="cursor:pointer">
           <div class="stat-icon" style="background:#fff3e0;color:#d97706"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></div>
-          <div class="stat-num" id="dash-ea-draft">-</div>
+          <div class="stat-num" id="dash-init-draft">-</div>
           <div class="stat-label">Drafts</div>
-          <div class="stat-hint">Awaiting activation</div>
+          <div class="stat-hint">Not yet published</div>
+        </div>
+        <div class="stat-card stat-hidden" onclick="showSection('initiatives')" style="cursor:pointer">
+          <div class="stat-icon" style="background:#f1f5f9;color:#94a3b8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C5 20 1 12 1 12a20.2 20.2 0 0 1 5.06-5.94"/><path d="M9.9 4.24A10.8 10.8 0 0 1 12 4c7 0 11 8 11 8a20.7 20.7 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 0 1-4.24-4.24"/><path d="M1 1l22 22"/></svg></div>
+          <div class="stat-num" id="dash-init-hidden">-</div>
+          <div class="stat-label">Hidden</div>
+          <div class="stat-hint">Not publicly visible</div>
         </div>
       </div>
+
+      <!-- ── Download Forms · Officials · Calendar ── -->
+      <div class="dash-section-label">Other Sections</div>
+      <div class="stat-grid">
+        <div class="stat-card stat-total" onclick="showSection('forms')" style="cursor:pointer">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg></div>
+          <div class="stat-num" id="dash-forms-total">-</div>
+          <div class="stat-label">Download Forms</div>
+          <div class="stat-hint" id="dash-forms-hint">Total forms</div>
+        </div>
+        <div class="stat-card stat-published" onclick="showSection('forms')" style="cursor:pointer">
+          <div class="stat-icon" style="background:#e6f9f0;color:#16a34a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div class="stat-num" id="dash-forms-pub">-</div>
+          <div class="stat-label">Published Forms</div>
+          <div class="stat-hint">Available to download</div>
+        </div>
+        <div class="stat-card stat-total" onclick="showSection('officials')" style="cursor:pointer">
+          <div class="stat-icon" style="background:#eff6ff;color:#2563c4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div class="stat-num" id="dash-officials-total">-</div>
+          <div class="stat-label">Officials</div>
+          <div class="stat-hint">Total on record</div>
+        </div>
+        <div class="stat-card stat-total" onclick="showSection('calendar')" style="cursor:pointer">
+          <div class="stat-icon" style="background:#f0fdf4;color:#16a34a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <div class="stat-num" id="dash-cal-upcoming">-</div>
+          <div class="stat-label">Upcoming Events</div>
+          <div class="stat-hint">Next 30 days</div>
+        </div>
+      </div>
+
+      <!-- ── Quick Actions ── -->
       <div class="dash-section-label">Quick Actions</div>
       <div class="quick-grid">
         <div class="quick-card" onclick="showSection('alerts')" style="border-color:#fee2e2">
@@ -1910,11 +1973,42 @@ async function loadAll() {
 }
 
 function updateStats() {
+  // Announcements
   const a = S.announcements;
   $('stat-total').textContent  = a.length;
   $('stat-pub').textContent    = a.filter(x=>x.status==='published').length;
   $('stat-draft').textContent  = a.filter(x=>x.status==='draft').length;
   $('stat-hidden').textContent = a.filter(x=>x.status==='hidden').length;
+
+  // Community Initiatives
+  const ini = SI.initiatives || [];
+  $('dash-init-total').textContent  = ini.length;
+  $('dash-init-pub').textContent    = ini.filter(x=>x.status==='published').length;
+  $('dash-init-draft').textContent  = ini.filter(x=>x.status==='draft').length;
+  $('dash-init-hidden').textContent = ini.filter(x=>x.status==='hidden').length;
+
+  // Download Forms
+  const frms = SF.forms || [];
+  const pubForms = frms.filter(x=>x.status==='published');
+  $('dash-forms-total').textContent = frms.length;
+  $('dash-forms-pub').textContent   = pubForms.length;
+  $('dash-forms-hint').textContent  = frms.length === 1 ? '1 form total' : frms.length + ' forms total';
+
+  // Officials
+  const offs = SO.officials || [];
+  $('dash-officials-total').textContent = offs.length;
+
+  // Calendar — upcoming events in the next 30 days
+  const acts = SC.activities || [];
+  const now  = Date.now();
+  const in30 = now + 30 * 24 * 60 * 60 * 1000;
+  const upcoming = acts.filter(function(x) {
+    if (!x.date) return false;
+    const d = new Date(x.date).getTime();
+    return d >= now && d <= in30;
+  });
+  $('dash-cal-upcoming').textContent = upcoming.length;
+
   updateEAStats();
 }
 
