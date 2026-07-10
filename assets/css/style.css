@@ -18160,6 +18160,13 @@ html, body { overflow-x: hidden; max-width: 100%; }
   line-height: 1.55;
   padding: 16px 20px;
 }
+/* Prevent back-to-top button from overlapping copyright text on small screens */
+@media (max-width: 640px) {
+  .site-footer .footer-bottom {
+    padding-right: 80px !important;
+    text-align: left !important;
+  }
+}
 
 /* ── About page: disable justify on mobile (avoids uneven spacing) ── */
 @media (max-width: 640px) {
