@@ -1054,6 +1054,7 @@ a{text-decoration:none;color:inherit}
       <!-- Sub-tab navigation -->
       <div class="ea-subtab-bar">
         <button class="ea-subtab active" data-panel="active" onclick="eaSwitchPanel('active',this)">Active Alerts</button>
+        <button class="ea-subtab" data-panel="drafts" onclick="eaSwitchPanel('drafts',this)">Drafts <span id="ea-draft-badge" style="display:none;background:#475569;color:#fff;font-size:.65rem;padding:1px 6px;border-radius:10px;margin-left:3px"></span></button>
         <button class="ea-subtab" data-panel="create" onclick="eaSwitchPanel('create',this)">Create New Alert</button>
         <button class="ea-subtab" data-panel="history" onclick="eaSwitchPanel('history',this)">Alert History</button>
         <button class="ea-subtab" data-panel="resolved-msg" onclick="eaSwitchPanel('resolved-msg',this)">Resolved Messages</button>
@@ -1062,6 +1063,11 @@ a{text-decoration:none;color:inherit}
       <!-- Panel: Active Alerts -->
       <div id="ea-panel-active">
         <div id="ea-active-list"><div class="loading">Loading...</div></div>
+      </div>
+
+      <!-- Panel: Drafts -->
+      <div id="ea-panel-drafts" style="display:none">
+        <div id="ea-drafts-list"><div class="loading">Loading...</div></div>
       </div>
 
       <!-- Panel: Create New Alert -->
@@ -3696,16 +3702,51 @@ const EA_STATUS_LABEL = { draft:'Draft', active:'Active', expired:'Expired', res
 
 function eaSwitchPanel(panel, btn) {
   EA.currentPanel = panel;
-  ['active','create','history','resolved-msg'].forEach(p => {
+  ['active','drafts','create','history','resolved-msg'].forEach(p => {
     const el = $('ea-panel-'+p);
     if (el) el.style.display = p===panel ? 'block' : 'none';
   });
   document.querySelectorAll('.ea-subtab').forEach(t => t.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  if (panel === 'active') renderEaActiveList();
-  if (panel === 'history') renderEaHistoryList();
-  if (panel === 'create') eaResetForm();
-  if (panel === 'resolved-msg') { loadResolvedMessages(); }
+  if (panel === 'active')       renderEaActiveList();
+  if (panel === 'drafts')       renderEaDraftList();
+  if (panel === 'history')      renderEaHistoryList();
+  if (panel === 'create')       eaResetForm();
+  if (panel === 'resolved-msg') loadResolvedMessages();
+}
+
+function renderEaDraftList() {
+  const el = $('ea-drafts-list');
+  if (!el) return;
+  const items = EA.alerts.filter(a => a.status === 'draft');
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon" style="font-size:2rem">📝</div><h3>No Drafts</h3><p>Draft alerts will appear here. Use "Create New Alert" and save as draft to stage an alert before activating.</p></div>';
+    return;
+  }
+  el.innerHTML = items.map(a => `
+    <div class="ea-history-card">
+      <div class="ea-history-head">
+        <div style="flex:1;min-width:0">
+          <div class="ea-history-title">${esc(a.title)}</div>
+          <div class="ea-history-meta">
+            <span class="badge badge-alert-draft">Draft</span>
+            <span class="badge badge-priority-${(a.priority||'advisory').toLowerCase()}">${esc(a.priority)}</span>
+            <span class="cat-tag">${esc(a.alertType)}</span>
+          </div>
+          <div class="ea-history-details" style="margin-top:6px">
+            <span>Created: ${eaFmtDatetime(a.createdAt)}</span>
+            <span>By: ${esc(a.createdBy||'Admin')}</span>
+            ${a.startDatetime ? `<span>Planned start: ${eaFmtDatetime(a.startDatetime)}</span>` : ''}
+          </div>
+          ${a.message ? `<div style="font-size:.8rem;color:#475569;margin-top:8px;line-clamp:2;overflow:hidden">${esc(a.message.length>160?a.message.slice(0,160)+'…':a.message)}</div>` : ''}
+        </div>
+        <div class="ea-card-actions" style="flex-direction:column;align-items:flex-end;gap:6px">
+          <button class="btn-act" onclick="openEaEdit('${esc(a.id)}')">Edit</button>
+          <button class="btn-activate" style="font-size:.75rem;padding:5px 12px" onclick="eaActivateDraft('${esc(a.id)}','${esc(a.title)}')">Activate</button>
+          <button class="btn-del" style="font-size:.75rem;padding:5px 12px" onclick="eaDeleteDraft('${esc(a.id)}','${esc(a.title)}')">Delete</button>
+        </div>
+      </div>
+    </div>`).join('');
 }
 
 async function loadAlerts() {
@@ -3716,7 +3757,12 @@ async function loadAlerts() {
       EA.alerts = d.alerts || [];
       eaUpdateNavBadge();
       updateEAStats();
-      if (EA.currentPanel === 'active' && $('sec-alerts').style.display !== 'none') renderEaActiveList();
+      // Update Drafts tab badge
+      const draftCount = EA.alerts.filter(x => x.status === 'draft').length;
+      const draftBadge = $('ea-draft-badge');
+      if (draftBadge) { draftBadge.textContent = draftCount; draftBadge.style.display = draftCount ? 'inline' : 'none'; }
+      if (EA.currentPanel === 'active'  && $('sec-alerts').style.display !== 'none') renderEaActiveList();
+      if (EA.currentPanel === 'drafts'  && $('sec-alerts').style.display !== 'none') renderEaDraftList();
       if (EA.currentPanel === 'history' && $('sec-alerts').style.display !== 'none') renderEaHistoryList();
     }
   } catch(e) { if (e.message !== 'unauthorized') toast('Failed to load alerts', 'err'); }
@@ -4177,14 +4223,21 @@ function eaConfirmDelete(id, title) {
   };
 }
 
-// Also enable draft alerts to be activated from history-style draft panel view
-async function eaActivateDraft(id) {
+async function eaActivateDraft(id, title) {
+  if (!confirm(`Activate "${title}"?\n\nThis will make the alert live immediately on the public website.`)) return;
   try {
     const r = await adminFetch(`/admin/api/emergency-alerts/${id}/activate`, {method:'POST'});
     const d = await r.json();
-    if (r.ok) { toast('Alert activated.','ok'); await loadAlerts(); }
-    else toast(d.error||'Activate failed.','err');
+    if (r.ok) {
+      toast('Alert activated successfully.','ok');
+      await loadAlerts();
+      eaSwitchPanel('active', document.querySelector('.ea-subtab[data-panel="active"]'));
+    } else toast(d.error||'Activate failed.','err');
   } catch(e){ if(e.message!=='unauthorized') toast('Connection error.','err'); }
+}
+
+function eaDeleteDraft(id, title) {
+  eaConfirmDelete(id, title);
 }
 
 // -- Boot -------------------------------------------------------------------
