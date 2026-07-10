@@ -1149,7 +1149,7 @@ a{text-decoration:none;color:inherit}
       <!-- Sub-tab navigation -->
       <div class="ea-subtab-bar">
         <button class="ea-subtab active" data-panel="active" onclick="eaSwitchPanel('active',this)">Active Alerts</button>
-        <button class="ea-subtab" data-panel="drafts" onclick="eaSwitchPanel('drafts',this)">Drafts <span id="ea-draft-badge" style="display:none;background:#475569;color:#fff;font-size:.65rem;padding:1px 6px;border-radius:10px;margin-left:3px"></span></button>
+        <button class="ea-subtab" data-panel="drafts" onclick="eaSwitchPanel('drafts',this)">Drafts <span id="ea-draft-badge" style="display:none;background:#dc2626;color:#fff;font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:5px;vertical-align:middle;line-height:1"></span></button>
         <button class="ea-subtab" data-panel="create" onclick="eaSwitchPanel('create',this)">Create New Alert</button>
         <button class="ea-subtab" data-panel="history" onclick="eaSwitchPanel('history',this)">Alert History</button>
         <button class="ea-subtab" data-panel="resolved-msg" onclick="eaSwitchPanel('resolved-msg',this)">Resolved Messages</button>
@@ -3819,26 +3819,26 @@ function renderEaDraftList() {
     return;
   }
   el.innerHTML = items.map(a => `
-    <div class="ea-history-card">
-      <div class="ea-history-head">
+    <div class="ea-alert-card ${eaPriorityClass(a.priority)}">
+      <div class="ea-card-head">
         <div style="flex:1;min-width:0">
-          <div class="ea-history-title">${esc(a.title)}</div>
-          <div class="ea-history-meta">
+          <div class="ea-card-title">${esc(a.title)}</div>
+          <div class="ea-card-meta">
             <span class="badge badge-alert-draft">Draft</span>
             <span class="badge badge-priority-${(a.priority||'advisory').toLowerCase()}">${esc(a.priority)}</span>
             <span class="cat-tag">${esc(a.alertType)}</span>
           </div>
-          <div class="ea-history-details" style="margin-top:6px">
-            <span>Created: ${eaFmtDatetime(a.createdAt)}</span>
-            <span>By: ${esc(a.createdBy||'Admin')}</span>
-            ${a.startDatetime ? `<span>Planned start: ${eaFmtDatetime(a.startDatetime)}</span>` : ''}
+          ${a.message ? `<div class="ea-card-body">${esc(a.message.length>160?a.message.slice(0,160)+'…':a.message)}</div>` : ''}
+          <div class="ea-card-dates">
+            <span class="ea-card-date-item">📅 Created: ${eaFmtDatetime(a.createdAt)}</span>
+            <span class="ea-card-date-item">👤 By: ${esc(a.createdBy||'Admin')}</span>
+            ${a.startDatetime ? `<span class="ea-card-date-item">▶ Planned start: ${eaFmtDatetime(a.startDatetime)}</span>` : ''}
           </div>
-          ${a.message ? `<div style="font-size:.8rem;color:#475569;margin-top:8px;line-clamp:2;overflow:hidden">${esc(a.message.length>160?a.message.slice(0,160)+'…':a.message)}</div>` : ''}
         </div>
-        <div class="ea-card-actions" style="flex-direction:column;align-items:flex-end;gap:6px">
+        <div class="ea-card-actions">
           <button class="btn-act" onclick="openEaEdit('${esc(a.id)}')">Edit</button>
-          <button class="btn-activate" style="font-size:.75rem;padding:5px 12px" onclick="eaActivateDraft('${esc(a.id)}','${esc(a.title)}')">Activate</button>
-          <button class="btn-del" style="font-size:.75rem;padding:5px 12px" onclick="eaDeleteDraft('${esc(a.id)}','${esc(a.title)}')">Delete</button>
+          <button class="btn-activate" onclick="eaActivateDraft('${esc(a.id)}','${esc(a.title)}')">Activate</button>
+          <button class="btn-act danger" onclick="eaDeleteDraft('${esc(a.id)}','${esc(a.title)}')">Delete</button>
         </div>
       </div>
     </div>`).join('');
