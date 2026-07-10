@@ -9,6 +9,7 @@
   var _currentId = null;
   var _currentVersion = null;
   var _currentPriority = null;
+  var _currentResolvedMessage = null; // custom message from admin config, or null = use default
 
   function ackKey(id, version) {
     return 'EmergencyAlert_' + id + '_Version_' + version;
@@ -168,12 +169,13 @@
   var RESOLVED_KEY = 'EA_Resolved';
   var RESOLVED_TTL = 10 * 60 * 1000; // 10 minutes
 
-  function storeResolved(priority) {
+  function storeResolved(priority, customMessage) {
     try {
       sessionStorage.setItem(RESOLVED_KEY, JSON.stringify({
-        priority: priority || 'Advisory',
-        status: 'resolved',
-        timestamp: Date.now()
+        priority:      priority || 'Advisory',
+        status:        'resolved',
+        customMessage: customMessage || null,
+        timestamp:     Date.now()
       }));
     } catch (e) {}
   }
@@ -194,19 +196,16 @@
   }
 
   // ── Resolved toast ───────────────────────────────────────────────────────────
-  function resolvedCopy(priority) {
-    if (priority === 'Critical') return {
-      title: 'Emergency Resolved',
-      msg: 'The previous emergency alert has been lifted. The situation has returned to normal. Residents may resume normal activities and are advised to continue monitoring official Barangay announcements for any further updates.'
-    };
-    if (priority === 'Warning') return {
-      title: 'Warning Lifted',
-      msg: 'The previous warning has been lifted. The situation has returned to normal. Residents are advised to remain alert and continue monitoring official Barangay announcements for any further updates.'
-    };
-    return {
-      title: 'Advisory Lifted',
-      msg: 'The previous advisory has been lifted. The situation has returned to normal. Residents are encouraged to continue monitoring official Barangay announcements for any further updates.'
-    };
+  function resolvedCopy(priority, customMessage) {
+    var title = priority === 'Critical' ? 'Emergency Resolved'
+              : priority === 'Warning'  ? 'Warning Lifted'
+              : 'Advisory Lifted';
+    var defaultMsg = priority === 'Critical'
+      ? 'The previous emergency alert has been lifted. The situation has returned to normal. Residents may resume normal activities and are advised to continue monitoring official Barangay announcements for any further updates.'
+      : priority === 'Warning'
+      ? 'The previous warning has been lifted. The situation has returned to normal. Residents are advised to remain alert and continue monitoring official Barangay announcements for any further updates.'
+      : 'The previous advisory has been lifted. The situation has returned to normal. Residents are encouraged to continue monitoring official Barangay announcements for any further updates.';
+    return { title: title, msg: (customMessage && customMessage.trim()) ? customMessage.trim() : defaultMsg };
   }
 
   function removeResolvedToast() {
@@ -214,12 +213,12 @@
     if (el && el.parentNode) el.parentNode.removeChild(el);
   }
 
-  function showResolvedToast(priority, fromStorage) {
+  function showResolvedToast(priority, customMessage, fromStorage) {
     removeResolvedToast();
 
-    if (!fromStorage) storeResolved(priority);
+    if (!fromStorage) storeResolved(priority, customMessage);
 
-    var copy = resolvedCopy(priority);
+    var copy = resolvedCopy(priority, customMessage);
     var toast = document.createElement('div');
     toast.id = 'ea-toast';
     toast.className = 'ea-toast';
@@ -261,7 +260,7 @@
 
   function checkStoredResolved() {
     var stored = getStoredResolved();
-    if (stored) showResolvedToast(stored.priority, true);
+    if (stored) showResolvedToast(stored.priority, stored.customMessage || null, true);
   }
 
   // ── Core logic ───────────────────────────────────────────────────────────────
@@ -269,11 +268,12 @@
     if (!data || !data.active) {
       console.log('[EA] No active alert.');
       if (_currentId !== null) {
-        showResolvedToast(_currentPriority, false);
+        showResolvedToast(_currentPriority, _currentResolvedMessage, false);
       }
       _currentId = null;
       _currentVersion = null;
       _currentPriority = null;
+      _currentResolvedMessage = null;
       removeBanner();
       removePopup();
       return;
@@ -294,6 +294,7 @@
     _currentId = data.id;
     _currentVersion = data.version;
     _currentPriority = data.priority;
+    _currentResolvedMessage = data.resolvedMessage || null;
 
     if (showingPopup && !_isDetailPage) {
       showPopup(data);

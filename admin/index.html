@@ -514,6 +514,12 @@ a{text-decoration:none;color:inherit}
 .ea-history-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:4px}
 .ea-history-details{font-size:.74rem;color:#94a3b8;display:flex;gap:14px;flex-wrap:wrap}
 .ea-section-notice{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;font-size:.82rem;color:#1d4ed8;margin-bottom:16px}
+.rm-toggle-group{display:flex;gap:8px;flex-wrap:wrap}
+.rm-toggle-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.8rem;font-weight:500;color:var(--gray);background:#fff;cursor:pointer;transition:all .15s}
+.rm-toggle-btn:hover{border-color:#94a3b8;color:var(--navy)}
+.rm-toggle-btn.active{border-color:var(--blue);background:#eff6ff;color:var(--blue);font-weight:600}
+.rm-default-preview{background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.81rem;color:#475569;line-height:1.65}
+.rm-audit{font-size:.72rem;color:var(--muted)}
 
 /* --- RESPONSIVE ------------------------------------------- */
 @media(max-width:900px){.sidebar{width:200px}.form-grid{grid-template-columns:1fr}}
@@ -955,6 +961,7 @@ a{text-decoration:none;color:inherit}
         <button class="ea-subtab active" data-panel="active" onclick="eaSwitchPanel('active',this)">Active Alerts</button>
         <button class="ea-subtab" data-panel="create" onclick="eaSwitchPanel('create',this)">Create New Alert</button>
         <button class="ea-subtab" data-panel="history" onclick="eaSwitchPanel('history',this)">Alert History</button>
+        <button class="ea-subtab" data-panel="resolved-msg" onclick="eaSwitchPanel('resolved-msg',this)">Resolved Messages</button>
       </div>
 
       <!-- Panel: Active Alerts -->
@@ -1035,6 +1042,13 @@ a{text-decoration:none;color:inherit}
       <div id="ea-panel-history" style="display:none">
         <div class="ea-section-notice">Alert History shows all resolved, expired, and archived emergency alerts for record keeping.</div>
         <div id="ea-history-list"><div class="loading">Loading...</div></div>
+      </div>
+
+      <div id="ea-panel-resolved-msg" style="display:none">
+        <div class="ea-section-notice">
+          Configure the message shown to residents when an alert is resolved. Use the default Barangay-approved message, or enter a custom message for each priority level. Changes take effect on the next resolved alert.
+        </div>
+        <div id="ea-resolved-msg-list"><div class="loading">Loading...</div></div>
       </div>
     </section>
 
@@ -3495,7 +3509,7 @@ $('cal-filter-month').addEventListener('change', e => { SC.filterMonth = e.targe
 $('btn-new-cal').onclick = openCalNew;
 
 // -- Emergency Alerts -------------------------------------------------------
-const EA = { alerts: [], currentPanel: 'active' };
+const EA = { alerts: [], currentPanel: 'active', resolvedMsgConfig: {} };
 
 const EA_ALERT_TYPES = ['Weather Emergency','Flood Warning','Fire Incident','Earthquake','Health Emergency','Security Alert','Public Safety Notice','Other'];
 
@@ -3503,7 +3517,7 @@ const EA_STATUS_LABEL = { draft:'Draft', active:'Active', expired:'Expired', res
 
 function eaSwitchPanel(panel, btn) {
   EA.currentPanel = panel;
-  ['active','create','history'].forEach(p => {
+  ['active','create','history','resolved-msg'].forEach(p => {
     const el = $('ea-panel-'+p);
     if (el) el.style.display = p===panel ? 'block' : 'none';
   });
@@ -3512,6 +3526,7 @@ function eaSwitchPanel(panel, btn) {
   if (panel === 'active') renderEaActiveList();
   if (panel === 'history') renderEaHistoryList();
   if (panel === 'create') eaResetForm();
+  if (panel === 'resolved-msg') { loadResolvedMessages(); }
 }
 
 async function loadAlerts() {
@@ -3525,6 +3540,131 @@ async function loadAlerts() {
       if (EA.currentPanel === 'history' && $('sec-alerts').style.display !== 'none') renderEaHistoryList();
     }
   } catch(e) { if (e.message !== 'unauthorized') toast('Failed to load alerts', 'err'); }
+}
+
+// -- Resolved Message Configuration ------------------------------------------
+const EA_DEFAULT_MSGS = {
+  Critical: 'The previous emergency alert has been lifted. The situation has returned to normal. Residents may resume normal activities and are advised to continue monitoring official Barangay announcements for any further updates.',
+  Warning:  'The previous warning has been lifted. The situation has returned to normal. Residents are advised to remain alert and continue monitoring official Barangay announcements for any further updates.',
+  Advisory: 'The previous advisory has been lifted. The situation has returned to normal. Residents are encouraged to continue monitoring official Barangay announcements for any further updates.',
+};
+const EA_RESOLVED_TITLES = { Critical: 'Emergency Resolved', Warning: 'Warning Lifted', Advisory: 'Advisory Lifted' };
+const EA_PRIORITY_COLORS = { Critical: '#dc2626', Warning: '#d97706', Advisory: '#2563c4' };
+
+async function loadResolvedMessages() {
+  try {
+    const r = await adminFetch('/admin/api/emergency-alerts/resolved-messages');
+    if (r.ok) {
+      const d = await r.json();
+      EA.resolvedMsgConfig = d.config || {};
+      renderResolvedMessages();
+    }
+  } catch(e) { if (e.message !== 'unauthorized') toast('Failed to load resolved message config.', 'err'); }
+}
+
+function renderResolvedMessages() {
+  const el = $('ea-resolved-msg-list');
+  if (!el) return;
+  el.innerHTML = ['Critical', 'Warning', 'Advisory'].map(p => {
+    const cfg = EA.resolvedMsgConfig[p] || {};
+    const useCustom = cfg.useCustom || false;
+    const customMsg = cfg.customMessage || '';
+    const updatedBy = cfg.updatedBy || '';
+    const updatedAt = cfg.updatedAt ? eaFmtDatetime(cfg.updatedAt) : '';
+    const prevMsg   = cfg.previousMessage || '';
+    return `
+    <div class="ea-form-card" style="max-width:none;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+        <div style="width:13px;height:13px;border-radius:50%;background:${EA_PRIORITY_COLORS[p]};flex-shrink:0"></div>
+        <div>
+          <div style="font-weight:700;font-size:.95rem;color:var(--navy)">${p} Priority — ${EA_RESOLVED_TITLES[p]}</div>
+          <div style="font-size:.76rem;color:var(--gray);margin-top:2px">Shown to residents when a ${p.toLowerCase()} alert is resolved</div>
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:16px">
+        <label class="lbl">Message Source</label>
+        <div class="rm-toggle-group">
+          <button type="button" class="rm-toggle-btn ${!useCustom ? 'active' : ''}" id="rm-btn-default-${p}"
+            onclick="eaToggleResolvedCustom('${p}', false)">
+            ✅ Use Default Message
+          </button>
+          <button type="button" class="rm-toggle-btn ${useCustom ? 'active' : ''}" id="rm-btn-custom-${p}"
+            onclick="eaToggleResolvedCustom('${p}', true)">
+            ✏️ Use Custom Message
+          </button>
+        </div>
+      </div>
+
+      <div id="rm-default-preview-${p}" style="display:${!useCustom ? 'block' : 'none'};margin-bottom:4px">
+        <div style="font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Default Message Preview</div>
+        <div class="rm-default-preview">${esc(EA_DEFAULT_MSGS[p])}</div>
+      </div>
+
+      <div id="rm-custom-wrap-${p}" style="display:${useCustom ? 'block' : 'none'}">
+        <div class="field">
+          <label class="lbl">Custom Message</label>
+          <textarea id="rm-custom-msg-${p}" rows="4" maxlength="2000"
+            placeholder="Enter the custom resolved message for ${p.toLowerCase()} priority alerts…">${esc(customMsg)}</textarea>
+          <div class="ea-field-note" id="rm-char-${p}">${2000 - customMsg.length} characters remaining</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px">
+        <div class="rm-audit">
+          ${updatedBy
+            ? `Last updated by <strong>${esc(updatedBy)}</strong> · ${updatedAt}`
+            : '<em>Not yet configured — using default.</em>'}
+          ${prevMsg ? ` &nbsp;·&nbsp; <span title="Previous: ${esc(prevMsg)}" style="cursor:help;text-decoration:underline dotted">previous message saved</span>` : ''}
+        </div>
+        <button class="btn-activate" style="padding:7px 18px;font-size:.82rem" onclick="eaSaveResolvedMsg('${p}')">Save</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Wire up textarea character counters
+  ['Critical','Warning','Advisory'].forEach(p => {
+    const ta = $('rm-custom-msg-' + p);
+    const counter = $('rm-char-' + p);
+    if (ta && counter) {
+      ta.addEventListener('input', () => { counter.textContent = (2000 - ta.value.length) + ' characters remaining'; });
+    }
+  });
+}
+
+function eaToggleResolvedCustom(priority, useCustom) {
+  const defaultPreview = $('rm-default-preview-' + priority);
+  const customWrap     = $('rm-custom-wrap-' + priority);
+  const btnDefault     = $('rm-btn-default-' + priority);
+  const btnCustom      = $('rm-btn-custom-' + priority);
+  if (defaultPreview) defaultPreview.style.display = useCustom ? 'none' : 'block';
+  if (customWrap)     customWrap.style.display     = useCustom ? 'block' : 'none';
+  if (btnDefault) btnDefault.classList.toggle('active', !useCustom);
+  if (btnCustom)  btnCustom.classList.toggle('active', useCustom);
+}
+
+async function eaSaveResolvedMsg(priority) {
+  const btnDefault = $('rm-btn-default-' + priority);
+  const useCustom  = btnDefault ? !btnDefault.classList.contains('active') : false;
+  const ta         = $('rm-custom-msg-' + priority);
+  const customMessage = ta ? ta.value.trim() : '';
+  if (useCustom && !customMessage) {
+    toast('Please enter a custom message or switch to Default.', 'err');
+    return;
+  }
+  try {
+    const r = await adminFetch(`/admin/api/emergency-alerts/resolved-messages/${priority}`, {
+      method: 'PUT',
+      body: JSON.stringify({ useCustom, customMessage }),
+    });
+    const d = await r.json();
+    if (r.ok) {
+      toast(`${priority} resolved message saved.`, 'ok');
+      loadResolvedMessages();
+    } else {
+      toast(d.error || 'Save failed.', 'err');
+    }
+  } catch(e) { if (e.message !== 'unauthorized') toast('Connection error.', 'err'); }
 }
 
 function eaUpdateNavBadge() {

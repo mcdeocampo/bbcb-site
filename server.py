@@ -1873,6 +1873,38 @@ def admin_cal_delete(act_id):
     return jsonify({'status': 'ok'})
 
 
+# ── Resolved message config helpers ──────────────────────────────────────────
+def _row_to_resolved_msg(row):
+    return {
+        'priority':        row['priority'],
+        'useCustom':       bool(row.get('use_custom', False)),
+        'customMessage':   row.get('custom_message', ''),
+        'updatedBy':       row.get('updated_by', ''),
+        'updatedAt':       str(row.get('updated_at', '') or ''),
+        'previousMessage': row.get('previous_message', ''),
+    }
+
+
+def _load_resolved_message_config():
+    """Return all 3 priority resolved message configs as a dict keyed by priority."""
+    try:
+        res = supabase.table('ea_resolved_messages').select('*').execute()
+        return {row['priority']: _row_to_resolved_msg(row) for row in (res.data or [])}
+    except Exception:
+        return {}
+
+
+def _get_resolved_message(priority):
+    """Return custom message string for given priority, or None to use JS default."""
+    try:
+        cfg = _load_resolved_message_config().get(priority)
+        if cfg and cfg.get('useCustom') and cfg.get('customMessage', '').strip():
+            return cfg['customMessage'].strip()
+    except Exception:
+        pass
+    return None
+
+
 # ── Emergency Alert helpers ───────────────────────────────────────────────────
 def _current_admin_name():
     user = _get_user_by_id(session.get('admin_user_id'))
@@ -2130,6 +2162,55 @@ def admin_alerts_delete(alert_id):
         return jsonify({'error': f'Delete failed: {exc}'}), 500
 
 
+# ── Admin — resolved message config ──────────────────────────────────────────
+@app.route('/admin/api/emergency-alerts/resolved-messages')
+@admin_required
+def admin_resolved_messages_get():
+    config = _load_resolved_message_config()
+    # Ensure all 3 priorities are always present
+    for p in ('Critical', 'Warning', 'Advisory'):
+        if p not in config:
+            config[p] = {'priority': p, 'useCustom': False, 'customMessage': '',
+                         'updatedBy': '', 'updatedAt': '', 'previousMessage': ''}
+    return jsonify({'ok': True, 'config': config})
+
+
+@app.route('/admin/api/emergency-alerts/resolved-messages/<priority>', methods=['PUT'])
+@admin_required
+def admin_resolved_messages_put(priority):
+    if priority not in ('Critical', 'Warning', 'Advisory'):
+        return jsonify({'error': 'Invalid priority. Must be Critical, Warning, or Advisory.'}), 400
+    d = request.get_json(silent=True) or {}
+    use_custom     = bool(d.get('useCustom', False))
+    custom_message = _clean(d.get('customMessage', ''), 2000)
+    if use_custom and not custom_message.strip():
+        return jsonify({'error': 'Custom message cannot be empty when enabled.'}), 400
+
+    admin_name = _current_admin_name()
+    now = datetime.now(timezone.utc).isoformat()
+
+    # Capture previous value for audit trail
+    try:
+        prev = supabase.table('ea_resolved_messages').select('custom_message').eq('priority', priority).execute()
+        previous_message = (prev.data[0].get('custom_message', '') if prev.data else '')
+    except Exception:
+        previous_message = ''
+
+    row = {
+        'priority':         priority,
+        'use_custom':       use_custom,
+        'custom_message':   custom_message,
+        'updated_by':       admin_name,
+        'updated_at':       now,
+        'previous_message': previous_message,
+    }
+    try:
+        supabase.table('ea_resolved_messages').upsert(row, on_conflict='priority').execute()
+        return jsonify({'ok': True})
+    except Exception as exc:
+        return jsonify({'error': f'Save failed: {exc}'}), 500
+
+
 # Public endpoint — Phase 2 prep: active alerts only
 @app.route('/api/emergency-alerts')
 def api_emergency_alerts_public():
@@ -2159,22 +2240,23 @@ def api_emergency_alerts_active():
     active.sort(key=lambda a: _PRIORITY_ORDER.get(a.get('priority', 'Advisory'), 99))
     top = active[0]
     return jsonify({
-        'active':         True,
-        'id':             top['id'],
-        'title':          top['title'],
-        'alertType':      top['alertType'],
-        'priority':       top['priority'],
-        'targetAudience': top['targetAudience'],
-        'targetArea':     top.get('targetArea', ''),
-        'message':        top['message'],
-        'instructions':   top.get('instructions', ''),
-        'showBanner':     top.get('showBanner', True),
-        'enablePopup':    top.get('enablePopup', False),
-        'version':        top.get('version', 1),
-        'updatedAt':      top.get('updatedAt', ''),
-        'updatedBy':      top.get('updatedBy', ''),
-        'startDatetime':  top.get('startDatetime', ''),
+        'active':           True,
+        'id':               top['id'],
+        'title':            top['title'],
+        'alertType':        top['alertType'],
+        'priority':         top['priority'],
+        'targetAudience':   top['targetAudience'],
+        'targetArea':       top.get('targetArea', ''),
+        'message':          top['message'],
+        'instructions':     top.get('instructions', ''),
+        'showBanner':       top.get('showBanner', True),
+        'enablePopup':      top.get('enablePopup', False),
+        'version':          top.get('version', 1),
+        'updatedAt':        top.get('updatedAt', ''),
+        'updatedBy':        top.get('updatedBy', ''),
+        'startDatetime':    top.get('startDatetime', ''),
         'expirationDatetime': top.get('expirationDatetime', ''),
+        'resolvedMessage':  _get_resolved_message(top['priority']),
     })
 
 
