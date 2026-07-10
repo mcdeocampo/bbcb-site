@@ -21083,3 +21083,82 @@ body[data-page="projects.html"] #proj-grid .image-card .text-link {
   .brcal-modal-body-scroll { padding: 18px; }
 }
 
+/* ── Emergency Alert System — Public (Phase 2) ─────────────────────────────── */
+.ea-banner{display:none;width:100%;z-index:999;border-bottom:1px solid transparent;animation:eaBannerIn .35s ease}
+.ea-banner.is-visible{display:block}
+@keyframes eaBannerIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.ea-banner-inner{display:flex;align-items:center;gap:14px;padding:13px 22px;flex-wrap:wrap}
+.ea-banner-icon{flex-shrink:0;width:22px;height:22px}
+.ea-banner-body{flex:1;min-width:0}
+.ea-banner-title{font-weight:700;font-size:.95rem;line-height:1.3}
+.ea-banner-msg{font-size:.88rem;line-height:1.45;opacity:.9;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ea-banner-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.ea-banner-link{font-size:.84rem;font-weight:700;padding:6px 14px;border-radius:8px;border:1.5px solid currentColor;opacity:.9;transition:.18s ease;white-space:nowrap;text-decoration:none}
+.ea-banner-link:hover{opacity:1;background:rgba(255,255,255,.18)}
+.ea-banner-close{background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;display:flex;align-items:center;justify-content:center;opacity:.7;transition:.18s ease;color:inherit}
+.ea-banner-close:hover{opacity:1;background:rgba(255,255,255,.2)}
+/* Priority colour themes */
+.ea-banner-advisory{background:linear-gradient(135deg,#1e4a91,#2563c4);color:#fff;border-color:rgba(255,255,255,.12)}
+.ea-banner-warning{background:linear-gradient(135deg,#b45309,#d97706);color:#fff;border-color:rgba(255,255,255,.12)}
+.ea-banner-critical{background:linear-gradient(135deg,#991b1b,#dc2626);color:#fff;border-color:rgba(255,255,255,.12)}
+
+/* Popup */
+.ea-popup-overlay{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;padding:20px;animation:eaOverlayIn .25s ease}
+.ea-popup-overlay.is-visible{display:flex}
+@keyframes eaOverlayIn{from{opacity:0}to{opacity:1}}
+.ea-popup-box{background:#fff;border-radius:20px;max-width:480px;width:100%;box-shadow:0 28px 80px rgba(0,0,0,.35);overflow:hidden;animation:eaPopupIn .3s cubic-bezier(.22,1,.36,1)}
+@keyframes eaPopupIn{from{opacity:0;transform:scale(.92) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.ea-popup-head{background:linear-gradient(135deg,#991b1b,#dc2626);color:#fff;padding:22px 22px 18px;display:flex;align-items:flex-start;gap:14px}
+.ea-popup-head-icon{flex-shrink:0;width:28px;height:28px;margin-top:2px}
+.ea-popup-head-text{}
+.ea-popup-label{font-size:.75rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.8;margin-bottom:3px}
+.ea-popup-title{font-size:1.18rem;font-weight:700;line-height:1.3}
+.ea-popup-body{padding:20px 22px}
+.ea-popup-msg{font-size:.97rem;color:var(--charcoal);line-height:1.6;margin-bottom:12px}
+.ea-popup-instructions{font-size:.9rem;color:var(--muted);line-height:1.55;padding:12px 14px;background:#fef2f2;border-radius:10px;border-left:3px solid #dc2626}
+.ea-popup-area{font-size:.84rem;font-weight:600;color:#991b1b;margin-top:10px}
+.ea-popup-foot{display:flex;gap:10px;padding:0 22px 20px;flex-wrap:wrap}
+.ea-popup-btn-detail{flex:1;padding:11px 16px;background:#dc2626;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.92rem;cursor:pointer;transition:.18s ease;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.ea-popup-btn-detail:hover{background:#b91c1c}
+.ea-popup-btn-close{padding:11px 18px;background:#f3f4f6;color:var(--charcoal);border:none;border-radius:10px;font-weight:600;font-size:.92rem;cursor:pointer;transition:.18s ease}
+.ea-popup-btn-close:hover{background:#e5e7eb}
+
+/* Emergency Alert Detail Page */
+.ead-hero{padding:60px 0 40px;background:linear-gradient(135deg,#991b1b 0%,#dc2626 100%);color:#fff;position:relative;overflow:hidden}
+.ead-hero:before{content:'';position:absolute;right:-80px;top:-80px;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.07)}
+.ead-hero-label{font-size:.75rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-bottom:8px}
+.ead-hero-title{font-size:2rem;font-weight:800;line-height:1.2;margin-bottom:14px}
+.ead-hero-meta{display:flex;flex-wrap:wrap;gap:10px 20px;font-size:.88rem;opacity:.85}
+.ead-hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border-radius:8px;padding:4px 10px;font-weight:700;font-size:.8rem;letter-spacing:.04em}
+.ead-body{padding:48px 0 80px}
+.ead-grid{display:grid;grid-template-columns:1fr 360px;gap:32px;align-items:start}
+.ead-main-card{background:#fff;border-radius:20px;box-shadow:var(--shadow-sm);padding:30px}
+.ead-section-title{font-size:.78rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.ead-message{font-size:1.05rem;line-height:1.75;color:var(--charcoal)}
+.ead-instructions{margin-top:28px;padding:20px;background:#fef2f2;border-radius:14px;border-left:4px solid #dc2626}
+.ead-instructions p{font-size:.97rem;line-height:1.65;color:var(--charcoal)}
+.ead-side-card{background:#fff;border-radius:20px;box-shadow:var(--shadow-sm);padding:24px;display:grid;gap:18px}
+.ead-info-row{display:flex;flex-direction:column;gap:4px}
+.ead-info-label{font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ead-info-val{font-size:.95rem;font-weight:600;color:var(--charcoal)}
+.ead-hotline-link{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;background:linear-gradient(135deg,var(--soft-blue),#f0fffe);border:1px solid rgba(13,71,161,.12);border-radius:12px;font-weight:700;color:var(--blue);font-size:.9rem;transition:.2s ease;text-decoration:none}
+.ead-hotline-link:hover{background:var(--soft-blue);box-shadow:0 4px 14px rgba(13,71,161,.1)}
+.ead-expired-notice{background:#fef2f2;border:1px solid rgba(220,38,38,.2);border-radius:14px;padding:20px;text-align:center;color:#991b1b;font-weight:600}
+.ead-priority-advisory .ead-hero{background:linear-gradient(135deg,#1e4a91,#2563c4)}
+.ead-priority-warning .ead-hero{background:linear-gradient(135deg,#b45309,#d97706)}
+
+@media(max-width:768px){
+  .ead-grid{grid-template-columns:1fr}
+  .ead-hero-title{font-size:1.55rem}
+  .ea-banner-inner{padding:12px 16px;gap:10px}
+  .ea-banner-msg{white-space:normal}
+  .ea-popup-box{border-radius:16px}
+}
+@media(max-width:480px){
+  .ea-banner-title{font-size:.9rem}
+  .ea-popup-head{padding:18px 16px 14px}
+  .ea-popup-body{padding:16px}
+  .ea-popup-foot{padding:0 16px 16px}
+  .ea-popup-btn-detail,.ea-popup-btn-close{flex:1 1 auto}
+}
+

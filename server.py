@@ -2139,6 +2139,74 @@ def api_emergency_alerts_public():
     return jsonify({'status': 'ok', 'alerts': active})
 
 
+_PRIORITY_ORDER = {'Critical': 0, 'Warning': 1, 'Advisory': 2}
+
+
+@app.route('/api/emergency-alerts/active')
+def api_emergency_alerts_active():
+    """Return the single highest-priority active alert for public display."""
+    _auto_expire_alerts()
+    now_manila = _manila_now().strftime('%Y-%m-%dT%H:%M')
+    alerts = _load_alerts()
+    active = [
+        a for a in alerts
+        if a.get('status') == 'active'
+        and (a.get('startDatetime') or '')[:16] <= now_manila
+        and (a.get('expirationDatetime') or '')[:16] >= now_manila
+    ]
+    if not active:
+        return jsonify({'active': False})
+    active.sort(key=lambda a: _PRIORITY_ORDER.get(a.get('priority', 'Advisory'), 99))
+    top = active[0]
+    return jsonify({
+        'active':         True,
+        'id':             top['id'],
+        'title':          top['title'],
+        'alertType':      top['alertType'],
+        'priority':       top['priority'],
+        'targetAudience': top['targetAudience'],
+        'targetArea':     top.get('targetArea', ''),
+        'message':        top['message'],
+        'instructions':   top.get('instructions', ''),
+        'showBanner':     top.get('showBanner', True),
+        'enablePopup':    top.get('enablePopup', False),
+        'version':        top.get('version', 1),
+        'updatedAt':      top.get('updatedAt', ''),
+        'updatedBy':      top.get('updatedBy', ''),
+        'startDatetime':  top.get('startDatetime', ''),
+        'expirationDatetime': top.get('expirationDatetime', ''),
+    })
+
+
+@app.route('/api/emergency-alerts/<alert_id>/public')
+def api_emergency_alert_detail(alert_id):
+    """Public detail endpoint for a specific alert (used by detail page)."""
+    _auto_expire_alerts()
+    try:
+        res = (supabase.table('emergency_alerts')
+               .select('*')
+               .eq('id', alert_id)
+               .eq('status', 'active')
+               .limit(1)
+               .execute())
+        if not res.data:
+            return jsonify({'error': 'Alert not found or no longer active.'}), 404
+        alert = _row_to_alert(res.data[0])
+        now_manila = _manila_now().strftime('%Y-%m-%dT%H:%M')
+        if (alert.get('startDatetime') or '')[:16] > now_manila:
+            return jsonify({'error': 'Alert not yet started.'}), 404
+        if (alert.get('expirationDatetime') or '')[:16] < now_manila:
+            return jsonify({'error': 'Alert has expired.'}), 404
+        return jsonify({'active': True, 'alert': alert})
+    except Exception as exc:
+        return jsonify({'error': str(exc)}), 500
+
+
+@app.route('/emergency-alerts/<slug>')
+def emergency_alert_detail_page(slug):
+    return send_from_directory(BASE_DIR, 'emergency-alert-detail.html')
+
+
 # ── Static file serving ───────────────────────────────────────────────────────
 @app.route('/')
 def index():
