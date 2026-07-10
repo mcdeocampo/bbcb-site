@@ -268,7 +268,14 @@
     if (!data || !data.active) {
       console.log('[EA] No active alert.');
       if (_currentId !== null) {
-        showResolvedToast(_currentPriority, _currentResolvedMessage, false);
+        // Fetch the resolved message fresh so any admin change takes effect immediately,
+        // regardless of when the custom message was configured relative to the alert.
+        var _p = _currentPriority;
+        var _fallback = _currentResolvedMessage;
+        fetch('/api/emergency-alerts/resolved-message?priority=' + encodeURIComponent(_p))
+          .then(function(r) { return r.json(); })
+          .then(function(cfg) { showResolvedToast(_p, cfg.message || null, false); })
+          .catch(function() { showResolvedToast(_p, _fallback, false); });
       }
       _currentId = null;
       _currentVersion = null;

@@ -2211,6 +2211,15 @@ def admin_resolved_messages_put(priority):
         return jsonify({'error': f'Save failed: {exc}'}), 500
 
 
+# Public endpoint — resolved message config for a given priority
+@app.route('/api/emergency-alerts/resolved-message')
+def api_resolved_message():
+    priority = request.args.get('priority', 'Advisory')
+    if priority not in ('Critical', 'Warning', 'Advisory'):
+        priority = 'Advisory'
+    return jsonify({'message': _get_resolved_message(priority)})
+
+
 # Public endpoint — Phase 2 prep: active alerts only
 @app.route('/api/emergency-alerts')
 def api_emergency_alerts_public():
