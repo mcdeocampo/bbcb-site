@@ -2218,7 +2218,9 @@ def api_resolved_message():
     priority = request.args.get('priority', 'Advisory')
     if priority not in ('Critical', 'Warning', 'Advisory'):
         priority = 'Advisory'
-    return jsonify({'message': _get_resolved_message(priority)})
+    resp = jsonify({'message': _get_resolved_message(priority)})
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
 
 
 # Public endpoint — Phase 2 prep: active alerts only
@@ -2246,10 +2248,12 @@ def api_emergency_alerts_active():
         and (a.get('expirationDatetime') or '')[:16] >= now_manila
     ]
     if not active:
-        return jsonify({'active': False})
+        resp = jsonify({'active': False})
+        resp.headers['Cache-Control'] = 'no-store'
+        return resp
     active.sort(key=lambda a: _PRIORITY_ORDER.get(a.get('priority', 'Advisory'), 99))
     top = active[0]
-    return jsonify({
+    resp = jsonify({
         'active':           True,
         'id':               top['id'],
         'title':            top['title'],
@@ -2267,6 +2271,8 @@ def api_emergency_alerts_active():
         'startDatetime':    top.get('startDatetime', ''),
         'expirationDatetime': top.get('expirationDatetime', ''),
     })
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
 
 
 @app.route('/api/emergency-alerts/<alert_id>/public')
