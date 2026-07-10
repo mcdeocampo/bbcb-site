@@ -21157,7 +21157,7 @@ body[data-page="projects.html"] #proj-grid .image-card .text-link {
 .ea-toast-close{flex-shrink:0;background:none;border:none;cursor:pointer;color:#9ca3af;font-size:.9rem;padding:2px 4px;margin-top:-2px;border-radius:6px;transition:.15s ease;line-height:1}
 .ea-toast-close:hover{color:#374151;background:#f3f4f6}
 .ea-toast-progress{position:absolute;bottom:0;left:0;right:0;height:3px;background:#f0fdf4;border-radius:0 0 16px 16px;overflow:hidden}
-.ea-toast-bar{height:100%;width:100%;background:#16a34a;border-radius:0 0 16px 16px;animation:eaToastBar 6s linear forwards}
+.ea-toast-bar{height:100%;width:100%;background:#16a34a;border-radius:0 0 16px 16px;animation:eaToastBar 15s linear forwards}
 @keyframes eaToastBar{from{width:100%}to{width:0%}}
 @media(max-width:480px){
   .ea-toast{bottom:16px;right:16px;left:16px;max-width:none;width:auto;transform:translateY(12px)}

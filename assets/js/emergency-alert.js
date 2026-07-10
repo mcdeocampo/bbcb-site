@@ -208,7 +208,7 @@
       setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 400);
     }
 
-    var autoTimer = setTimeout(dismiss, 6000);
+    var autoTimer = setTimeout(dismiss, 15000);
     document.getElementById('ea-toast-close').addEventListener('click', dismiss);
   }
 
