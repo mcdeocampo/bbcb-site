@@ -164,6 +164,35 @@
   // ── Skip popup on the detail page itself ─────────────────────────────────────
   var _isDetailPage = document.body.getAttribute('data-page') === 'emergency-alert-detail.html';
 
+  // ── Resolved alert — sessionStorage persistence ───────────────────────────────
+  var RESOLVED_KEY = 'EA_Resolved';
+  var RESOLVED_TTL = 10 * 60 * 1000; // 10 minutes
+
+  function storeResolved(priority) {
+    try {
+      sessionStorage.setItem(RESOLVED_KEY, JSON.stringify({
+        priority: priority || 'Advisory',
+        status: 'resolved',
+        timestamp: Date.now()
+      }));
+    } catch (e) {}
+  }
+
+  function clearResolved() {
+    try { sessionStorage.removeItem(RESOLVED_KEY); } catch (e) {}
+  }
+
+  function getStoredResolved() {
+    try {
+      var raw = sessionStorage.getItem(RESOLVED_KEY);
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      if (!data || !data.timestamp) { clearResolved(); return null; }
+      if (Date.now() - data.timestamp > RESOLVED_TTL) { clearResolved(); return null; }
+      return data;
+    } catch (e) { return null; }
+  }
+
   // ── Resolved toast ───────────────────────────────────────────────────────────
   function resolvedCopy(priority) {
     if (priority === 'Critical') return {
@@ -180,43 +209,68 @@
     };
   }
 
-  function showResolvedToast() {
-    var existing = document.getElementById('ea-toast');
-    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+  function removeResolvedToast() {
+    var el = document.getElementById('ea-toast');
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  }
 
-    var copy = resolvedCopy(_currentPriority);
+  function showResolvedToast(priority, fromStorage) {
+    removeResolvedToast();
+
+    if (!fromStorage) storeResolved(priority);
+
+    var copy = resolvedCopy(priority);
     var toast = document.createElement('div');
     toast.id = 'ea-toast';
     toast.className = 'ea-toast';
+    toast.setAttribute('role', 'status');
     toast.innerHTML =
-      '<div class="ea-toast-icon">' +
-        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>' +
+      '<div class="ea-toast-head">' +
+        '<span class="ea-toast-head-label">&#x1F7E2;&nbsp; All Clear</span>' +
+        '<button class="ea-toast-close" id="ea-toast-close" aria-label="Dismiss">&#x2715;</button>' +
       '</div>' +
-      '<div class="ea-toast-content">' +
-        '<div class="ea-toast-title">' + copy.title + '</div>' +
-        '<div class="ea-toast-msg">' + copy.msg + '</div>' +
+      '<div class="ea-toast-body">' +
+        '<div class="ea-toast-icon">' +
+          '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>' +
+        '</div>' +
+        '<div class="ea-toast-content">' +
+          '<div class="ea-toast-title">' + copy.title + '</div>' +
+          '<div class="ea-toast-msg">' + copy.msg + '</div>' +
+        '</div>' +
       '</div>' +
-      '<button class="ea-toast-close" id="ea-toast-close" aria-label="Dismiss">&#x2715;</button>' +
       '<div class="ea-toast-progress"><div class="ea-toast-bar"></div></div>';
 
     document.body.appendChild(toast);
     setTimeout(function () { toast.classList.add('is-visible'); }, 16);
 
-    function dismiss() {
-      clearTimeout(autoTimer);
-      toast.classList.remove('is-visible');
-      setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 400);
+    function fadeOut(el) {
+      el.classList.remove('is-visible');
+      setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 450);
     }
 
-    var autoTimer = setTimeout(dismiss, 15000);
-    document.getElementById('ea-toast-close').addEventListener('click', dismiss);
+    // User explicitly dismisses → clear storage so it doesn't reappear
+    document.getElementById('ea-toast-close').addEventListener('click', function () {
+      clearTimeout(autoTimer);
+      clearResolved();
+      fadeOut(toast);
+    });
+
+    // Auto-dismiss keeps storage so it reappears on next page load within TTL
+    var autoTimer = setTimeout(function () { fadeOut(toast); }, 15000);
+  }
+
+  function checkStoredResolved() {
+    var stored = getStoredResolved();
+    if (stored) showResolvedToast(stored.priority, true);
   }
 
   // ── Core logic ───────────────────────────────────────────────────────────────
   function applyAlert(data) {
     if (!data || !data.active) {
       console.log('[EA] No active alert.');
-      if (_currentId !== null) showResolvedToast();
+      if (_currentId !== null) {
+        showResolvedToast(_currentPriority, false);
+      }
       _currentId = null;
       _currentVersion = null;
       _currentPriority = null;
@@ -224,6 +278,10 @@
       removePopup();
       return;
     }
+
+    // New active alert supersedes any resolved notification
+    clearResolved();
+    removeResolvedToast();
 
     var acked = isAcknowledged(data.id, data.version);
     var showingPopup = data.enablePopup && !acked;
@@ -256,11 +314,17 @@
       });
   }
 
-  // Run immediately on load, then poll every 60 seconds
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', checkAlerts);
-  } else {
+  function init() {
+    // Show any stored resolved notification before the first API poll
+    checkStoredResolved();
     checkAlerts();
+    setInterval(checkAlerts, POLL_INTERVAL);
   }
-  setInterval(checkAlerts, POLL_INTERVAL);
+
+  // Run on load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
