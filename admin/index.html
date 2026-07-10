@@ -3655,6 +3655,7 @@ async function eaSaveResolvedMsg(priority) {
   try {
     const r = await adminFetch(`/admin/api/emergency-alerts/resolved-messages/${priority}`, {
       method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ useCustom, customMessage }),
     });
     const d = await r.json();
