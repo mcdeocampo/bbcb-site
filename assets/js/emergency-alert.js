@@ -162,10 +162,43 @@
   // ── Skip popup on the detail page itself ─────────────────────────────────────
   var _isDetailPage = document.body.getAttribute('data-page') === 'emergency-alert-detail.html';
 
+  // ── Resolved toast ───────────────────────────────────────────────────────────
+  function showResolvedToast() {
+    var existing = document.getElementById('ea-toast');
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+
+    var toast = document.createElement('div');
+    toast.id = 'ea-toast';
+    toast.className = 'ea-toast';
+    toast.innerHTML =
+      '<div class="ea-toast-icon">' +
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>' +
+      '</div>' +
+      '<div class="ea-toast-content">' +
+        '<div class="ea-toast-title">Situation Resolved</div>' +
+        '<div class="ea-toast-msg">The emergency alert has been lifted. Residents may return to normal activities.</div>' +
+      '</div>' +
+      '<button class="ea-toast-close" id="ea-toast-close" aria-label="Dismiss">&#x2715;</button>' +
+      '<div class="ea-toast-progress"><div class="ea-toast-bar"></div></div>';
+
+    document.body.appendChild(toast);
+    setTimeout(function () { toast.classList.add('is-visible'); }, 16);
+
+    function dismiss() {
+      clearTimeout(autoTimer);
+      toast.classList.remove('is-visible');
+      setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 400);
+    }
+
+    var autoTimer = setTimeout(dismiss, 6000);
+    document.getElementById('ea-toast-close').addEventListener('click', dismiss);
+  }
+
   // ── Core logic ───────────────────────────────────────────────────────────────
   function applyAlert(data) {
     if (!data || !data.active) {
       console.log('[EA] No active alert.');
+      if (_currentId !== null) showResolvedToast();
       removeBanner();
       removePopup();
       return;
