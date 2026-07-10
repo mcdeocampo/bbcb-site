@@ -738,8 +738,40 @@ a{text-decoration:none;color:inherit}
           <div class="stat-hint">Not publicly visible</div>
         </div>
       </div>
+      <div class="dash-section-label">Emergency Alerts Overview</div>
+      <div class="stat-grid">
+        <div class="stat-card" id="dash-ea-active-card" onclick="showSection('alerts')" style="cursor:pointer">
+          <div class="stat-icon" id="dash-ea-active-icon" style="background:#fee2e2;color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <div class="stat-num" id="dash-ea-active">-</div>
+          <div class="stat-label">Active Now</div>
+          <div class="stat-hint" id="dash-ea-active-hint">Click to manage</div>
+        </div>
+        <div class="stat-card" onclick="showSection('alerts')" style="cursor:pointer">
+          <div class="stat-icon" style="background:#eff6ff;color:#2563c4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></div>
+          <div class="stat-num" id="dash-ea-total">-</div>
+          <div class="stat-label">Total Alerts</div>
+          <div class="stat-hint">All time</div>
+        </div>
+        <div class="stat-card" onclick="showSection('alerts')" style="cursor:pointer">
+          <div class="stat-icon" style="background:#e6f9f0;color:#16a34a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div class="stat-num" id="dash-ea-resolved">-</div>
+          <div class="stat-label">Resolved</div>
+          <div class="stat-hint">Successfully closed</div>
+        </div>
+        <div class="stat-card" onclick="showSection('alerts')" style="cursor:pointer">
+          <div class="stat-icon" style="background:#fff3e0;color:#d97706"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></div>
+          <div class="stat-num" id="dash-ea-draft">-</div>
+          <div class="stat-label">Drafts</div>
+          <div class="stat-hint">Awaiting activation</div>
+        </div>
+      </div>
       <div class="dash-section-label">Quick Actions</div>
       <div class="quick-grid">
+        <div class="quick-card" onclick="showSection('alerts')" style="border-color:#fee2e2">
+          <span class="quick-icon" style="background:#fee2e2;color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+          <span class="quick-label">Emergency Alerts</span>
+          <span class="quick-arrow">&gt;</span>
+        </div>
         <div class="quick-card" onclick="showSection('announcements')">
           <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11v2a2 2 0 0 0 2 2h3l5 4V5L9 9H6a2 2 0 0 0-2 2z"/><path d="M18 9a4 4 0 0 1 0 6"/><path d="M20.5 6.5a8 8 0 0 1 0 11"/></svg></span>
           <span class="quick-label">Announcements</span>
@@ -1883,6 +1915,39 @@ function updateStats() {
   $('stat-pub').textContent    = a.filter(x=>x.status==='published').length;
   $('stat-draft').textContent  = a.filter(x=>x.status==='draft').length;
   $('stat-hidden').textContent = a.filter(x=>x.status==='hidden').length;
+  updateEAStats();
+}
+
+function updateEAStats() {
+  const alerts = EA.alerts || [];
+  const active   = alerts.filter(x => x.status === 'active');
+  const resolved = alerts.filter(x => x.status === 'resolved');
+  const drafts   = alerts.filter(x => x.status === 'draft');
+
+  $('dash-ea-total').textContent    = alerts.length;
+  $('dash-ea-resolved').textContent = resolved.length;
+  $('dash-ea-draft').textContent    = drafts.length;
+  $('dash-ea-active').textContent   = active.length;
+
+  const icon = $('dash-ea-active-icon');
+  const hint = $('dash-ea-active-hint');
+  const card = $('dash-ea-active-card');
+  if (active.length > 0) {
+    const top = active[0];
+    const isCritical = top.priority === 'Critical';
+    const isWarning  = top.priority === 'Warning';
+    const bg  = isCritical ? '#fee2e2' : isWarning ? '#fff3e0' : '#eff6ff';
+    const col = isCritical ? '#dc2626' : isWarning ? '#d97706' : '#2563c4';
+    icon.style.background = bg;
+    icon.style.color = col;
+    card.style.borderTopColor = col;
+    hint.textContent = top.priority + ' — ' + (top.title || 'Active alert');
+  } else {
+    icon.style.background = '#f1f5f9';
+    icon.style.color = '#94a3b8';
+    card.style.borderTopColor = '';
+    hint.textContent = 'No active alert';
+  }
 }
 
 let annOrderDirty = false;
