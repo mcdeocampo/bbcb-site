@@ -98,33 +98,42 @@
   }
 
   function showPopup(alert) {
-    // Remove existing popup first
     removePopup();
 
     var slug = alertSlug(alert.title);
     var detailUrl = '/emergency-alerts/' + esc(slug) + '?id=' + esc(alert.id);
+
     var areaHtml = alert.targetArea
-      ? '<p class="ea-popup-area">&#x1F4CD; Affected area: ' + esc(alert.targetArea) + '</p>' : '';
+      ? '<div class="ea-popup-meta-row">&#x1F4CD; Affected area: <strong style="margin-left:3px">' + esc(alert.targetArea) + '</strong></div>'
+      : '';
     var instrHtml = alert.instructions
-      ? '<div class="ea-popup-instructions"><strong>What to do:</strong><br>' + esc(alert.instructions) + '</div>' : '';
+      ? '<div class="ea-popup-section">' +
+          '<div class="ea-popup-section-label">What To Do</div>' +
+          '<p class="ea-popup-instr">' + esc(alert.instructions) + '</p>' +
+        '</div>'
+      : '';
 
     var overlay = document.createElement('div');
     overlay.id = 'ea-popup-overlay';
-    overlay.className = 'ea-popup-overlay is-visible';
+    overlay.className = 'ea-popup-overlay';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', 'Critical Emergency Alert');
     overlay.innerHTML =
       '<div class="ea-popup-box">' +
         '<div class="ea-popup-head">' +
-          '<span class="ea-popup-head-icon">' + warningIconSVG() + '</span>' +
-          '<div class="ea-popup-head-text">' +
-            '<div class="ea-popup-label">&#x1F6A8; Critical Emergency Alert</div>' +
-            '<div class="ea-popup-title">' + esc(alert.title) + '</div>' +
+          '<div class="ea-popup-label">&#x1F6A8; Critical Emergency Alert</div>' +
+          '<div class="ea-popup-title">' + esc(alert.title) + '</div>' +
+          '<div class="ea-popup-badges">' +
+            '<span class="ea-popup-badge ea-popup-badge-type">' + esc(alert.alertType) + '</span>' +
+            '<span class="ea-popup-badge ea-popup-badge-priority">Critical Priority</span>' +
           '</div>' +
         '</div>' +
         '<div class="ea-popup-body">' +
-          '<p class="ea-popup-msg">' + esc(alert.message) + '</p>' +
+          '<div class="ea-popup-section">' +
+            '<div class="ea-popup-section-label">Emergency Message</div>' +
+            '<p class="ea-popup-msg">' + esc(alert.message) + '</p>' +
+          '</div>' +
           instrHtml +
           areaHtml +
         '</div>' +
@@ -149,19 +158,24 @@
   // ── Core logic ───────────────────────────────────────────────────────────────
   function applyAlert(data) {
     if (!data || !data.active) {
-      // No active alert — full DOM cleanup
+      console.log('[EA] No active alert.');
       removeBanner();
       removePopup();
       return;
     }
 
-    // Show banner (always when there is an active alert)
+    var acked = isAcknowledged(data.id, data.version);
+    var showingPopup = data.enablePopup && !acked;
+    console.log('[EA] Active alert received.');
+    console.log('[EA] ID:', data.id, '| Priority:', data.priority, '| Alert Type:', data.alertType);
+    console.log('[EA] enablePopup:', data.enablePopup, '| Acknowledged:', acked, '| Showing popup:', showingPopup);
+    console.log('[EA] Banner class:', priorityClass(data.priority));
+
     showBanner(data);
     _currentId = data.id;
     _currentVersion = data.version;
 
-    // Show popup only for Critical + not acknowledged
-    if (data.enablePopup && !isAcknowledged(data.id, data.version)) {
+    if (showingPopup) {
       showPopup(data);
     } else {
       removePopup();
@@ -171,9 +185,12 @@
   function checkAlerts() {
     fetch(API_URL)
       .then(function (r) { return r.json(); })
-      .then(applyAlert)
-      .catch(function () {
-        // Fail silently — website continues normally
+      .then(function (data) {
+        console.log('[EA] API response:', JSON.stringify(data));
+        applyAlert(data);
+      })
+      .catch(function (err) {
+        console.log('[EA] Fetch error:', err);
       });
   }
 
