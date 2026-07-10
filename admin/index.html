@@ -44,55 +44,57 @@ a{text-decoration:none;color:inherit}
   backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
   border:1px solid rgba(255,255,255,.55);
   border-radius:24px;
-  padding:0 0 32px;
-  width:100%;max-width:380px;
-  box-shadow:0 24px 64px rgba(0,0,0,.28),0 6px 18px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.8)}
+  padding:0 0 28px;
+  width:100%;max-width:400px;
+  box-shadow:0 32px 80px rgba(0,0,0,.32),0 8px 24px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.8)}
 .login-inner{padding:32px 32px 0}
-.login-logo{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:20px;
+.login-logo{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:32px;
   position:relative}
-.login-logo::before{content:'';position:absolute;top:-12px;left:50%;transform:translateX(-50%);
-  width:120px;height:80px;
+.login-logo::before{content:'';position:absolute;top:-16px;left:50%;transform:translateX(-50%);
+  width:160px;height:100px;
   background:radial-gradient(ellipse,rgba(14,165,233,.18) 0%,transparent 70%);
   pointer-events:none;z-index:0}
-.login-logo img{width:64px;height:64px;object-fit:contain;position:relative;z-index:1;
-  filter:drop-shadow(0 4px 10px rgba(11,94,215,.25))}
-.login-logo-name{font-size:1.12rem;font-weight:700;color:#0a2540;line-height:1.2;text-align:center;
+.login-logo img{width:68px;height:68px;object-fit:contain;position:relative;z-index:1;
+  filter:drop-shadow(0 4px 12px rgba(11,94,215,.25))}
+.login-logo-name{font-size:1.1rem;font-weight:700;color:#0a2540;line-height:1.2;text-align:center;
   letter-spacing:-.02em}
 .login-logo-sub{font-size:.72rem;color:#4e7aa0;letter-spacing:.06em;text-align:center;
   text-transform:uppercase;font-weight:500}
 .login-divider{border:none;border-top:1.5px solid rgba(15,47,87,.09);margin:0 0 20px}
-.login-card h2{font-size:.88rem;font-weight:700;text-align:center;margin-bottom:20px;
-  color:#0d47a1;letter-spacing:.04em;text-transform:uppercase;opacity:.75}
 .login-footer-note{text-align:center;font-size:.65rem;color:#94a3b8;margin-top:16px;
   letter-spacing:.12em;text-transform:uppercase}
-#login-wrap .field{margin-bottom:14px}
-#login-wrap .field label{font-size:.66rem;font-weight:700;color:#334155;
+#login-wrap .field{margin-bottom:16px}
+#login-wrap .field label{font-size:.7rem;font-weight:700;color:#334155;
   margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase}
 /* Icon input wrapper */
 .login-input-wrap{position:relative;display:flex;align-items:center}
 .login-input-wrap .login-field-icon{
-  position:absolute;left:12px;top:50%;transform:translateY(-50%);
-  width:16px;height:16px;color:#94a3b8;pointer-events:none;flex-shrink:0}
-.login-input-wrap input{padding-left:38px !important}
-#login-wrap .field input{width:100%;padding:10px 14px;min-height:42px;border-radius:10px;
+  position:absolute;left:8px;top:50%;transform:translateY(-50%);
+  width:28px;height:28px;
+  background:#f1f5f9;border:1px solid #e2e8f0;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  color:#64748b;pointer-events:none;flex-shrink:0}
+.login-input-wrap .login-field-icon svg{width:14px;height:14px}
+.login-input-wrap input{padding-left:46px !important}
+#login-wrap .field input{padding:10px 14px;min-height:44px;border-radius:10px;
   border:1.5px solid #cbd5e1;font-size:.88rem;background:#f8fafc;
   transition:border-color .18s,box-shadow .18s,background .18s}
 #login-wrap .field input:focus{border-color:#2563eb;background:#fff;
-  box-shadow:0 0 0 3px rgba(37,99,235,.10)}
-#login-wrap .btn-primary{height:44px;border-radius:12px;font-size:.88rem;font-weight:700;
+  box-shadow:0 0 0 4px rgba(37,99,235,.12)}
+#login-wrap .btn-primary{height:46px;border-radius:12px;font-size:.9rem;font-weight:700;
   background:linear-gradient(110deg,#0d47a1 0%,#00a884 100%);
-  box-shadow:0 6px 18px rgba(13,71,161,.34),0 2px 6px rgba(13,71,161,.18);
-  letter-spacing:.04em;margin-top:6px}
+  box-shadow:0 8px 24px rgba(13,71,161,.38),0 2px 6px rgba(13,71,161,.22);
+  letter-spacing:.04em;margin-top:8px}
 #login-wrap .btn-primary:hover{filter:brightness(1.09);
   box-shadow:0 10px 26px rgba(13,71,161,.42);transform:translateY(-2px)}
 #login-wrap .btn-primary:active{transform:translateY(0);filter:brightness(.97)}
-@media(max-width:440px){
-  .login-inner{padding:24px 22px 0}
+@media(max-width:520px){
+  .login-inner{padding:24px 20px 0}
   .login-card{padding-bottom:24px;border-radius:18px;max-width:100%}
-  .login-logo img{width:54px;height:54px}
-  .login-logo-name{font-size:.98rem}
-  #login-wrap .field input{min-height:40px}
-  #login-wrap .btn-primary{height:42px}
+  .login-logo img{width:56px;height:56px}
+  .login-logo-name{font-size:1rem}
+  #login-wrap .field input{min-height:44px}
+  #login-wrap .btn-primary{height:46px}
 }
 
 /* --- FIELDS ----------------------------------------------- */
@@ -593,7 +595,6 @@ a{text-decoration:none;color:inherit}
       <div class="login-logo-sub">Batangas City, Batangas</div>
     </div>
     <hr class="login-divider">
-    <h2>Admin Login</h2>
     <div class="field">
       <label>Username</label>
       <div class="login-input-wrap">
@@ -605,7 +606,7 @@ a{text-decoration:none;color:inherit}
       <label>Password</label>
       <div class="login-input-wrap pw-wrap">
         <svg class="login-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <input type="password" id="inp-pass" autocomplete="current-password" style="padding-left:38px;padding-right:40px">
+        <input type="password" id="inp-pass" autocomplete="current-password">
         <button type="button" class="pw-eye" onclick="togglePw('inp-pass',this)" tabindex="-1" aria-label="Toggle password visibility">
           <svg class="eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           <svg class="eye-hide" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
