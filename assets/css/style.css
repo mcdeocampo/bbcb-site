@@ -21144,6 +21144,9 @@ body[data-page="projects.html"] #proj-grid .image-card .text-link {
 .ead-badge-warning{background:#fef3c7;color:#92400e}
 .ead-badge-advisory{background:#dbeafe;color:#1e40af}
 
+/* Hide View Details on the alert detail page itself */
+[data-page="emergency-alert-detail.html"] .ea-banner-link{display:none}
+
 @media(max-width:768px){
   .ea-banner-inner{padding:11px 14px;gap:8px;flex-wrap:nowrap}
   .ea-banner-msg{display:none}
