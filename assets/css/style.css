@@ -21145,12 +21145,15 @@ body[data-page="projects.html"] #proj-grid .image-card .text-link {
 .ead-badge-advisory{background:#dbeafe;color:#1e40af}
 
 @media(max-width:768px){
-  .ea-banner-inner{padding:12px 16px;gap:10px}
-  .ea-banner-msg{white-space:normal}
+  .ea-banner-inner{padding:11px 14px;gap:8px;flex-wrap:nowrap}
+  .ea-banner-msg{display:none}
+  .ea-banner-body{min-width:0}
+  .ea-banner-title{font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ea-banner-actions{flex-shrink:0;gap:8px}
+  .ea-banner-link{font-size:.8rem;padding:5px 11px}
   .ea-popup-box{border-radius:16px}
 }
 @media(max-width:480px){
-  .ea-banner-title{font-size:.9rem}
   .ea-popup-head{padding:20px 18px 16px}
   .ea-popup-body{padding:18px 18px 4px}
   .ea-popup-foot{padding:16px 18px;gap:8px}
