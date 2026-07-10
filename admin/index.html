@@ -387,17 +387,20 @@ a{text-decoration:none;color:inherit}
 .force-pw-foot{padding:0 24px 22px;display:flex;justify-content:flex-end}
 
 /* --- CONFIRM ---------------------------------------------- */
-.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;
-  display:none;align-items:center;justify-content:center}
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:150;display:none;align-items:center;justify-content:center;padding:20px}
 .confirm-overlay.open{display:flex}
-.confirm-box{background:#fff;border-radius:12px;padding:28px;width:360px;
-  box-shadow:0 8px 32px rgba(0,0,0,.2)}
-.confirm-box h4{font-size:1rem;font-weight:700;margin-bottom:8px}
-.confirm-box p{font-size:.84rem;color:var(--gray);margin-bottom:22px}
-.confirm-acts{display:flex;justify-content:flex-end;gap:8px}
-.btn-del{padding:8px 18px;background:var(--red);border:none;border-radius:var(--radius);
-  font-size:.83rem;font-weight:600;color:#fff}
+.confirm-box{background:#fff;border-radius:22px;padding:32px 28px 28px;width:100%;max-width:380px;box-shadow:0 24px 64px rgba(0,0,0,.22);animation:confirmIn .28s cubic-bezier(.22,1,.36,1)}
+@keyframes confirmIn{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.confirm-icon-wrap{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.confirm-box h4{font-size:1.12rem;font-weight:800;color:#0f172a;margin-bottom:8px;text-align:center;line-height:1.3}
+.confirm-box p{font-size:.875rem;color:#64748b;margin-bottom:26px;line-height:1.6;text-align:center}
+.confirm-acts{display:flex;gap:10px}
+.confirm-acts .btn-cancel{flex:1;padding:12px;background:#f1f5f9;border:none;border-radius:11px;font-size:.9rem;font-weight:600;color:#475569;cursor:pointer;transition:.18s ease}
+.confirm-acts .btn-cancel:hover{background:#e2e8f0;color:#1e293b}
+.btn-del{flex:1;padding:12px;background:var(--red);border:none;border-radius:11px;font-size:.9rem;font-weight:700;color:#fff;cursor:pointer;transition:.18s ease}
 .btn-del:hover{background:#b91c1c}
+.btn-del.is-resolve{background:#16a34a}
+.btn-del.is-resolve:hover{background:#15803d}
 
 /* --- DETAIL MODAL ----------------------------------------- */
 .detail-modal{max-width:680px}
@@ -1520,6 +1523,7 @@ a{text-decoration:none;color:inherit}
 <!-- ================== CONFIRM DELETE ================== -->
 <div class="confirm-overlay" id="confirm-overlay">
   <div class="confirm-box">
+    <div class="confirm-icon-wrap" id="confirm-icon-wrap"></div>
     <h4 id="confirm-title">Delete announcement?</h4>
     <p id="confirm-msg">This action cannot be undone.</p>
     <div class="confirm-acts">
@@ -3800,10 +3804,13 @@ async function saveEaEdit() {
 
 // --- Actions ---
 function eaConfirmResolve(id, title) {
+  $('confirm-icon-wrap').style.cssText = 'background:#dcfce7;color:#16a34a';
+  $('confirm-icon-wrap').innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
   $('confirm-title').textContent = 'Resolve this alert?';
   $('confirm-msg').textContent = `"${title}" will be marked as Resolved and moved to Alert History.`;
-  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').className = 'btn-del is-resolve';
   $('confirm-yes').textContent = 'Resolve';
+  $('confirm-overlay').classList.add('open');
   $('confirm-yes').onclick = async () => {
     $('confirm-overlay').classList.remove('open');
     try {
@@ -3826,10 +3833,13 @@ async function eaArchive(id) {
 }
 
 function eaConfirmDelete(id, title) {
+  $('confirm-icon-wrap').style.cssText = 'background:#fee2e2;color:#dc2626';
+  $('confirm-icon-wrap').innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
   $('confirm-title').textContent = 'Delete this alert?';
   $('confirm-msg').textContent = `"${title}" will be permanently deleted. This cannot be undone.`;
-  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').className = 'btn-del';
   $('confirm-yes').textContent = 'Delete';
+  $('confirm-overlay').classList.add('open');
   $('confirm-yes').onclick = async () => {
     $('confirm-overlay').classList.remove('open');
     try {
