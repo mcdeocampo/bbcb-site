@@ -9,7 +9,6 @@
   var _currentId = null;
   var _currentVersion = null;
   var _currentPriority = null;
-  var _currentResolvedMessage = null; // custom message from admin config, or null = use default
 
   function ackKey(id, version) {
     return 'EmergencyAlert_' + id + '_Version_' + version;
@@ -266,21 +265,16 @@
   // ── Core logic ───────────────────────────────────────────────────────────────
   function applyAlert(data) {
     if (!data || !data.active) {
-      console.log('[EA] No active alert.');
       if (_currentId !== null) {
-        // Fetch the resolved message fresh so any admin change takes effect immediately,
-        // regardless of when the custom message was configured relative to the alert.
         var _p = _currentPriority;
-        var _fallback = _currentResolvedMessage;
         fetch('/api/emergency-alerts/resolved-message?priority=' + encodeURIComponent(_p))
           .then(function(r) { return r.json(); })
           .then(function(cfg) { showResolvedToast(_p, cfg.message || null, false); })
-          .catch(function() { showResolvedToast(_p, _fallback, false); });
+          .catch(function() { showResolvedToast(_p, null, false); });
       }
       _currentId = null;
       _currentVersion = null;
       _currentPriority = null;
-      _currentResolvedMessage = null;
       removeBanner();
       removePopup();
       return;
@@ -292,16 +286,11 @@
 
     var acked = isAcknowledged(data.id, data.version);
     var showingPopup = data.enablePopup && !acked;
-    console.log('[EA] Active alert received.');
-    console.log('[EA] ID:', data.id, '| Priority:', data.priority, '| Alert Type:', data.alertType);
-    console.log('[EA] enablePopup:', data.enablePopup, '| Acknowledged:', acked, '| Showing popup:', showingPopup);
-    console.log('[EA] Banner class:', priorityClass(data.priority));
 
     showBanner(data);
     _currentId = data.id;
     _currentVersion = data.version;
     _currentPriority = data.priority;
-    _currentResolvedMessage = data.resolvedMessage || null;
 
     if (showingPopup && !_isDetailPage) {
       showPopup(data);
@@ -313,13 +302,8 @@
   function checkAlerts() {
     fetch(API_URL)
       .then(function (r) { return r.json(); })
-      .then(function (data) {
-        console.log('[EA] API response:', JSON.stringify(data));
-        applyAlert(data);
-      })
-      .catch(function (err) {
-        console.log('[EA] Fetch error:', err);
-      });
+      .then(applyAlert)
+      .catch(function () {});
   }
 
   function init() {

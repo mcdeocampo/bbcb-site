@@ -2265,7 +2265,6 @@ def api_emergency_alerts_active():
         'updatedBy':        top.get('updatedBy', ''),
         'startDatetime':    top.get('startDatetime', ''),
         'expirationDatetime': top.get('expirationDatetime', ''),
-        'resolvedMessage':  _get_resolved_message(top['priority']),
     })
 
 
