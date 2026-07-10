@@ -26,6 +26,89 @@
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
+  function inlineFmt(text) {
+    var s = String(text || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
+    return s;
+  }
+
+  function formatMsgInline(text) {
+    return String(text || '')
+      .replace(/\*{1,3}([^*\n]+?)\*{1,3}/g, '$1')
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/^[*\-•+]\s+/gm, '')
+      .replace(/^\d+[.)]\s+/gm, '')
+      .replace(/\n+/g, ' ')
+      .trim()
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function formatInstructions(raw) {
+    if (!raw) return '';
+    var lines = String(raw).replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+    var items = [];
+    for (var i = 0; i < lines.length; i++) {
+      var t = lines[i].trim();
+      if (!t) continue;
+      t = t.replace(/^#{1,6}\s+/, '');
+      t = t.replace(/^[*\-•+]\s+/, '');
+      t = t.replace(/^\d+[.)]\s+/, '');
+      if (t) items.push(t);
+    }
+    if (!items.length) return '';
+    if (items.length === 1) {
+      return '<p class="ea-msg-para">' + inlineFmt(items[0]) + '</p>';
+    }
+    var html = '<ul class="ea-instr-list">';
+    for (var j = 0; j < items.length; j++) {
+      html += '<li>' + inlineFmt(items[j]) + '</li>';
+    }
+    return html + '</ul>';
+  }
+
+  function formatMsgBlock(raw) {
+    if (!raw) return '';
+    var lines = String(raw).replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+    var out = '', inUl = false, inOl = false, para = [];
+    function flushPara() {
+      if (!para.length) return;
+      out += '<p class="ea-msg-para">' + para.join('<br>') + '</p>';
+      para = [];
+    }
+    function closeLists() {
+      if (inUl) { out += '</ul>'; inUl = false; }
+      if (inOl) { out += '</ol>'; inOl = false; }
+    }
+    for (var i = 0; i < lines.length; i++) {
+      var t = lines[i].trim();
+      if (!t) { flushPara(); closeLists(); continue; }
+      if (/^#{1,6}\s/.test(t)) {
+        flushPara(); closeLists();
+        out += '<p class="ea-msg-heading">' + inlineFmt(t.replace(/^#{1,6}\s+/, '')) + '</p>';
+        continue;
+      }
+      if (/^[*\-•+]\s/.test(t)) {
+        flushPara();
+        if (!inUl) { closeLists(); out += '<ul class="ea-msg-list">'; inUl = true; }
+        out += '<li>' + inlineFmt(t.replace(/^[*\-•+]\s+/, '')) + '</li>';
+        continue;
+      }
+      if (/^\d+[.)]\s/.test(t)) {
+        flushPara();
+        if (!inOl) { closeLists(); out += '<ol class="ea-msg-list">'; inOl = true; }
+        out += '<li>' + inlineFmt(t.replace(/^\d+[.)]\s+/, '')) + '</li>';
+        continue;
+      }
+      closeLists();
+      para.push(inlineFmt(lines[i]));
+    }
+    flushPara(); closeLists();
+    return out;
+  }
+
   function priorityClass(p) {
     if (p === 'Critical') return 'ea-banner-critical';
     if (p === 'Warning')  return 'ea-banner-warning';
@@ -71,7 +154,7 @@
         '<span class="ea-banner-icon">' + warningIconSVG() + '</span>' +
         '<div class="ea-banner-body">' +
           '<div class="ea-banner-title">&#x1F6A8; ' + esc(alert.priority) + ' Alert &mdash; ' + esc(alert.title) + '</div>' +
-          '<div class="ea-banner-msg">' + esc(alert.message) + areaNote + '</div>' +
+          '<div class="ea-banner-msg">' + formatMsgInline(alert.message) + areaNote + '</div>' +
         '</div>' +
         '<div class="ea-banner-actions">' +
           '<a class="ea-banner-link" href="' + detailUrl + '">View Details</a>' +
@@ -111,7 +194,7 @@
     var instrHtml = alert.instructions
       ? '<div class="ea-popup-section">' +
           '<div class="ea-popup-section-label">What To Do</div>' +
-          '<p class="ea-popup-instr">' + esc(alert.instructions) + '</p>' +
+          '<div class="ea-popup-instr">' + formatInstructions(alert.instructions) + '</div>' +
         '</div>'
       : '';
 
@@ -134,7 +217,7 @@
         '<div class="ea-popup-body">' +
           '<div class="ea-popup-section">' +
             '<div class="ea-popup-section-label">Emergency Message</div>' +
-            '<p class="ea-popup-msg">' + esc(alert.message) + '</p>' +
+            '<div class="ea-popup-msg">' + formatMsgBlock(alert.message) + '</div>' +
           '</div>' +
           instrHtml +
           areaHtml +
