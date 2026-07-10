@@ -47,8 +47,9 @@
   function removeBanner() {
     var el = document.getElementById('ea-banner');
     if (el && el.parentNode) el.parentNode.removeChild(el);
-    _currentId = null;
-    _currentVersion = null;
+    // Do NOT reset _currentId/_currentPriority here — user may have closed
+    // the banner with X but the alert is still active; we still need to
+    // detect the resolved transition on the next poll.
   }
 
   function showBanner(alert) {
@@ -216,6 +217,9 @@
     if (!data || !data.active) {
       console.log('[EA] No active alert.');
       if (_currentId !== null) showResolvedToast();
+      _currentId = null;
+      _currentVersion = null;
+      _currentPriority = null;
       removeBanner();
       removePopup();
       return;
