@@ -8,6 +8,7 @@
   // Track current displayed alert to detect changes across polls
   var _currentId = null;
   var _currentVersion = null;
+  var _currentPriority = null;
 
   function ackKey(id, version) {
     return 'EmergencyAlert_' + id + '_Version_' + version;
@@ -163,10 +164,26 @@
   var _isDetailPage = document.body.getAttribute('data-page') === 'emergency-alert-detail.html';
 
   // ── Resolved toast ───────────────────────────────────────────────────────────
+  function resolvedCopy(priority) {
+    if (priority === 'Critical') return {
+      title: 'Emergency Resolved',
+      msg: 'The previous emergency alert has been lifted. The situation has returned to normal. Residents may resume normal activities and are advised to continue monitoring official Barangay announcements for any further updates.'
+    };
+    if (priority === 'Warning') return {
+      title: 'Warning Lifted',
+      msg: 'The previous warning has been lifted. The situation has returned to normal. Residents are advised to remain alert and continue monitoring official Barangay announcements for any further updates.'
+    };
+    return {
+      title: 'Advisory Lifted',
+      msg: 'The previous advisory has been lifted. The situation has returned to normal. Residents are encouraged to continue monitoring official Barangay announcements for any further updates.'
+    };
+  }
+
   function showResolvedToast() {
     var existing = document.getElementById('ea-toast');
     if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
 
+    var copy = resolvedCopy(_currentPriority);
     var toast = document.createElement('div');
     toast.id = 'ea-toast';
     toast.className = 'ea-toast';
@@ -175,8 +192,8 @@
         '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>' +
       '</div>' +
       '<div class="ea-toast-content">' +
-        '<div class="ea-toast-title">Situation Resolved</div>' +
-        '<div class="ea-toast-msg">The emergency alert has been lifted. Residents may return to normal activities.</div>' +
+        '<div class="ea-toast-title">' + copy.title + '</div>' +
+        '<div class="ea-toast-msg">' + copy.msg + '</div>' +
       '</div>' +
       '<button class="ea-toast-close" id="ea-toast-close" aria-label="Dismiss">&#x2715;</button>' +
       '<div class="ea-toast-progress"><div class="ea-toast-bar"></div></div>';
@@ -214,6 +231,7 @@
     showBanner(data);
     _currentId = data.id;
     _currentVersion = data.version;
+    _currentPriority = data.priority;
 
     if (showingPopup && !_isDetailPage) {
       showPopup(data);
