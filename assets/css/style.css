@@ -18870,14 +18870,14 @@ body[data-page="officials.html"] .officials-section {
 body[data-page="officials.html"] .officials-feature-wrap {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 36px;
 }
 
 /* ── Featured Punong Barangay card ──────────────────────────────── */
 body[data-page="officials.html"] .officials-feature-wrap {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 36px;
 }
 
 /* Horizontal layout: photo left, details right */
@@ -19001,7 +19001,7 @@ body[data-page="officials.html"] .officials-divider {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 28px;
+  margin-bottom: 10px;
   color: #7a94bc;
   font-size: .73rem;
   font-weight: 700;
@@ -19301,7 +19301,7 @@ body[data-page="officials.html"] .officials-divider span::before {
 /* Covers: 1280px (Air 13"), 1366px generic laptop, 1440px (some 13") */
 @media (min-width: 1200px) and (max-width: 1440px) {
   /* padding-top handled by .page-hero + .section-pad standard rule */
-  body[data-page="officials.html"] .officials-feature-wrap { margin-bottom: 20px !important; }
+  body[data-page="officials.html"] .officials-feature-wrap { margin-bottom: 36px !important; }
   body[data-page="officials.html"] .official-featured {
     padding: 12px 20px !important;
     gap: 14px !important;
@@ -19310,7 +19310,7 @@ body[data-page="officials.html"] .officials-divider span::before {
     width: 72px !important;
     height: 72px !important;
   }
-  body[data-page="officials.html"] .officials-divider { margin-bottom: 24px !important; }
+  body[data-page="officials.html"] .officials-divider { margin-bottom: 10px !important; }
   /* 4-column grid */
   body[data-page="officials.html"] .officials-section .officials-council-grid {
     grid-template-columns: repeat(4, 1fr) !important;
@@ -19332,7 +19332,7 @@ body[data-page="officials.html"] .officials-divider span::before {
 /* Covers: 1512px (MBP 14") CSS viewport */
 @media (min-width: 1441px) and (max-width: 1599px) {
   /* padding-top handled by .page-hero + .section-pad standard rule */
-  body[data-page="officials.html"] .officials-feature-wrap { margin-bottom: 20px !important; }
+  body[data-page="officials.html"] .officials-feature-wrap { margin-bottom: 36px !important; }
   body[data-page="officials.html"] .official-featured {
     padding: 14px 22px !important;
     gap: 16px !important;
@@ -19341,7 +19341,7 @@ body[data-page="officials.html"] .officials-divider span::before {
     width: 80px !important;
     height: 80px !important;
   }
-  body[data-page="officials.html"] .officials-divider { margin-bottom: 24px !important; }
+  body[data-page="officials.html"] .officials-divider { margin-bottom: 10px !important; }
   /* 5-column grid with comfortable spacing */
   body[data-page="officials.html"] .officials-section .officials-council-grid {
     grid-template-columns: repeat(5, 1fr) !important;
