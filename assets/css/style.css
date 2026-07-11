@@ -18863,7 +18863,6 @@ body[data-page="index.html"] .hero-hotline-number {
 
 /* ── Section vertical spacing ───────────────────────────────────── */
 body[data-page="officials.html"] .officials-section {
-  padding-top: 28px !important;
   padding-bottom: 80px !important;
 }
 
@@ -19287,7 +19286,7 @@ body[data-page="officials.html"] .officials-divider span::before {
 /* ── MacBook Air/Pro 13" · 1200px–1440px → 4 columns ───────────── */
 /* Covers: 1280px (Air 13"), 1366px generic laptop, 1440px (some 13") */
 @media (min-width: 1200px) and (max-width: 1440px) {
-  body[data-page="officials.html"] .officials-section { padding-top: 40px !important; }
+  /* padding-top handled by .page-hero + .section-pad standard rule */
   body[data-page="officials.html"] .officials-feature-wrap { margin-bottom: 20px !important; }
   body[data-page="officials.html"] .official-featured {
     padding: 12px 20px !important;
@@ -19318,7 +19317,7 @@ body[data-page="officials.html"] .officials-divider span::before {
 /* ── MacBook Pro 14" · 1441px–1599px → 5 columns ───────────────── */
 /* Covers: 1512px (MBP 14") CSS viewport */
 @media (min-width: 1441px) and (max-width: 1599px) {
-  body[data-page="officials.html"] .officials-section { padding-top: 44px !important; }
+  /* padding-top handled by .page-hero + .section-pad standard rule */
   body[data-page="officials.html"] .officials-feature-wrap { margin-bottom: 20px !important; }
   body[data-page="officials.html"] .official-featured {
     padding: 14px 22px !important;
@@ -19349,7 +19348,6 @@ body[data-page="officials.html"] .officials-divider span::before {
 /* ── Large screen (1600px+) ──────────────────────────────────────── */
 @media (min-width: 1600px) {
   body[data-page="officials.html"] .officials-section {
-    padding-top: 48px !important;
     padding-bottom: 180px !important;
   }
   body[data-page="officials.html"] .officials-council-grid {
@@ -19369,7 +19367,6 @@ body[data-page="officials.html"] .officials-divider span::before {
 /* ── Very large screen (1920px+) ─────────────────────────────────── */
 @media (min-width: 1920px) {
   body[data-page="officials.html"] .officials-section {
-    padding-top: 56px !important;
     padding-bottom: 220px !important;
   }
   body[data-page="officials.html"] .officials-council-grid {
