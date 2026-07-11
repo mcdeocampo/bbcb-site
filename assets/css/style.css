@@ -20468,7 +20468,7 @@ body[data-page="index.html"] .hero-emergency-item.bbcb-hotlines-trigger:focus-vi
   color: #0B5E7A;
   text-align: right;
   text-decoration: none;
-  flex-shrink: 0;
+  flex: 1;
   line-height: 1.55;
   white-space: normal;
   max-width: 48%;
