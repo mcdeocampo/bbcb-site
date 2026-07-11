@@ -2071,6 +2071,7 @@ def admin_alerts_update(alert_id):
 
     admin_name = _current_admin_name()
     now = datetime.now(timezone.utc).isoformat()
+    now_manila = _manila_now().strftime('%Y-%m-%dT%H:%M')
     patch = {
         'title':               _clean(d.get('title',           cur.get('title', '')), 200),
         'alert_type':          _clean(d.get('alertType',       cur.get('alert_type', 'Other')), 50),
@@ -2087,6 +2088,13 @@ def admin_alerts_update(alert_id):
         'updated_by':          admin_name,
         'updated_at':          now,
     }
+    # Re-activate auto-expired alerts when the admin extends the expiration to a
+    # future datetime. Only applies to 'expired' status (auto-expired by time);
+    # alerts that were manually resolved or archived are left untouched.
+    if (cur.get('status') == 'expired'
+            and expiry and expiry[:16] > now_manila
+            and (not start or start[:16] <= now_manila)):
+        patch['status'] = 'active'
     try:
         res = (supabase.table('emergency_alerts')
                .update(patch).eq('id', alert_id).select().execute())
