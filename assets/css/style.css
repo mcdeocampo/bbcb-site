@@ -20443,8 +20443,8 @@ body[data-page="index.html"] .hero-emergency-item.bbcb-hotlines-trigger:focus-vi
 
 /* Each row */
 .bbcb-modal-row {
-  display: grid;
-  grid-template-columns: 1fr max-content;
+  display: flex;
+  justify-content: space-between;
   align-items: flex-start;
   gap: 14px;
   padding: 8px 0;
@@ -20456,6 +20456,7 @@ body[data-page="index.html"] .hero-emergency-item.bbcb-hotlines-trigger:focus-vi
   font-size: 0.82rem;
   color: #1F2933;
   line-height: 1.45;
+  flex: 1;
   min-width: 0;
   word-break: break-word;
 }
@@ -20467,7 +20468,7 @@ body[data-page="index.html"] .hero-emergency-item.bbcb-hotlines-trigger:focus-vi
   color: #0B5E7A;
   text-align: right;
   text-decoration: none;
-  white-space: nowrap;
+  flex-shrink: 0;
   line-height: 1.55;
   white-space: normal;
   max-width: 48%;

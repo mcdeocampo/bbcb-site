@@ -398,17 +398,14 @@
   </div>
 
   <!-- ── Other Hotlines Modal ──────────────────────────────── -->
-  <div id="bbcb-hotlines-modal" class="bbcb-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="bbcb-modal-title" hidden>
-    <div class="bbcb-modal">
-      <div class="bbcb-modal-header">
-        <div class="bbcb-modal-title-group">
-          <svg class="bbcb-modal-phone-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0B5E7A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l1.86-1.86a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          <h2 id="bbcb-modal-title">Other Hotlines</h2>
-        </div>
-        <button class="bbcb-modal-close" id="bbcb-modal-close" aria-label="Close modal">&#x2715;</button>
+  <div id="hotlines-modal-overlay" onclick="if(event.target===this)closeHotlinesModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(5,40,60,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;">
+    <div style="background:#fff;border-radius:20px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(5,40,60,.22),0 4px 16px rgba(5,40,60,.10);overflow:hidden;animation:hotlinesFadeIn .22s ease;">
+      <div style="background:linear-gradient(110deg,#074f6b 0%,#0891b2 60%,#22d3ee 100%);padding:20px 24px 18px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:1.05rem;font-weight:800;color:#fff;line-height:1.2;">Other Hotlines</div>
+        <button onclick="closeHotlinesModal()" aria-label="Close" style="background:rgba(255,255,255,.15);border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;line-height:1;flex-shrink:0;transition:background .18s;">✕</button>
       </div>
-      <div class="bbcb-modal-body">
-        <div id="bbcb-hotlines-list"></div>
+      <div style="padding:18px 24px 24px;">
+        <div id="hotlines-list" style="display:flex;flex-direction:column;gap:10px;"></div>
       </div>
     </div>
   </div>
@@ -469,71 +466,75 @@
     }
   })();
   </script>
+  <style>
+    @keyframes hotlinesFadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    .bbcb-view-list { color:#0891b2 !important; font-size:.62rem !important; font-weight:500 !important; text-decoration:underline !important; text-underline-offset:2px; }
+    .hotline-row { display:flex; align-items:center; justify-content:space-between; background:#f0f9ff; border-radius:12px; padding:11px 14px; gap:12px; }
+    .hotline-row-label { font-size:.82rem; font-weight:400; color:#1e293b; flex:1; }
+    .hotline-row-number { font-size:.88rem; font-weight:600; color:#0B5E7A; white-space:nowrap; text-decoration:none; }
+    #hotlines-modal-overlay.open { display:flex !important; }
+    @media (max-width:480px) {
+      #hotlines-modal-overlay > div { border-radius:16px; }
+      .hotline-row { padding:10px 12px; }
+    }
+  </style>
   <script>
-  (function () {
-    var BBCB_HOTLINES = [
-      { label: '24/7 EBD Emergency Health Hotline', number: '0999-222-6626', category: 'Emergency Numbers' },
-      { label: "Mayor's Action Center", number: '723-1511', category: 'Emergency Numbers' },
-      { label: 'BFP Batangas City', number: '425-7163 / 301-7996 / 09156021984', category: 'Emergency Numbers' },
-      { label: 'PNP Batangas City', number: '408-8023', category: 'Emergency Numbers' },
-      { label: 'Batangas Medical Center', number: '723-0911', category: 'Hospitals' },
-      { label: "Saint Patrick's Hospital Medical Center", number: '723-1605', category: 'Hospitals' },
-      { label: 'Jesus of Nazareth Hospital', number: '723-4144', category: 'Hospitals' },
-      { label: 'Golden Gate General Hospital', number: '723-2508', category: 'Hospitals' },
-      { label: 'Batangas Healthcare Specialists Medical Center', number: '(043) 403-8642', category: 'Hospitals' },
-      { label: 'United Doctors of St. Camillus de Lellis Hospital', number: '0918-994-2074', category: 'Hospitals' },
-      { label: 'Meralco - All Departments', number: '16211 / 1622-2847', category: 'Other Important Hotlines' },
-      { label: 'National Power Corporation', number: '300-3592', category: 'Other Important Hotlines' },
-      { label: 'PrimeWater Batangas City', number: '09494142633 / 980-6928', category: 'Other Important Hotlines' },
-      { label: 'City Disaster Risk Reduction and Management Office', number: '702-3902', category: 'Other Important Hotlines' },
-      { label: 'LTO Batangas City', number: '740-9738', category: 'Other Important Hotlines' },
-      { label: 'VAWC Batangas City', number: '0956-826-7017', category: 'Other Important Hotlines' }
-    ];
-
-    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-    function renderHotlines(hotlines) {
-      var listEl = document.getElementById('bbcb-hotlines-list');
-      if (!listEl) return;
-      var groups = {}, groupOrder = [];
-      hotlines.forEach(function(h) {
-        var cat = h.category || 'Other';
-        if (!groups[cat]) { groups[cat] = []; groupOrder.push(cat); }
-        groups[cat].push(h);
-      });
-      listEl.innerHTML = groupOrder.map(function(cat) {
-        var rows = groups[cat].map(function(h) {
-          var tel = (h.number || '').replace(/[\s\-()\/.]/g, '');
-          return '<div class="bbcb-modal-row"><span class="bbcb-modal-name">' + esc(h.label) + '</span><a href="tel:' + tel + '" class="bbcb-modal-number">' + esc(h.number) + '</a></div>';
-        }).join('');
-        var label = (cat && cat !== 'Other') ? '<p class="bbcb-modal-section-label">' + esc(cat) + '</p>' : '';
-        return '<div class="bbcb-modal-section">' + label + rows + '</div>';
+  var BBCB_HOTLINES = [
+    { label: '24/7 EBD Emergency Health Hotline',                  number: '0999-222-6626' },
+    { label: "Mayor's Action Center",                              number: '723-1511' },
+    { label: 'BFP Batangas City',                                  number: '425-7163 / 301-7996 / 09156021984' },
+    { label: 'PNP Batangas City',                                  number: '408-8023' },
+    { label: 'Batangas Medical Center',                            number: '723-0911' },
+    { label: "Saint Patrick's Hospital Medical Center",            number: '723-1605' },
+    { label: 'Jesus of Nazareth Hospital',                         number: '723-4144' },
+    { label: 'Golden Gate General Hospital',                       number: '723-2508' },
+    { label: 'Batangas Healthcare Specialists Medical Center',     number: '(043) 403-8642' },
+    { label: 'United Doctors of St. Camillus de Lellis Hospital', number: '0918-994-2074' },
+    { label: 'Meralco - All Departments',                         number: '16211 / 1622-2847' },
+    { label: 'National Power Corporation',                        number: '300-3592' },
+    { label: 'PrimeWater Batangas City',                          number: '09494142633 / 980-6928' },
+    { label: 'City Disaster Risk Reduction and Management Office', number: '702-3902' },
+    { label: 'LTO Batangas City',                                 number: '740-9738' },
+    { label: 'VAWC Batangas City',                                number: '0956-826-7017' }
+  ];
+  function openHotlinesModal() {
+    var list = document.getElementById('hotlines-list');
+    if (!list.hasChildNodes()) {
+      list.innerHTML = BBCB_HOTLINES.map(function(h) {
+        return '<div class="hotline-row"><span class="hotline-row-label">' + h.label + '</span><a class="hotline-row-number" href="tel:' + h.number.replace(/[\s\-().\/]/g,'') + '">' + h.number + '</a></div>';
       }).join('');
     }
+    var overlay = document.getElementById('hotlines-modal-overlay');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeHotlinesModal() {
+    document.getElementById('hotlines-modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeHotlinesModal(); });
 
-    renderHotlines(BBCB_HOTLINES);
+  fetch('/api/emergency-hotlines')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d && Array.isArray(d.hotlines) && d.hotlines.length > 0) {
+        var api = d.hotlines.map(function(h) { return { label: h.label||'', number: h.number||'' }; })
+                            .filter(function(h) { return h.label && h.number; });
+        if (api.length > 0) {
+          BBCB_HOTLINES = api;
+          var overlay = document.getElementById('hotlines-modal-overlay');
+          var list    = document.getElementById('hotlines-list');
+          if (list && overlay && window.getComputedStyle(overlay).display === 'none') list.innerHTML = '';
+        }
+      }
+    })
+    .catch(function() {});
 
-    fetch('/api/emergency-hotlines')
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        if (d && Array.isArray(d.hotlines) && d.hotlines.length > 0) renderHotlines(d.hotlines);
-      })
-      .catch(function() {});
-
-    var modal   = document.getElementById('bbcb-hotlines-modal');
-    var trigger = document.getElementById('bbcb-hotlines-trigger');
-    var closeBtn = document.getElementById('bbcb-modal-close');
-    if (!modal || !trigger || !closeBtn) return;
-
-    function openModal() { modal.removeAttribute('hidden'); document.body.style.overflow = 'hidden'; closeBtn.focus(); }
-    function closeModal() { modal.setAttribute('hidden', ''); document.body.style.overflow = ''; trigger.focus(); }
-
-    trigger.addEventListener('click', openModal);
-    trigger.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(); } });
-    closeBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
-    document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && !modal.hasAttribute('hidden')) closeModal(); });
-  })();
+  var _trigger = document.getElementById('bbcb-hotlines-trigger');
+  if (_trigger) {
+    _trigger.addEventListener('click', openHotlinesModal);
+    _trigger.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openHotlinesModal(); } });
+  }
   </script>
   <!-- ── Barangay Calendar Script ────────────────────────────── -->
   <script>
