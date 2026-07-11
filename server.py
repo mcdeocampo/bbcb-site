@@ -1559,7 +1559,9 @@ def _hotline_bulk_order(order_map):
 # ── Public — site settings & emergency hotlines ───────────────────────────────
 @app.route('/api/site-settings')
 def api_site_settings():
-    return jsonify(_load_site_settings())
+    resp = jsonify(_load_site_settings())
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
 
 
 @app.route('/api/emergency-hotlines')
