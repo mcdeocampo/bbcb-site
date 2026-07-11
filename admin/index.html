@@ -1105,6 +1105,23 @@ a{text-decoration:none;color:inherit}
         <button class="btn-save-order" onclick="saveOfficialOrder()">Save Order</button>
       </div>
       <div class="ann-list" id="off-list"><div class="loading">Loading...</div></div>
+
+      <!-- Officials Page Descriptions -->
+      <div class="settings-card" style="margin-top:2rem">
+        <h3>Officials Page Descriptions</h3>
+        <p class="settings-desc">These descriptions appear on the public Officials page. Changes take effect immediately after saving.</p>
+        <div class="field field-full" style="margin-bottom:1rem">
+          <label>Punong Barangay Description</label>
+          <textarea id="off-punong-desc" rows="4" maxlength="500" style="resize:vertical"></textarea>
+        </div>
+        <div class="field field-full">
+          <label>Sangguniang Barangay Section Description</label>
+          <textarea id="off-sb-desc" rows="4" maxlength="500" style="resize:vertical"></textarea>
+        </div>
+        <div class="settings-acts" style="margin-top:1rem">
+          <button class="btn-publish" onclick="saveOfficialsDescriptions()">Save Descriptions</button>
+        </div>
+      </div>
     </section>
 
     <!-- Barangay Calendar -->
@@ -2042,7 +2059,7 @@ function showSection(name) {
   if (name==='announcements') renderList();
   if (name==='initiatives') renderInitList();
   if (name==='forms') renderFormList();
-  if (name==='officials') renderOfficialList();
+  if (name==='officials') { renderOfficialList(); loadOfficialsDescriptions(); }
   if (name==='calendar') renderCalList();
   if (name==='alerts') { eaSwitchPanel('active', document.querySelector('.ea-subtab[data-panel="active"]')); loadAlerts(); }
   if (name==='settings') { resetSettingsForm(); loadSiteSettings(); loadHotlines(); }
@@ -3297,6 +3314,28 @@ async function toggleOfficialStatus(id, cur) {
     await loadOfficials();
     toast(nxt === 'hidden' ? 'Official hidden from public' : 'Official is now visible', 'ok');
   } catch(e) { if (e.message !== 'unauthorized') toast('Update error', 'err'); }
+}
+
+async function loadOfficialsDescriptions() {
+  try {
+    const r = await adminFetch('/admin/api/site-settings');
+    const d = await r.json();
+    const pd = $('off-punong-desc'); if (pd) pd.value = d.officials_punong_description || '';
+    const sd = $('off-sb-desc');     if (sd) sd.value = d.officials_sb_description    || '';
+  } catch(e) { if (e.message !== 'unauthorized') toast('Failed to load descriptions', 'err'); }
+}
+
+async function saveOfficialsDescriptions() {
+  const payload = {
+    officials_punong_description: ($('off-punong-desc') || {}).value || '',
+    officials_sb_description:     ($('off-sb-desc')     || {}).value || '',
+  };
+  try {
+    const r = await adminFetch('/admin/api/site-settings', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const d = await r.json();
+    if (!r.ok) { toast(d.error || 'Save failed', 'err'); return; }
+    toast('Descriptions saved', 'ok');
+  } catch(e) { if (e.message !== 'unauthorized') toast('Save failed', 'err'); }
 }
 
 let pendingOffDelId = null;

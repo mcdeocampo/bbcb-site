@@ -72,8 +72,9 @@
 
     <!-- Section label -->
     <div class="officials-divider">
-      <span>Barangay Council &amp; Staff</span>
+      <span>Sangguniang Barangay</span>
     </div>
+    <p id="sb-section-desc" style="text-align:center;max-width:680px;margin:0 auto 2rem;color:var(--text-muted,#64748b);line-height:1.7;font-size:.97rem"></p>
 
     <!-- Remaining 10 officials -->
     <div class="officials-council-grid" id="council-grid">
@@ -147,8 +148,16 @@
     function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
     function src(u){return u?(u.indexOf('http')===0?u:'/'+u):'';}
     var PH='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" aria-hidden="true" style="border-radius:50%;display:block;"><circle cx="60" cy="60" r="60" fill="#e8f5f5"/><circle cx="60" cy="46" r="22" fill="#2CA6A4" opacity=".55"/><ellipse cx="60" cy="100" rx="36" ry="28" fill="#2CA6A4" opacity=".40"/></svg>';
-    fetch('/api/officials').then(function(r){return r.json();}).then(function(d){
+    Promise.all([
+      fetch('/api/officials').then(function(r){return r.json();}),
+      fetch('/api/site-settings').then(function(r){return r.json();})
+    ]).then(function(results){
+      var d=results[0],s=results[1];
       var all=(d.officials||[]).filter(function(o){return o.status==='published';});
+      var punongDesc=s.officials_punong_description||'Overall Barangay Leadership';
+      var sbDesc=s.officials_sb_description||'';
+      var sbEl=document.getElementById('sb-section-desc');
+      if(sbEl)sbEl.textContent=sbDesc;
       if(!all.length)return;
       var punong=null,others=[];
       all.forEach(function(o){if(o.isPunong)punong=o;else others.push(o);});
@@ -159,7 +168,7 @@
           '<span class="ofc-badge">Punong Barangay</span>'+
           '<h2 class="ofc-name">'+esc(punong.fullName)+'</h2>'+
           '<div class="ofc-divider"></div>'+
-          '<p class="ofc-role">'+esc(punong.roleDescription||'Overall Barangay Leadership')+'</p>'+
+          '<p class="ofc-role">'+esc(punongDesc)+'</p>'+
           '</div>';
       }
       if(CG&&others.length){
