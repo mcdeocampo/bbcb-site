@@ -2374,6 +2374,531 @@ def _ensure_initial_settings():
         print(f'[BBCB] WARNING: Could not seed initial settings: {exc}', flush=True)
 
 
+# ── Directory Module (Phase 2) ────────────────────────────────────────────────
+# Community Map / Business Directory / Organization Directory / Emergency
+# Directory — CRUD-managed replacement for the Phase 1 hardcoded sample data.
+# Mirrors the existing community-initiatives / officials / forms pattern
+# exactly: _row_to_X converters, _X_create/_update/_delete helpers, a public
+# read-only endpoint filtered to status='published', and an @admin_required
+# CRUD endpoint set.
+
+DIR_MAP_CATEGORIES = ['Barangay Hall', 'Health Center', 'Schools', 'Evacuation Centers', 'Public Facilities']
+DIR_BIZ_CATEGORIES = ['Food & Restaurants', 'Stores', 'Services', 'Local Entrepreneurs']
+DIR_ORG_CATEGORIES = ['Associations', 'Youth Organizations', 'Senior Citizens', 'Community Groups']
+DIR_EM_CATEGORIES  = ['Emergency Contacts', 'Hospitals', 'Police', 'Fire Services', 'Disaster Response Contacts']
+
+
+def _to_float(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+# ── Community Map helpers ─────────────────────────────────────────────────────
+def _row_to_dirmap(row):
+    return {
+        'id': row['id'], 'name': row.get('name', ''), 'category': row.get('category', ''),
+        'description': row.get('description', ''), 'address': row.get('address', ''),
+        'contact': row.get('contact', ''), 'hours': row.get('hours', ''),
+        'lat': row.get('lat'), 'lng': row.get('lng'),
+        'status': row.get('status', 'draft'),
+        'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
+    }
+
+
+def _load_dirmap():
+    try:
+        res = supabase.table('directory_map_locations').select('*').execute()
+        return [_row_to_dirmap(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def _dirmap_create(d):
+    row = {
+        'id': d['id'], 'name': d.get('name', ''), 'category': d.get('category', ''),
+        'description': d.get('description', ''), 'address': d.get('address', ''),
+        'contact': d.get('contact', ''), 'hours': d.get('hours', ''),
+        'lat': d.get('lat'), 'lng': d.get('lng'), 'status': d.get('status', 'draft'),
+        'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
+    }
+    res = supabase.table('directory_map_locations').insert(row).execute()
+    return _row_to_dirmap(res.data[0]) if res.data else d
+
+
+def _dirmap_update(item_id, patch):
+    now = datetime.now(timezone.utc).isoformat()
+    row = {'updated_at': now}
+    for camel, snake in [('name', 'name'), ('category', 'category'), ('description', 'description'),
+                         ('address', 'address'), ('contact', 'contact'), ('hours', 'hours'),
+                         ('lat', 'lat'), ('lng', 'lng'), ('status', 'status')]:
+        if camel in patch:
+            row[snake] = patch[camel]
+    res = supabase.table('directory_map_locations').update(row).eq('id', item_id).execute()
+    return _row_to_dirmap(res.data[0]) if res.data else None
+
+
+def _dirmap_delete(item_id):
+    res = supabase.table('directory_map_locations').delete().eq('id', item_id).execute()
+    return bool(res.data)
+
+
+# ── Business Directory helpers ────────────────────────────────────────────────
+def _row_to_dirbiz(row):
+    return {
+        'id': row['id'], 'name': row.get('name', ''), 'category': row.get('category', ''),
+        'description': row.get('description', ''), 'address': row.get('address', ''),
+        'contact': row.get('contact', ''), 'hours': row.get('hours', ''),
+        'imageUrl': row.get('image_url', ''), 'social': row.get('social_link', ''),
+        'lat': row.get('lat'), 'lng': row.get('lng'),
+        'status': row.get('status', 'draft'),
+        'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
+    }
+
+
+def _load_dirbiz():
+    try:
+        res = supabase.table('directory_businesses').select('*').execute()
+        return [_row_to_dirbiz(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def _dirbiz_create(d):
+    row = {
+        'id': d['id'], 'name': d.get('name', ''), 'category': d.get('category', ''),
+        'description': d.get('description', ''), 'address': d.get('address', ''),
+        'contact': d.get('contact', ''), 'hours': d.get('hours', ''),
+        'image_url': d.get('imageUrl', ''), 'social_link': d.get('social', ''),
+        'lat': d.get('lat'), 'lng': d.get('lng'), 'status': d.get('status', 'draft'),
+        'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
+    }
+    res = supabase.table('directory_businesses').insert(row).execute()
+    return _row_to_dirbiz(res.data[0]) if res.data else d
+
+
+def _dirbiz_update(item_id, patch):
+    now = datetime.now(timezone.utc).isoformat()
+    row = {'updated_at': now}
+    field_map = {'name': 'name', 'category': 'category', 'description': 'description',
+                 'address': 'address', 'contact': 'contact', 'hours': 'hours',
+                 'imageUrl': 'image_url', 'social': 'social_link',
+                 'lat': 'lat', 'lng': 'lng', 'status': 'status'}
+    for camel, snake in field_map.items():
+        if camel in patch:
+            row[snake] = patch[camel]
+    res = supabase.table('directory_businesses').update(row).eq('id', item_id).execute()
+    return _row_to_dirbiz(res.data[0]) if res.data else None
+
+
+def _dirbiz_delete(item_id):
+    res = supabase.table('directory_businesses').delete().eq('id', item_id).execute()
+    return bool(res.data)
+
+
+# ── Organization Directory helpers ────────────────────────────────────────────
+def _row_to_dirorg(row):
+    return {
+        'id': row['id'], 'name': row.get('name', ''), 'category': row.get('category', ''),
+        'description': row.get('description', ''), 'contactPerson': row.get('contact_person', ''),
+        'officers': row.get('officers') or [], 'contactDetails': row.get('contact_details', ''),
+        'programs': row.get('programs', ''), 'location': row.get('location', ''),
+        'lat': row.get('lat'), 'lng': row.get('lng'),
+        'status': row.get('status', 'draft'),
+        'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
+    }
+
+
+def _load_dirorg():
+    try:
+        res = supabase.table('directory_organizations').select('*').execute()
+        return [_row_to_dirorg(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def _dirorg_create(d):
+    row = {
+        'id': d['id'], 'name': d.get('name', ''), 'category': d.get('category', ''),
+        'description': d.get('description', ''), 'contact_person': d.get('contactPerson', ''),
+        'officers': d.get('officers') or [], 'contact_details': d.get('contactDetails', ''),
+        'programs': d.get('programs', ''), 'location': d.get('location', ''),
+        'lat': d.get('lat'), 'lng': d.get('lng'), 'status': d.get('status', 'draft'),
+        'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
+    }
+    res = supabase.table('directory_organizations').insert(row).execute()
+    return _row_to_dirorg(res.data[0]) if res.data else d
+
+
+def _dirorg_update(item_id, patch):
+    now = datetime.now(timezone.utc).isoformat()
+    row = {'updated_at': now}
+    field_map = {'name': 'name', 'category': 'category', 'description': 'description',
+                 'contactPerson': 'contact_person', 'officers': 'officers',
+                 'contactDetails': 'contact_details', 'programs': 'programs', 'location': 'location',
+                 'lat': 'lat', 'lng': 'lng', 'status': 'status'}
+    for camel, snake in field_map.items():
+        if camel in patch:
+            row[snake] = patch[camel]
+    res = supabase.table('directory_organizations').update(row).eq('id', item_id).execute()
+    return _row_to_dirorg(res.data[0]) if res.data else None
+
+
+def _dirorg_delete(item_id):
+    res = supabase.table('directory_organizations').delete().eq('id', item_id).execute()
+    return bool(res.data)
+
+
+# ── Emergency Directory helpers ───────────────────────────────────────────────
+def _row_to_direm(row):
+    return {
+        'id': row['id'], 'name': row.get('name', ''), 'category': row.get('category', ''),
+        'number': row.get('number', ''), 'altNumber': row.get('alt_number', ''),
+        'address': row.get('address', ''), 'services': row.get('services', ''),
+        'lat': row.get('lat'), 'lng': row.get('lng'),
+        'status': row.get('status', 'draft'),
+        'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
+    }
+
+
+def _load_direm():
+    try:
+        res = supabase.table('directory_emergency').select('*').execute()
+        return [_row_to_direm(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def _direm_create(d):
+    row = {
+        'id': d['id'], 'name': d.get('name', ''), 'category': d.get('category', ''),
+        'number': d.get('number', ''), 'alt_number': d.get('altNumber', ''),
+        'address': d.get('address', ''), 'services': d.get('services', ''),
+        'lat': d.get('lat'), 'lng': d.get('lng'), 'status': d.get('status', 'draft'),
+        'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
+    }
+    res = supabase.table('directory_emergency').insert(row).execute()
+    return _row_to_direm(res.data[0]) if res.data else d
+
+
+def _direm_update(item_id, patch):
+    now = datetime.now(timezone.utc).isoformat()
+    row = {'updated_at': now}
+    field_map = {'name': 'name', 'category': 'category', 'number': 'number',
+                 'altNumber': 'alt_number', 'address': 'address', 'services': 'services',
+                 'lat': 'lat', 'lng': 'lng', 'status': 'status'}
+    for camel, snake in field_map.items():
+        if camel in patch:
+            row[snake] = patch[camel]
+    res = supabase.table('directory_emergency').update(row).eq('id', item_id).execute()
+    return _row_to_direm(res.data[0]) if res.data else None
+
+
+def _direm_delete(item_id):
+    res = supabase.table('directory_emergency').delete().eq('id', item_id).execute()
+    return bool(res.data)
+
+
+# ── Directory — public read-only endpoints (published only) ──────────────────
+@app.route('/api/directory/map')
+def api_dir_map():
+    items = [x for x in _load_dirmap() if x.get('status') == 'published']
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'locations': items})
+
+
+@app.route('/api/directory/businesses')
+def api_dir_businesses():
+    items = [x for x in _load_dirbiz() if x.get('status') == 'published']
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'businesses': items})
+
+
+@app.route('/api/directory/organizations')
+def api_dir_organizations():
+    items = [x for x in _load_dirorg() if x.get('status') == 'published']
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'organizations': items})
+
+
+@app.route('/api/directory/emergency')
+def api_dir_emergency():
+    items = [x for x in _load_direm() if x.get('status') == 'published']
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'contacts': items})
+
+
+# ── Directory — admin CRUD: Community Map ─────────────────────────────────────
+@app.route('/admin/api/directory/map')
+@admin_required
+def admin_dirmap_list():
+    items = _load_dirmap()
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'locations': items})
+
+
+@app.route('/admin/api/directory/map', methods=['POST'])
+@admin_required
+def admin_dirmap_create():
+    d = request.get_json(silent=True) or {}
+    now = datetime.now(timezone.utc).isoformat()
+    status = d.get('status', 'draft')
+    if status not in ('draft', 'published', 'hidden'):
+        status = 'draft'
+    category = d.get('category') if d.get('category') in DIR_MAP_CATEGORIES else DIR_MAP_CATEGORIES[-1]
+    item = {
+        'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
+        'description': _clean(d.get('description'), 1000), 'address': _clean(d.get('address'), 300),
+        'contact': _clean(d.get('contact'), 100), 'hours': _clean(d.get('hours'), 150),
+        'lat': _to_float(d.get('lat')), 'lng': _to_float(d.get('lng')), 'status': status,
+        'createdAt': now, 'updatedAt': now,
+    }
+    item = _dirmap_create(item)
+    return jsonify({'status': 'ok', 'location': item}), 201
+
+
+@app.route('/admin/api/directory/map/<item_id>', methods=['PUT'])
+@admin_required
+def admin_dirmap_update(item_id):
+    d = request.get_json(silent=True) or {}
+    patch = {}
+    for field, maxlen in [('name', 150), ('description', 1000), ('address', 300),
+                          ('contact', 100), ('hours', 150)]:
+        if field in d:
+            patch[field] = _clean(d[field], maxlen)
+    if 'category' in d and d['category'] in DIR_MAP_CATEGORIES:
+        patch['category'] = d['category']
+    if 'lat' in d:
+        patch['lat'] = _to_float(d['lat'])
+    if 'lng' in d:
+        patch['lng'] = _to_float(d['lng'])
+    if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
+        patch['status'] = d['status']
+    item = _dirmap_update(item_id, patch)
+    if not item:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'location': item})
+
+
+@app.route('/admin/api/directory/map/<item_id>', methods=['DELETE'])
+@admin_required
+def admin_dirmap_delete(item_id):
+    if not _dirmap_delete(item_id):
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok'})
+
+
+# ── Directory — admin CRUD: Business Directory ───────────────────────────────
+@app.route('/admin/api/directory/businesses')
+@admin_required
+def admin_dirbiz_list():
+    items = _load_dirbiz()
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'businesses': items})
+
+
+@app.route('/admin/api/directory/businesses', methods=['POST'])
+@admin_required
+def admin_dirbiz_create():
+    d = request.get_json(silent=True) or {}
+    now = datetime.now(timezone.utc).isoformat()
+    status = d.get('status', 'draft')
+    if status not in ('draft', 'published', 'hidden'):
+        status = 'draft'
+    category = d.get('category') if d.get('category') in DIR_BIZ_CATEGORIES else DIR_BIZ_CATEGORIES[-1]
+    item = {
+        'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
+        'description': _clean(d.get('description'), 1000), 'address': _clean(d.get('address'), 300),
+        'contact': _clean(d.get('contact'), 100), 'hours': _clean(d.get('hours'), 150),
+        'imageUrl': _clean(d.get('imageUrl'), 300), 'social': _clean(d.get('social'), 300),
+        'lat': _to_float(d.get('lat')), 'lng': _to_float(d.get('lng')), 'status': status,
+        'createdAt': now, 'updatedAt': now,
+    }
+    item = _dirbiz_create(item)
+    return jsonify({'status': 'ok', 'business': item}), 201
+
+
+@app.route('/admin/api/directory/businesses/<item_id>', methods=['PUT'])
+@admin_required
+def admin_dirbiz_update(item_id):
+    d = request.get_json(silent=True) or {}
+    patch = {}
+    for field, maxlen in [('name', 150), ('description', 1000), ('address', 300),
+                          ('contact', 100), ('hours', 150), ('imageUrl', 300), ('social', 300)]:
+        if field in d:
+            patch[field] = _clean(d[field], maxlen)
+    if 'category' in d and d['category'] in DIR_BIZ_CATEGORIES:
+        patch['category'] = d['category']
+    if 'lat' in d:
+        patch['lat'] = _to_float(d['lat'])
+    if 'lng' in d:
+        patch['lng'] = _to_float(d['lng'])
+    if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
+        patch['status'] = d['status']
+    item = _dirbiz_update(item_id, patch)
+    if not item:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'business': item})
+
+
+@app.route('/admin/api/directory/businesses/<item_id>', methods=['DELETE'])
+@admin_required
+def admin_dirbiz_delete(item_id):
+    if not _dirbiz_delete(item_id):
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok'})
+
+
+# ── Directory — admin CRUD: Organization Directory ────────────────────────────
+@app.route('/admin/api/directory/organizations')
+@admin_required
+def admin_dirorg_list():
+    items = _load_dirorg()
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'organizations': items})
+
+
+@app.route('/admin/api/directory/organizations', methods=['POST'])
+@admin_required
+def admin_dirorg_create():
+    d = request.get_json(silent=True) or {}
+    now = datetime.now(timezone.utc).isoformat()
+    status = d.get('status', 'draft')
+    if status not in ('draft', 'published', 'hidden'):
+        status = 'draft'
+    category = d.get('category') if d.get('category') in DIR_ORG_CATEGORIES else DIR_ORG_CATEGORIES[-1]
+    officers = d.get('officers') or []
+    if not isinstance(officers, list):
+        officers = []
+    officers = [_clean(o, 150) for o in officers if _clean(o, 150)]
+    item = {
+        'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
+        'description': _clean(d.get('description'), 1000), 'contactPerson': _clean(d.get('contactPerson'), 150),
+        'officers': officers, 'contactDetails': _clean(d.get('contactDetails'), 150),
+        'programs': _clean(d.get('programs'), 1000), 'location': _clean(d.get('location'), 300),
+        'lat': _to_float(d.get('lat')), 'lng': _to_float(d.get('lng')), 'status': status,
+        'createdAt': now, 'updatedAt': now,
+    }
+    item = _dirorg_create(item)
+    return jsonify({'status': 'ok', 'organization': item}), 201
+
+
+@app.route('/admin/api/directory/organizations/<item_id>', methods=['PUT'])
+@admin_required
+def admin_dirorg_update(item_id):
+    d = request.get_json(silent=True) or {}
+    patch = {}
+    for field, maxlen in [('name', 150), ('description', 1000), ('contactPerson', 150),
+                          ('contactDetails', 150), ('programs', 1000), ('location', 300)]:
+        if field in d:
+            patch[field] = _clean(d[field], maxlen)
+    if 'category' in d and d['category'] in DIR_ORG_CATEGORIES:
+        patch['category'] = d['category']
+    if 'officers' in d:
+        officers = d['officers'] if isinstance(d['officers'], list) else []
+        patch['officers'] = [_clean(o, 150) for o in officers if _clean(o, 150)]
+    if 'lat' in d:
+        patch['lat'] = _to_float(d['lat'])
+    if 'lng' in d:
+        patch['lng'] = _to_float(d['lng'])
+    if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
+        patch['status'] = d['status']
+    item = _dirorg_update(item_id, patch)
+    if not item:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'organization': item})
+
+
+@app.route('/admin/api/directory/organizations/<item_id>', methods=['DELETE'])
+@admin_required
+def admin_dirorg_delete(item_id):
+    if not _dirorg_delete(item_id):
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok'})
+
+
+# ── Directory — admin CRUD: Emergency Directory ───────────────────────────────
+@app.route('/admin/api/directory/emergency')
+@admin_required
+def admin_direm_list():
+    items = _load_direm()
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'contacts': items})
+
+
+@app.route('/admin/api/directory/emergency', methods=['POST'])
+@admin_required
+def admin_direm_create():
+    d = request.get_json(silent=True) or {}
+    now = datetime.now(timezone.utc).isoformat()
+    status = d.get('status', 'draft')
+    if status not in ('draft', 'published', 'hidden'):
+        status = 'draft'
+    category = d.get('category') if d.get('category') in DIR_EM_CATEGORIES else DIR_EM_CATEGORIES[0]
+    item = {
+        'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
+        'number': _clean(d.get('number'), 100), 'altNumber': _clean(d.get('altNumber'), 100),
+        'address': _clean(d.get('address'), 300), 'services': _clean(d.get('services'), 1000),
+        'lat': _to_float(d.get('lat')), 'lng': _to_float(d.get('lng')), 'status': status,
+        'createdAt': now, 'updatedAt': now,
+    }
+    item = _direm_create(item)
+    return jsonify({'status': 'ok', 'contact': item}), 201
+
+
+@app.route('/admin/api/directory/emergency/<item_id>', methods=['PUT'])
+@admin_required
+def admin_direm_update(item_id):
+    d = request.get_json(silent=True) or {}
+    patch = {}
+    for field, maxlen in [('name', 150), ('number', 100), ('altNumber', 100),
+                          ('address', 300), ('services', 1000)]:
+        if field in d:
+            patch[field] = _clean(d[field], maxlen)
+    if 'category' in d and d['category'] in DIR_EM_CATEGORIES:
+        patch['category'] = d['category']
+    if 'lat' in d:
+        patch['lat'] = _to_float(d['lat'])
+    if 'lng' in d:
+        patch['lng'] = _to_float(d['lng'])
+    if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
+        patch['status'] = d['status']
+    item = _direm_update(item_id, patch)
+    if not item:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'contact': item})
+
+
+@app.route('/admin/api/directory/emergency/<item_id>', methods=['DELETE'])
+@admin_required
+def admin_direm_delete(item_id):
+    if not _direm_delete(item_id):
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok'})
+
+
+# ── Directory — business logo upload (reuses the existing upload pipeline) ────
+@app.route('/admin/api/upload/business-logo', methods=['POST'])
+@admin_required
+def admin_upload_business_logo():
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
+    try:
+        url = _upload_to_storage(data, 'business-directory', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({'status': 'ok', 'url': url})
+
+
 # ── Bootstrap ─────────────────────────────────────────────────────────────────
 _ensure_initial_user()
 _ensure_initial_settings()

@@ -21301,6 +21301,7 @@ body[data-page="projects.html"] #proj-grid .image-card .text-link {
 .dir-card-actions .text-link{margin-top:0}
 .dir-card-emergency{border-color:rgba(229,72,77,.18)}
 .dir-emergency-number{display:block;font-size:1.15rem;font-weight:900;color:#b91c1c;margin-bottom:10px}
+.dir-emergency-number.dir-emergency-alt{font-size:.92rem;font-weight:700;color:#dc2626;margin-top:-4px}
 .dir-empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:32px 0}
 
 @media (max-width:1180px){
