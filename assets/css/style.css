@@ -21254,3 +21254,63 @@ body[data-page="projects.html"] #proj-grid .image-card .text-link {
   .ea-popup-btn-detail,.ea-popup-btn-close{flex:1 1 auto}
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   DIRECTORY MODULE (Phase 1)
+   Additive only — reuses existing tokens (--blue-2, --teal, --gold, --radius,
+   --shadow-sm, .card-grid rhythm, .info-card look) so the page matches the
+   rest of the site. No existing selector above this point is modified.
+═══════════════════════════════════════════════════════════════════════ */
+.dir-jumpnav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.dir-jumpnav a{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;background:rgba(255,255,255,.9);border:1px solid rgba(13,71,161,.12);color:var(--blue-dark);font-weight:800;font-size:.92rem;box-shadow:var(--shadow-sm);transition:.22s ease}
+.dir-jumpnav a:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:rgba(21,101,216,.22)}
+
+.dir-controls{display:flex;flex-direction:column;gap:16px;margin-bottom:32px}
+.dir-search{width:100%;max-width:420px;border:1px solid rgba(13,71,161,.16);border-radius:15px;padding:13px 16px;background:#fbfdff;color:var(--charcoal);outline:none;transition:.2s ease;font-size:.95rem}
+.dir-search:focus{border-color:var(--teal);box-shadow:0 0 0 4px rgba(0,168,132,.13);background:white}
+.dir-chips{display:flex;flex-wrap:wrap;gap:9px}
+.dir-chip{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:999px;border:1px solid transparent;background:#eef2f7;color:#45556a;font-weight:800;font-size:.84rem;cursor:pointer;transition:.2s ease;white-space:nowrap}
+.dir-chip:hover{transform:translateY(-2px)}
+.dir-chip--blue.active,.dir-chip--blue{background:var(--soft-blue);color:var(--blue-2)}
+.dir-chip--teal.active,.dir-chip--teal{background:var(--soft-green);color:var(--teal-dark)}
+.dir-chip--gold.active,.dir-chip--gold{background:var(--soft-gold);color:#8b6400}
+.dir-chip--red.active,.dir-chip--red{background:#fee2e2;color:#991b1b}
+.dir-chip:not(.active):not(.dir-chip-static){background:#eef2f7;color:#45556a}
+.dir-chip.active{box-shadow:var(--shadow-sm);border-color:currentColor}
+.dir-chip-static{cursor:default;font-size:.74rem;padding:5px 12px;margin-bottom:11px;display:inline-flex}
+.dir-chip-static:hover{transform:none}
+
+.dir-map-wrap{border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid rgba(13,71,161,.1);margin-bottom:28px}
+.dir-map{width:100%;height:440px;background:#eef4fb}
+
+.dir-card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.dir-card-grid-emergency{grid-template-columns:repeat(3,1fr)}
+.dir-card{background:rgba(255,255,255,.94);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid rgba(13,71,161,.1);overflow:hidden;transition:transform .25s ease,box-shadow .25s ease}
+.dir-card:hover{transform:translateY(-6px);box-shadow:var(--shadow)}
+.dir-card-banner{height:86px;display:flex;align-items:center;justify-content:center;font-size:2.1rem}
+.dir-card-banner--blue{background:linear-gradient(135deg,var(--blue-2),var(--blue-dark))}
+.dir-card-banner--teal{background:linear-gradient(135deg,var(--teal),var(--teal-dark))}
+.dir-card-banner--gold{background:linear-gradient(135deg,var(--gold),#e0a72f)}
+.dir-card-banner--red{background:linear-gradient(135deg,#ef4444,#b91c1c)}
+.dir-card-body{padding:22px}
+.dir-card-body h3{color:var(--blue-dark);margin-bottom:8px;letter-spacing:-.01em}
+.dir-card-body p{color:var(--muted);margin-bottom:6px}
+.dir-meta-list{list-style:none;display:grid;gap:6px;margin:12px 0;color:#45556a;font-size:.88rem}
+.dir-card-subhead{font-size:.72rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--teal-dark);margin:14px 0 4px}
+.dir-card-note{color:var(--muted);font-size:.88rem}
+.dir-card-actions{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(13,71,161,.08)}
+.dir-card-actions .text-link{margin-top:0}
+.dir-card-emergency{border-color:rgba(229,72,77,.18)}
+.dir-emergency-number{display:block;font-size:1.15rem;font-weight:900;color:#b91c1c;margin-bottom:10px}
+.dir-empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:32px 0}
+
+@media (max-width:1180px){
+  .dir-card-grid,.dir-card-grid-emergency{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:640px){
+  .dir-card-grid,.dir-card-grid-emergency{grid-template-columns:1fr}
+  .dir-map{height:340px}
+  .dir-search{max-width:none}
+  .dir-jumpnav{gap:8px}
+  .dir-jumpnav a{padding:9px 14px;font-size:.84rem}
+}
+

@@ -799,6 +799,7 @@ def api_forms():
 _PUBLIC_PAGES = [
     'about', 'officials', 'services', 'citizens-charter',
     'announcements', 'projects', 'transparency', 'downloads', 'contact',
+    'directory',
 ]
 
 # Friendly URL aliases → actual file base names
