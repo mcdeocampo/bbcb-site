@@ -77,37 +77,25 @@
     });
   });
 
-  // Scroll reveal animation — a single shared observer that can also be
-  // re-invoked for cards injected later (e.g. after an announcements fetch),
-  // since elements added after the initial querySelectorAll would otherwise
-  // never be observed.
-  let revealObserver = null;
-  function observeReveal(root) {
-    const items = (root || document).querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-zoom');
-    if ('IntersectionObserver' in window) {
-      if (!revealObserver) {
-        revealObserver = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('visible');
-              revealObserver.unobserve(entry.target);
-            }
-          });
-        }, { threshold: 0.05, rootMargin: '0px 0px 40px 0px' });
-      }
-      items.forEach(item => revealObserver.observe(item));
-      // Fallback: ensure these reveal items become visible after 2s regardless
-      setTimeout(() => {
-        items.forEach(item => item.classList.add('visible'));
-      }, 2000);
-    } else {
-      items.forEach(item => item.classList.add('visible'));
-    }
+  // Scroll reveal animation
+  const revealItems = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-zoom');
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.05, rootMargin: '0px 0px 40px 0px' });
+    revealItems.forEach(item => observer.observe(item));
+    // Fallback: ensure all reveal items become visible after 2s regardless
+    setTimeout(() => {
+      revealItems.forEach(item => item.classList.add('visible'));
+    }, 2000);
+  } else {
+    revealItems.forEach(item => item.classList.add('visible'));
   }
-  observeReveal();
-  // Exposed so pages can re-run this after injecting cards dynamically
-  // (e.g. the homepage's announcements/initiatives preview fetches).
-  window.observeReveal = observeReveal;
 
   // Accordions for services / charter sections
   document.querySelectorAll('.accordion-trigger').forEach(trigger => {
