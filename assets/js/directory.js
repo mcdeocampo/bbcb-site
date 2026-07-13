@@ -403,7 +403,7 @@
       (it.verified ? '<span class="dir2-badge dir2-badge-verified">✔ Verified</span>' : '');
     var status = computeHoursStatus(it);
     return '<article class="dir2-item' + (it.id === activeId ? ' active' : '') + (it.featured ? ' dir2-item-featured' : '') + '" data-id="' + esc(it.id) + '" tabindex="0" role="button" aria-label="View details for ' + esc(it.name) + '">' +
-      '<div class="dir2-item-logo dir2-item-logo--' + color + '">' + logoOrIconHtml(it, 'dir2-item-logo') + '</div>' +
+      '<div class="dir2-item-logo dir2-item-logo--' + (it.imageUrl ? 'neutral' : color) + '">' + logoOrIconHtml(it, 'dir2-item-logo') + '</div>' +
       '<div class="dir2-item-body">' +
       '<div class="dir2-item-top"><h3>' + esc(it.name) + '</h3>' + (badges ? '<span class="dir2-item-badges">' + badges + '</span>' : '') + '</div>' +
       '<div class="dir2-item-cat">' +
@@ -560,7 +560,7 @@
 
   function detailsHtml(it) {
     var color = MASTER_COLOR[it.masterCategory] || 'blue';
-    var cover = '<div class="dir2-modal-cover dir2-modal-cover--' + color + '">' + logoOrIconHtml(it, 'dir2-modal-cover') + '</div>';
+    var cover = '<div class="dir2-modal-cover dir2-modal-cover--' + (it.imageUrl ? 'neutral' : color) + '">' + logoOrIconHtml(it, 'dir2-modal-cover') + '</div>';
 
     var status = computeHoursStatus(it);
     var hoursText = it.hours ? esc(it.hours) : '';
