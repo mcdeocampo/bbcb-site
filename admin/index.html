@@ -5977,7 +5977,7 @@ function renderCategoriesList() {
         <div class="cat-swatch cat-swatch--${esc(g.color)}">${esc(g.icon || '')}</div>
         <div>
           <div class="cat-group-name">${esc(g.name)}${g.active ? '' : ' <span class="badge badge-hidden">inactive</span>'}</div>
-          <div class="cat-group-meta">${subs.length} subcategor${subs.length === 1 ? 'y' : 'ies'}</div>
+          <div class="cat-group-meta">${subs.length} Subcategor${subs.length === 1 ? 'y' : 'ies'}</div>
         </div>
         <div class="cat-group-actions">
           <button class="btn-act" onclick="openCatGroupEdit('${g.id}')">Edit</button>
