@@ -16394,30 +16394,57 @@ html,body{ max-width:100vw; overflow-x:hidden }
 }
 
 /* ------------------------------------------------------------------
-   16.5 ANNOUNCEMENTS HEADING — fade + slight upward lift on reveal
-   Scoped to the "Announcements" heading text only (not the eyebrow,
-   description, link, cards, or any other element in the section).
+   16.5 ANNOUNCEMENTS SECTION — staggered entrance on reveal
+   Scoped to .ann-heading-wrap (eyebrow, heading, description, link)
+   and #ann-mini-list cards only — nothing else in the section animates.
    ------------------------------------------------------------------ */
-.ann-title-fade {
-  opacity: 0;
-  transform: translateY(16px);
+.ann-heading-wrap .eyebrow,
+.ann-heading-wrap h2,
+.ann-heading-wrap p,
+.ann-heading-wrap .text-link {
+  opacity: 0 !important;
+  transform: translateY(16px) !important;
   transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+              transform 0.6s cubic-bezier(0.22, 1, 0.36, 1) !important;
 }
-.ann-title-fade.visible {
-  opacity: 1;
-  transform: none;
+.ann-heading-wrap .eyebrow   { transition-delay: 0s !important; }
+.ann-heading-wrap h2         { transition-delay: 0.12s !important; }
+.ann-heading-wrap p          { transition-delay: 0.24s !important; }
+.ann-heading-wrap .text-link { transition-delay: 0.36s !important; }
+.ann-heading-wrap.visible .eyebrow,
+.ann-heading-wrap.visible h2,
+.ann-heading-wrap.visible p,
+.ann-heading-wrap.visible .text-link {
+  opacity: 1 !important;
+  transform: none !important;
 }
+
+/* "LATEST UPDATES" accent line — expands left to right once, on reveal */
+.ann-heading-wrap .eyebrow::before {
+  transform: scaleX(0) !important;
+  transform-origin: left center;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  transition-delay: 0.05s !important;
+}
+.ann-heading-wrap.visible .eyebrow::before {
+  transform: scaleX(1) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .ann-title-fade {
-    opacity: 1;
-    transform: none;
-    transition: none;
+  .ann-heading-wrap .eyebrow,
+  .ann-heading-wrap h2,
+  .ann-heading-wrap p,
+  .ann-heading-wrap .text-link,
+  .ann-heading-wrap .eyebrow::before {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 }
+
 /* main.js auto-assigns a reveal-variant class to any un-classed direct
-   child of .split-layout — neutralize that here so the eyebrow/description/
-   link wrapper stays static and only .ann-title-fade animates. */
+   child of .split-layout — neutralize that on the wrapper/list containers
+   themselves so only the items styled above actually animate. */
 .ann-heading-wrap.reveal,
 .ann-heading-wrap.reveal-left,
 .ann-heading-wrap.reveal-right,
@@ -16431,6 +16458,20 @@ html,body{ max-width:100vw; overflow-x:hidden }
   transition: none !important;
 }
 
+/* Announcement cards — subtle scale-in added on top of the shared .reveal
+   fade/slide-up (delay-1/2/3 stagger already applied per card in markup). */
+#ann-mini-list article.reveal {
+  transform: translateY(16px) scale(0.98) !important;
+}
+#ann-mini-list article.reveal.visible {
+  transform: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  #ann-mini-list article.reveal {
+    transform: none !important;
+  }
+}
+
 /* ------------------------------------------------------------------
    17. ANNOUNCEMENT MINI-LIST ARTICLES
    ------------------------------------------------------------------ */
@@ -16439,7 +16480,7 @@ html,body{ max-width:100vw; overflow-x:hidden }
   border-radius: var(--radius-sm);
 }
 .mini-list article:hover {
-  transform: translateX(4px) !important;
+  transform: translateY(-3px) !important;
   box-shadow: 0 8px 20px rgba(8,38,77,0.08) !important;
 }
 
