@@ -21515,3 +21515,16 @@ body.dir2-modal-lock{overflow:hidden}
   .dir2-modal-cover{height:150px}
 }
 
+/* Responsive audit fix: the hero emergency card's top accent stripe had
+   conflicting left/right/width declarations accumulated across many prior
+   breakpoint overrides, causing it to overhang the card's right edge by
+   ~24px (invisible since its background is transparent at that breakpoint,
+   but still an incorrect box). Force a single unambiguous full-width box. */
+.hero-emergency-card::before,
+.hero-emergency-card.emergency-card-alt::before{
+  left:0 !important;
+  right:0 !important;
+  width:auto !important;
+  bottom:auto !important;
+}
+
