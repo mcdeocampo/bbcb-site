@@ -467,7 +467,7 @@
 
   function popupHtml(it) {
     var color = MASTER_COLOR[it.masterCategory] || 'blue';
-    var thumb = it.imageUrl ? '<img src="' + esc(normSrc(it.imageUrl)) + '" alt="" class="dir2-popup-thumb" loading="lazy" onerror="this.remove()">' : '';
+    var thumb = it.imageUrl ? '<img src="' + esc(normSrc(it.imageUrl)) + '" alt="" class="dir2-popup-thumb" loading="lazy" data-act="details" data-id="' + esc(it.id) + '" onerror="this.remove()">' : '';
     return '<div class="dir2-popup">' + thumb +
       '<strong>' + esc(it.name) + '</strong>' +
       '<span class="dir2-popup-cat dir2-popup-cat--' + color + '">' + esc(it.category) + '</span>' +
@@ -774,7 +774,7 @@
 
     // Leaflet popups are (re)created dynamically — delegate at the document level.
     document.addEventListener('click', function (e) {
-      var btn = e.target.closest('.dir2-popup-btn[data-act="details"]');
+      var btn = e.target.closest('.dir2-popup-btn[data-act="details"], .dir2-popup-thumb[data-act="details"]');
       if (btn) openDetails(btn.getAttribute('data-id'));
     });
 
