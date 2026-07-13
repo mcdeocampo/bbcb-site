@@ -3157,9 +3157,17 @@ async function toggleHide(id, cur) {
   } catch(e){ if(e.message!=='unauthorized') toast('Update error','err'); }
 }
 
+function setConfirmDeleteIcon(){
+  $('confirm-icon-wrap').style.cssText = 'background:#fee2e2;color:#dc2626';
+  $('confirm-icon-wrap').innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+  $('confirm-yes').className = 'btn-del';
+  $('confirm-yes').textContent = 'Delete';
+}
+
 let pendingDelId=null;
 function confirmDel(id,title){
   pendingDelId=id;
+  setConfirmDeleteIcon();
   $('confirm-title').textContent='Delete announcement?';
   $('confirm-msg').textContent=`"${title}" will be permanently deleted. This cannot be undone.`;
   $('confirm-overlay').classList.add('open');
@@ -3504,6 +3512,7 @@ async function toggleInitHide(id, cur) {
 let pendingInitDelId=null;
 function confirmInitDel(id,title){
   pendingInitDelId=id;
+  setConfirmDeleteIcon();
   $('confirm-title').textContent='Delete initiative?';
   $('confirm-msg').textContent=`"${title}" will be permanently deleted. This cannot be undone.`;
   $('confirm-overlay').classList.add('open');
@@ -3809,6 +3818,7 @@ async function toggleFormHide(id, cur) {
 let pendingFormDelId=null;
 function confirmFormDel(id, title) {
   pendingFormDelId=id;
+  setConfirmDeleteIcon();
   $('confirm-title').textContent='Delete form?';
   $('confirm-msg').textContent=`"${title}" and its uploaded file will be permanently deleted. This cannot be undone.`;
   $('confirm-overlay').classList.add('open');
@@ -4092,6 +4102,7 @@ async function saveOfficialsDescriptions() {
 let pendingOffDelId = null;
 function confirmOfficialDel(id, name) {
   pendingOffDelId = id;
+  setConfirmDeleteIcon();
   $('confirm-title').textContent = 'Delete official?';
   $('confirm-msg').textContent = `"${name}" will be permanently deleted. This cannot be undone.`;
   $('confirm-overlay').classList.add('open');
@@ -4552,6 +4563,7 @@ async function toggleCalVisibility(id, currentStatus) {
 let calDelId = null;
 function confirmCalDel(id, title) {
   calDelId = id;
+  setConfirmDeleteIcon();
   $('confirm-title').textContent = 'Delete activity?';
   $('confirm-msg').textContent = `"${title}" will be permanently removed.`;
   $('confirm-overlay').classList.add('open');
@@ -5342,6 +5354,7 @@ async function toggleDirMapStatus(id,cur) {
 let pendingDirMapDelId=null;
 function confirmDirMapDel(id,name){
   pendingDirMapDelId=id;
+  setConfirmDeleteIcon();
   $('confirm-title').textContent='Delete location?';
   $('confirm-msg').textContent=`"${name}" will be permanently deleted. This cannot be undone.`;
   $('confirm-overlay').classList.add('open');
@@ -5527,6 +5540,7 @@ async function toggleDirBizStatus(id,cur) {
 let pendingDirBizDelId=null;
 function confirmDirBizDel(id,name){
   pendingDirBizDelId=id;
+  setConfirmDeleteIcon();
   $('confirm-title').textContent='Delete business?';
   $('confirm-msg').textContent=`"${name}" will be permanently deleted. This cannot be undone.`;
   $('confirm-overlay').classList.add('open');
@@ -5710,6 +5724,7 @@ async function toggleDirOrgStatus(id,cur) {
 let pendingDirOrgDelId=null;
 function confirmDirOrgDel(id,name){
   pendingDirOrgDelId=id;
+  setConfirmDeleteIcon();
   $('confirm-title').textContent='Delete organization?';
   $('confirm-msg').textContent=`"${name}" will be permanently deleted. This cannot be undone.`;
   $('confirm-overlay').classList.add('open');
@@ -5924,6 +5939,7 @@ async function toggleDirEmStatus(id,cur) {
 let pendingDirEmDelId=null;
 function confirmDirEmDel(id,name){
   pendingDirEmDelId=id;
+  setConfirmDeleteIcon();
   $('confirm-title').textContent='Delete emergency contact?';
   $('confirm-msg').textContent=`"${name}" will be permanently deleted. This cannot be undone.`;
   $('confirm-overlay').classList.add('open');
@@ -6061,6 +6077,7 @@ async function toggleCatGroupActive(id, curStr) {
 let pendingCatGroupDelId = null;
 function confirmCatGroupDel(id, name) {
   pendingCatGroupDelId = id;
+  setConfirmDeleteIcon();
   $('confirm-title').textContent = 'Delete category?';
   $('confirm-msg').textContent = `"${name}" will be permanently deleted. This cannot be undone. (If it still has subcategories, deactivate it instead.)`;
   $('confirm-overlay').classList.add('open');
@@ -6147,6 +6164,7 @@ async function toggleCatSubActive(id, curStr) {
 let pendingCatSubDelId = null;
 function confirmCatSubDel(id, name) {
   pendingCatSubDelId = id;
+  setConfirmDeleteIcon();
   $('confirm-title').textContent = 'Delete subcategory?';
   $('confirm-msg').textContent = `"${name}" will be permanently deleted. This cannot be undone. (If businesses still use it, deactivate it instead.)`;
   $('confirm-overlay').classList.add('open');
