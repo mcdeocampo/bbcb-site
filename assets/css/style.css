@@ -16394,6 +16394,44 @@ html,body{ max-width:100vw; overflow-x:hidden }
 }
 
 /* ------------------------------------------------------------------
+   16.5 ANNOUNCEMENTS HEADING — fade + slight upward lift on reveal
+   Scoped to the "Announcements" heading text only (not the eyebrow,
+   description, link, cards, or any other element in the section).
+   ------------------------------------------------------------------ */
+.ann-title-fade {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ann-title-fade.visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ann-title-fade {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+/* main.js auto-assigns a reveal-variant class to any un-classed direct
+   child of .split-layout — neutralize that here so the eyebrow/description/
+   link wrapper stays static and only .ann-title-fade animates. */
+.ann-heading-wrap.reveal,
+.ann-heading-wrap.reveal-left,
+.ann-heading-wrap.reveal-right,
+.ann-heading-wrap.reveal-zoom,
+#ann-mini-list.reveal,
+#ann-mini-list.reveal-left,
+#ann-mini-list.reveal-right,
+#ann-mini-list.reveal-zoom {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* ------------------------------------------------------------------
    17. ANNOUNCEMENT MINI-LIST ARTICLES
    ------------------------------------------------------------------ */
 .mini-list article {
