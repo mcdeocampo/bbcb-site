@@ -9,16 +9,16 @@
   var BOLBOK_CENTER = { lat: 13.7565, lng: 121.0583 };
 
   // ── Master category grouping (client-side only — DB categories untouched) ──
+  // Business categories are NOT listed here — they're managed in the admin
+  // Category Management screen and fetched from /api/directory/categories
+  // (see BIZ_SUBCAT_INDEX below). 'Business' stays as a resilient fallback
+  // bucket for if that fetch ever fails.
   var MASTER_MAP = {
     'Barangay Hall': 'Government',
     'Health Center': 'Healthcare',
     'Schools': 'Education',
     'Evacuation Centers': 'Facilities',
     'Public Facilities': 'Facilities',
-    'Food & Restaurants': 'Business',
-    'Stores': 'Business',
-    'Services': 'Business',
-    'Local Entrepreneurs': 'Business',
     'Associations': 'Organizations',
     'Youth Organizations': 'Organizations',
     'Senior Citizens': 'Organizations',
@@ -39,6 +39,10 @@
     Business: 'gold', Organizations: 'blue', Emergency: 'red'
   };
   var MARKER_HEX = { blue: '#1565d8', teal: '#00a884', gold: '#f6c445', red: '#e5484d' };
+
+  // Business Directory subcategory -> { groupName, icon, color }, populated from
+  // /api/directory/categories at boot (the live, admin-managed taxonomy).
+  var BIZ_SUBCAT_INDEX = {};
 
   // ── Small helpers ────────────────────────────────────────────────────────
   function esc(s) {
@@ -144,6 +148,8 @@
     } else if (type === 'business') {
       base.address = raw.address || ''; base.phone = raw.contact || ''; base.altPhone = '';
       base.hours = raw.hours || '';
+      var bizCat = BIZ_SUBCAT_INDEX[raw.category];
+      base.masterCategory = bizCat ? bizCat.groupName : 'Business';
     } else if (type === 'organization') {
       base.address = raw.location || ''; base.phone = raw.contactDetails || ''; base.altPhone = '';
       base.hours = '';
@@ -152,6 +158,38 @@
       base.hours = '';
     }
     return base;
+  }
+
+  // Fetches the admin-managed Business Directory category taxonomy and wires
+  // it into the existing MASTER_ICON/MASTER_COLOR/MASTER_ORDER lookups, so
+  // business categories render exactly like every other master group.
+  function loadCategoryGroups() {
+    return fetchJSON('/api/directory/categories').then(function (d) {
+      var groups = d.groups || [];
+      var bizNames = [];
+      groups.forEach(function (g) {
+        bizNames.push(g.name);
+        MASTER_ICON[g.name] = g.icon || MASTER_ICON[g.name] || '🏪';
+        MASTER_COLOR[g.name] = g.color || MASTER_COLOR[g.name] || 'gold';
+        (g.subcategories || []).forEach(function (s) {
+          BIZ_SUBCAT_INDEX[s.name] = { groupName: g.name, icon: g.icon, color: g.color };
+        });
+      });
+      if (bizNames.length) {
+        var idx = MASTER_ORDER.indexOf('Business');
+        if (idx !== -1) MASTER_ORDER.splice.apply(MASTER_ORDER, [idx, 1].concat(bizNames));
+        else MASTER_ORDER = MASTER_ORDER.concat(bizNames);
+        // Some official business groups share a name with an existing non-business
+        // bucket (e.g. "Government" covers both Barangay Hall map entries and
+        // Government-category businesses) — dedupe so each renders one chip.
+        var seen = {};
+        MASTER_ORDER = MASTER_ORDER.filter(function (name) {
+          if (seen[name]) return false;
+          seen[name] = true;
+          return true;
+        });
+      }
+    }).catch(function () {});
   }
 
   function loadAll() {
@@ -219,7 +257,7 @@
     var q = searchQuery.trim().toLowerCase();
     var searchFiltered = ALL_ITEMS.filter(function (it) {
       if (!q) return true;
-      var hay = [it.name, it.category, it.address, it.description, it.raw.services, it.keywords].filter(Boolean).join(' ').toLowerCase();
+      var hay = [it.name, it.category, it.masterCategory, it.address, it.description, it.raw.services, it.keywords].filter(Boolean).join(' ').toLowerCase();
       return hay.indexOf(q) !== -1;
     });
     if (nearMeRadius != null && userLoc) {
@@ -680,7 +718,9 @@
     initMap();
     wireEvents();
 
-    loadAll().then(function (items) {
+    loadCategoryGroups().then(function () {
+      return loadAll();
+    }).then(function (items) {
       ALL_ITEMS = items;
       applyFilters();
     }).catch(function () {

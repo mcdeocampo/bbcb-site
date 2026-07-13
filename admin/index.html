@@ -410,6 +410,33 @@ a{text-decoration:none;color:inherit}
 .gallery-thumb{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
 .gallery-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .gallery-thumb button{position:absolute;top:2px;right:2px;width:20px;height:20px;border:none;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:.7rem;line-height:1;cursor:pointer}
+
+.cat-group-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px}
+.cat-group-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.cat-swatch{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex:0 0 auto}
+.cat-swatch--blue{background:rgba(13,71,161,.12);color:var(--blue)}
+.cat-swatch--teal{background:rgba(0,168,132,.12);color:var(--teal)}
+.cat-swatch--gold{background:rgba(246,196,69,.2);color:#8b6400}
+.cat-swatch--red{background:rgba(220,38,38,.12);color:var(--red)}
+.cat-group-name{font-weight:700;color:var(--text)}
+.cat-group-meta{font-size:.78rem;color:var(--gray)}
+.cat-group-actions{margin-left:auto;display:flex;gap:8px}
+.cat-sublist{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.cat-sub-row{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:.86rem}
+.cat-sub-name{flex:1}
+.cat-sub-inactive{color:var(--gray);text-decoration:line-through}
+.cat-sub-actions{display:flex;gap:6px;flex:0 0 auto}
+.btn-add-sub{margin-top:4px}
+
+.cat-select{position:relative}
+.cat-select-input{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:.86rem;background:var(--card);color:var(--text)}
+.cat-select-input:focus{outline:none;border-color:var(--blue)}
+.cat-select-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;max-height:220px;overflow-y:auto;background:var(--card);border:1px solid var(--border);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:20}
+.cat-select-dropdown.open{display:block}
+.cat-select-opt{padding:8px 12px;font-size:.84rem;cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+.cat-select-opt:hover{background:var(--bg)}
+.cat-select-group{color:var(--gray);font-size:.74rem}
+.cat-select-empty{padding:10px 12px;font-size:.82rem;color:var(--gray)}
 .default-imgs{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
 .default-imgs label{font-size:.72rem;color:var(--gray);display:block;margin-bottom:7px;font-weight:500;text-align:left}
 .default-imgs-row{display:flex;gap:7px;flex-wrap:wrap}
@@ -763,6 +790,10 @@ a{text-decoration:none;color:inherit}
       <button class="nav-item" data-sec="direm">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         Emergency Directory
+      </button>
+      <button class="nav-item" data-sec="dircats">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Category Management
       </button>
       <div class="nav-label">Alerts</div>
       <button class="nav-item" data-sec="alerts">
@@ -1303,6 +1334,21 @@ a{text-decoration:none;color:inherit}
         </div>
       </div>
       <div class="ann-list" id="direm-list"><div class="loading">Loading...</div></div>
+    </section>
+
+    <!-- Category Management -->
+    <section id="sec-dircats" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Category Management</h2>
+          <p>Manage the official categories and subcategories businesses can be assigned to on the public Business Directory.</p>
+        </div>
+        <button class="btn-new" id="btn-new-catgroup">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Category
+        </button>
+      </div>
+      <div id="dircats-list"><div class="loading">Loading...</div></div>
     </section>
 
     <!-- Emergency Alerts -->
@@ -2033,13 +2079,12 @@ a{text-decoration:none;color:inherit}
           <input type="text" id="dirbiz-name" maxlength="150">
         </div>
         <div class="field">
-          <label>Category</label>
-          <select id="dirbiz-cat">
-            <option>Food &amp; Restaurants</option>
-            <option>Stores</option>
-            <option>Services</option>
-            <option>Local Entrepreneurs</option>
-          </select>
+          <label>Category <span style="color:#ef4444">*</span></label>
+          <div class="cat-select">
+            <input type="text" id="dirbiz-cat-input" class="cat-select-input" placeholder="Search category..." autocomplete="off">
+            <input type="hidden" id="dirbiz-cat-value">
+            <div class="cat-select-dropdown" id="dirbiz-cat-dropdown"></div>
+          </div>
         </div>
         <div class="field">
           <label>Contact Number</label>
@@ -2374,6 +2419,85 @@ a{text-decoration:none;color:inherit}
   </div>
 </div>
 
+<!-- ================== CATEGORY GROUP MODAL ================== -->
+<div class="overlay" id="catgroup-form-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="catgroup-modal-title">New Category</h3>
+      <button class="btn-close" id="btn-close-catgroup-form">X</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field field-full">
+          <label>Category Name <span style="color:#ef4444">*</span></label>
+          <input type="text" id="catgroup-name" maxlength="60">
+        </div>
+        <div class="field">
+          <label>Icon <span style="color:#94a3b8;font-size:.68rem">(emoji)</span></label>
+          <input type="text" id="catgroup-icon" maxlength="8" placeholder="🍽">
+        </div>
+        <div class="field">
+          <label>Color</label>
+          <select id="catgroup-color">
+            <option value="blue">Blue</option>
+            <option value="teal">Teal</option>
+            <option value="gold">Gold</option>
+            <option value="red">Red</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Display Order</label>
+          <input type="number" id="catgroup-order" value="0">
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="catgroup-active" style="width:auto;margin-right:6px" checked>Active</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btn-cancel-catgroup">Cancel</button>
+      <button class="btn-publish" id="btn-catgroup-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================== SUBCATEGORY MODAL ================== -->
+<div class="overlay" id="catsub-form-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="catsub-modal-title">New Subcategory</h3>
+      <button class="btn-close" id="btn-close-catsub-form">X</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field field-full">
+          <label>Subcategory Name <span style="color:#ef4444">*</span></label>
+          <input type="text" id="catsub-name" maxlength="80">
+        </div>
+        <div class="field field-full">
+          <label>Parent Category</label>
+          <select id="catsub-group"></select>
+        </div>
+        <div class="field field-full">
+          <label>Description <span style="color:#94a3b8;font-size:.68rem">(optional)</span></label>
+          <textarea id="catsub-desc" rows="2" maxlength="300"></textarea>
+        </div>
+        <div class="field">
+          <label>Display Order</label>
+          <input type="number" id="catsub-order" value="0">
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="catsub-active" style="width:auto;margin-right:6px" checked>Active</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btn-cancel-catsub">Cancel</button>
+      <button class="btn-publish" id="btn-catsub-save">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- ================== CONFIRM DELETE ================== -->
 <div class="confirm-overlay" id="confirm-overlay">
   <div class="confirm-box">
@@ -2660,7 +2784,7 @@ async function adminFetch(url, opts) {
 
 // -- Nav --------------------------------------------------------------------
 function showSection(name) {
-  ['dashboard','announcements','initiatives','forms','officials','calendar','dirmap','dirbiz','dirorg','direm','alerts','settings'].forEach(s => {
+  ['dashboard','announcements','initiatives','forms','officials','calendar','dirmap','dirbiz','dirorg','direm','dircats','alerts','settings'].forEach(s => {
     $('sec-'+s).style.display = s===name ? 'block' : 'none';
   });
   document.querySelectorAll('.nav-item[data-sec]').forEach(b => {
@@ -2676,6 +2800,7 @@ function showSection(name) {
   if (name==='dirbiz') renderDirBizList();
   if (name==='dirorg') renderDirOrgList();
   if (name==='direm') renderDirEmList();
+  if (name==='dircats') renderCategoriesList();
   if (name==='alerts') { eaSwitchPanel('active', document.querySelector('.ea-subtab[data-panel="active"]')); loadAlerts(); }
   if (name==='settings') { resetSettingsForm(); loadSiteSettings(); loadHotlines(); }
 }
@@ -2722,6 +2847,7 @@ async function loadAll() {
   try { await loadDirBiz(); } catch {}
   try { await loadDirOrg(); } catch {}
   try { await loadDirEm(); } catch {}
+  try { await loadCategories(); } catch {}
   try { await loadAlerts(); } catch {}
   // Update dashboard stats once all sources are loaded
   updateStats();
@@ -5280,7 +5406,7 @@ $('btn-new-dirbiz').onclick = openDirBizNew;
 
 function resetDirBizForm() {
   SDB.editingId=null; SDB.imageUrl=''; SDB.gallery=[];
-  $('dirbiz-name').value=''; $('dirbiz-cat').value='Food & Restaurants';
+  $('dirbiz-name').value=''; setCatSelectValue('dirbiz', '');
   $('dirbiz-contact').value=''; $('dirbiz-desc').value=''; $('dirbiz-address').value='';
   $('dirbiz-hours').value=''; $('dirbiz-social').value='';
   $('dirbiz-lat').value=''; $('dirbiz-lng').value='';
@@ -5303,7 +5429,7 @@ function openDirBizEdit(id) {
   const p = SDB.items.find(x=>x.id===id); if(!p) return;
   resetDirBizForm(); SDB.editingId=id; SDB.imageUrl=p.imageUrl||''; SDB.gallery=(p.gallery||[]).slice();
   $('dirbiz-modal-title').textContent='Edit Business';
-  $('dirbiz-name').value=p.name||''; $('dirbiz-cat').value=p.category||'Food & Restaurants';
+  $('dirbiz-name').value=p.name||''; setCatSelectValue('dirbiz', p.category||'');
   $('dirbiz-contact').value=p.contact||''; $('dirbiz-desc').value=p.description||'';
   $('dirbiz-address').value=p.address||''; $('dirbiz-hours').value=p.hours||'';
   $('dirbiz-social').value=p.social||'';
@@ -5350,9 +5476,11 @@ $('dirbiz-gallery-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) r
 async function saveDirBizForm(forceStatus) {
   const name=$('dirbiz-name').value.trim();
   if(!name){toast('Business name is required','err');$('dirbiz-name').focus();return;}
+  const category=getCatSelectValue('dirbiz');
+  if(!category){toast('Please choose a category','err');$('dirbiz-cat-input').focus();return;}
   const status=forceStatus||document.querySelector('input[name="dirbiz-status"]:checked')?.value||'draft';
   const body={
-    name, category:$('dirbiz-cat').value, description:$('dirbiz-desc').value.trim(),
+    name, category, description:$('dirbiz-desc').value.trim(),
     address:$('dirbiz-address').value.trim(), contact:$('dirbiz-contact').value.trim(),
     hours:$('dirbiz-hours').value.trim(), imageUrl:SDB.imageUrl, social:$('dirbiz-social').value.trim(),
     lat: $('dirbiz-lat').value===''?null:parseFloat($('dirbiz-lat').value),
@@ -5797,6 +5925,273 @@ function confirmDirEmDel(id,name){
     } catch(e){ if(e.message!=='unauthorized') toast('Delete error','err'); }
     pendingDirEmDelId=null;
   };
+}
+
+// -- Category Management (Business Directory) --------------------------------
+const SCAT = { groups: [] };
+
+async function loadCategories() {
+  try {
+    const r = await adminFetch('/admin/api/directory/categories');
+    if (!r.ok) return;
+    const d = await r.json();
+    SCAT.groups = d.groups || [];
+    renderCategoriesList();
+    if (typeof renderBizCategoryOptions === 'function') renderBizCategoryOptions();
+  } catch {}
+}
+
+function renderCategoriesList() {
+  const el = $('dircats-list');
+  if (!SCAT.groups.length) {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon"></div><h3>No categories yet</h3><p>Click "+ New Category" to add one.</p></div>';
+    return;
+  }
+  el.innerHTML = SCAT.groups.map(g => {
+    const subs = g.subcategories || [];
+    return `<div class="cat-group-card" data-id="${g.id}">
+      <div class="cat-group-head">
+        <div class="cat-swatch cat-swatch--${esc(g.color)}">${esc(g.icon || '')}</div>
+        <div>
+          <div class="cat-group-name">${esc(g.name)}${g.active ? '' : ' <span class="badge badge-hidden">inactive</span>'}</div>
+          <div class="cat-group-meta">${subs.length} subcategor${subs.length === 1 ? 'y' : 'ies'}</div>
+        </div>
+        <div class="cat-group-actions">
+          <button class="btn-act" onclick="openCatGroupEdit('${g.id}')">Edit</button>
+          <button class="btn-act" onclick="toggleCatGroupActive('${g.id}','${g.active}')">${g.active ? 'Deactivate' : 'Activate'}</button>
+          <button class="btn-act danger" onclick="confirmCatGroupDel('${g.id}','${esc(g.name)}')">Delete</button>
+        </div>
+      </div>
+      <div class="cat-sublist">
+        ${subs.map(s => `<div class="cat-sub-row" data-id="${s.id}">
+          <span class="cat-sub-name${s.active ? '' : ' cat-sub-inactive'}">${esc(s.name)}</span>
+          <div class="cat-sub-actions">
+            <button class="btn-act" onclick="openCatSubEdit('${s.id}')">Edit</button>
+            <button class="btn-act" onclick="toggleCatSubActive('${s.id}','${s.active}')">${s.active ? 'Deactivate' : 'Activate'}</button>
+            <button class="btn-act danger" onclick="confirmCatSubDel('${s.id}','${esc(s.name)}')">Delete</button>
+          </div>
+        </div>`).join('') || '<p style="color:var(--gray);font-size:.82rem;margin:0">No subcategories yet.</p>'}
+        <button type="button" class="btn-act btn-add-sub" onclick="openCatSubNew('${g.id}')">+ Add Subcategory</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openCatGroupNew() {
+  $('catgroup-modal-title').textContent = 'New Category';
+  $('catgroup-name').value = ''; $('catgroup-icon').value = ''; $('catgroup-color').value = 'blue';
+  $('catgroup-order').value = String((SCAT.groups.length + 1) * 10);
+  $('catgroup-active').checked = true;
+  $('catgroup-form-overlay').dataset.editId = '';
+  $('catgroup-form-overlay').classList.add('open');
+  $('catgroup-name').focus();
+}
+$('btn-new-catgroup').onclick = openCatGroupNew;
+
+function openCatGroupEdit(id) {
+  const g = SCAT.groups.find(x => x.id === id); if (!g) return;
+  $('catgroup-modal-title').textContent = 'Edit Category';
+  $('catgroup-name').value = g.name || ''; $('catgroup-icon').value = g.icon || '';
+  $('catgroup-color').value = g.color || 'blue'; $('catgroup-order').value = g.displayOrder || 0;
+  $('catgroup-active').checked = !!g.active;
+  $('catgroup-form-overlay').dataset.editId = id;
+  $('catgroup-form-overlay').classList.add('open');
+  $('catgroup-name').focus();
+}
+
+function closeCatGroupForm() { $('catgroup-form-overlay').classList.remove('open'); }
+$('btn-close-catgroup-form').onclick = closeCatGroupForm;
+$('btn-cancel-catgroup').onclick = closeCatGroupForm;
+$('catgroup-form-overlay').onclick = e => { if (e.target === $('catgroup-form-overlay')) closeCatGroupForm(); };
+
+async function saveCatGroupForm() {
+  const name = $('catgroup-name').value.trim();
+  if (!name) { toast('Category name is required', 'err'); $('catgroup-name').focus(); return; }
+  const editId = $('catgroup-form-overlay').dataset.editId;
+  const body = {
+    name, icon: $('catgroup-icon').value.trim(), color: $('catgroup-color').value,
+    displayOrder: parseInt($('catgroup-order').value, 10) || 0, active: $('catgroup-active').checked
+  };
+  const url = editId ? `/admin/api/directory/categories/groups/${editId}` : '/admin/api/directory/categories/groups';
+  const method = editId ? 'PUT' : 'POST';
+  try {
+    const r = await adminFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (!r.ok) { toast(d.error || 'Save failed', 'err'); return; }
+    closeCatGroupForm(); await loadCategories();
+    toast(editId ? 'Category updated' : 'Category added', 'ok');
+  } catch (e) { if (e.message !== 'unauthorized') toast('Save error', 'err'); }
+}
+$('btn-catgroup-save').onclick = saveCatGroupForm;
+
+async function toggleCatGroupActive(id, curStr) {
+  const cur = curStr === 'true';
+  try {
+    const r = await adminFetch(`/admin/api/directory/categories/groups/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: !cur }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { toast(d.error || 'Update failed', 'err'); return; }
+    await loadCategories();
+    toast(cur ? 'Category deactivated' : 'Category activated', 'ok');
+  } catch (e) { if (e.message !== 'unauthorized') toast('Update error', 'err'); }
+}
+
+let pendingCatGroupDelId = null;
+function confirmCatGroupDel(id, name) {
+  pendingCatGroupDelId = id;
+  $('confirm-title').textContent = 'Delete category?';
+  $('confirm-msg').textContent = `"${name}" will be permanently deleted. This cannot be undone. (If it still has subcategories, deactivate it instead.)`;
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick = async () => {
+    if (!pendingCatGroupDelId) return;
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r = await adminFetch(`/admin/api/directory/categories/groups/${pendingCatGroupDelId}`, { method: 'DELETE' });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { toast(d.error || 'Delete failed', 'err'); return; }
+      await loadCategories(); toast('Category deleted', 'ok');
+    } catch (e) { if (e.message !== 'unauthorized') toast('Delete error', 'err'); }
+    pendingCatGroupDelId = null;
+  };
+}
+
+function renderCatSubGroupOptions(selectedGroupId) {
+  const sel = $('catsub-group');
+  sel.innerHTML = SCAT.groups.map(g => `<option value="${g.id}">${esc(g.icon || '')} ${esc(g.name)}</option>`).join('');
+  if (selectedGroupId) sel.value = selectedGroupId;
+}
+
+function openCatSubNew(groupId) {
+  $('catsub-modal-title').textContent = 'New Subcategory';
+  renderCatSubGroupOptions(groupId);
+  $('catsub-name').value = ''; $('catsub-desc').value = '';
+  const group = SCAT.groups.find(g => g.id === groupId);
+  $('catsub-order').value = String(group ? ((group.subcategories || []).length + 1) * 10 : 0);
+  $('catsub-active').checked = true;
+  $('catsub-form-overlay').dataset.editId = '';
+  $('catsub-form-overlay').classList.add('open');
+  $('catsub-name').focus();
+}
+
+function openCatSubEdit(id) {
+  let sub = null;
+  for (const g of SCAT.groups) { const found = (g.subcategories || []).find(s => s.id === id); if (found) { sub = found; break; } }
+  if (!sub) return;
+  $('catsub-modal-title').textContent = 'Edit Subcategory';
+  renderCatSubGroupOptions(sub.groupId);
+  $('catsub-name').value = sub.name || ''; $('catsub-desc').value = sub.description || '';
+  $('catsub-order').value = sub.displayOrder || 0; $('catsub-active').checked = !!sub.active;
+  $('catsub-form-overlay').dataset.editId = id;
+  $('catsub-form-overlay').classList.add('open');
+  $('catsub-name').focus();
+}
+
+function closeCatSubForm() { $('catsub-form-overlay').classList.remove('open'); }
+$('btn-close-catsub-form').onclick = closeCatSubForm;
+$('btn-cancel-catsub').onclick = closeCatSubForm;
+$('catsub-form-overlay').onclick = e => { if (e.target === $('catsub-form-overlay')) closeCatSubForm(); };
+
+async function saveCatSubForm() {
+  const name = $('catsub-name').value.trim();
+  if (!name) { toast('Subcategory name is required', 'err'); $('catsub-name').focus(); return; }
+  const editId = $('catsub-form-overlay').dataset.editId;
+  const body = {
+    name, groupId: $('catsub-group').value, description: $('catsub-desc').value.trim(),
+    displayOrder: parseInt($('catsub-order').value, 10) || 0, active: $('catsub-active').checked
+  };
+  const url = editId ? `/admin/api/directory/categories/subcategories/${editId}` : '/admin/api/directory/categories/subcategories';
+  const method = editId ? 'PUT' : 'POST';
+  try {
+    const r = await adminFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (!r.ok) { toast(d.error || 'Save failed', 'err'); return; }
+    closeCatSubForm(); await loadCategories();
+    toast(editId ? 'Subcategory updated' : 'Subcategory added', 'ok');
+  } catch (e) { if (e.message !== 'unauthorized') toast('Save error', 'err'); }
+}
+$('btn-catsub-save').onclick = saveCatSubForm;
+
+async function toggleCatSubActive(id, curStr) {
+  const cur = curStr === 'true';
+  try {
+    const r = await adminFetch(`/admin/api/directory/categories/subcategories/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: !cur }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { toast(d.error || 'Update failed', 'err'); return; }
+    await loadCategories();
+    toast(cur ? 'Subcategory deactivated' : 'Subcategory activated', 'ok');
+  } catch (e) { if (e.message !== 'unauthorized') toast('Update error', 'err'); }
+}
+
+let pendingCatSubDelId = null;
+function confirmCatSubDel(id, name) {
+  pendingCatSubDelId = id;
+  $('confirm-title').textContent = 'Delete subcategory?';
+  $('confirm-msg').textContent = `"${name}" will be permanently deleted. This cannot be undone. (If businesses still use it, deactivate it instead.)`;
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick = async () => {
+    if (!pendingCatSubDelId) return;
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r = await adminFetch(`/admin/api/directory/categories/subcategories/${pendingCatSubDelId}`, { method: 'DELETE' });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { toast(d.error || 'Delete failed', 'err'); return; }
+      await loadCategories(); toast('Subcategory deleted', 'ok');
+    } catch (e) { if (e.message !== 'unauthorized') toast('Delete error', 'err'); }
+    pendingCatSubDelId = null;
+  };
+}
+
+// -- Reusable searchable category select (used by the Business Directory form,
+//    reads live from SCAT.groups so it always reflects Category Management) --
+function catSelectFlatOptions() {
+  const out = [];
+  SCAT.groups.filter(g => g.active).forEach(g => {
+    (g.subcategories || []).filter(s => s.active).forEach(s => {
+      out.push({ name: s.name, groupName: g.name, icon: g.icon });
+    });
+  });
+  return out;
+}
+
+function renderCatSelectDropdown(prefix, query) {
+  const dropdown = $(prefix + '-cat-dropdown');
+  const q = (query || '').toLowerCase();
+  const opts = catSelectFlatOptions().filter(o => !q || o.name.toLowerCase().includes(q) || o.groupName.toLowerCase().includes(q));
+  dropdown.innerHTML = opts.length
+    ? opts.map(o => `<div class="cat-select-opt" data-name="${esc(o.name)}">${esc(o.icon || '')} ${esc(o.name)} <span class="cat-select-group">${esc(o.groupName)}</span></div>`).join('')
+    : '<div class="cat-select-empty">No matching category</div>';
+  dropdown.classList.add('open');
+}
+
+function closeCatSelectDropdown(prefix) { $(prefix + '-cat-dropdown').classList.remove('open'); }
+
+function initCatSelect(prefix) {
+  const input = $(prefix + '-cat-input');
+  const hidden = $(prefix + '-cat-value');
+  const dropdown = $(prefix + '-cat-dropdown');
+  input.addEventListener('focus', () => renderCatSelectDropdown(prefix, input.value));
+  input.addEventListener('input', () => { hidden.value = ''; renderCatSelectDropdown(prefix, input.value); });
+  input.addEventListener('blur', () => setTimeout(() => closeCatSelectDropdown(prefix), 150));
+  dropdown.addEventListener('mousedown', e => {
+    const opt = e.target.closest('.cat-select-opt');
+    if (!opt) return;
+    input.value = opt.dataset.name;
+    hidden.value = opt.dataset.name;
+    closeCatSelectDropdown(prefix);
+  });
+}
+initCatSelect('dirbiz');
+
+function setCatSelectValue(prefix, name) {
+  $(prefix + '-cat-input').value = name || '';
+  $(prefix + '-cat-value').value = name || '';
+}
+
+function getCatSelectValue(prefix) {
+  return $(prefix + '-cat-value').value || $(prefix + '-cat-input').value.trim();
+}
+
+function renderBizCategoryOptions() {
+  if ($('dirbiz-cat-dropdown').classList.contains('open')) renderCatSelectDropdown('dirbiz', $('dirbiz-cat-input').value);
 }
 
 document.addEventListener('keydown', e => {

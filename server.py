@@ -2383,9 +2383,71 @@ def _ensure_initial_settings():
 # CRUD endpoint set.
 
 DIR_MAP_CATEGORIES = ['Barangay Hall', 'Health Center', 'Schools', 'Evacuation Centers', 'Public Facilities']
-DIR_BIZ_CATEGORIES = ['Food & Restaurants', 'Stores', 'Services', 'Local Entrepreneurs']
 DIR_ORG_CATEGORIES = ['Associations', 'Youth Organizations', 'Senior Citizens', 'Community Groups']
 DIR_EM_CATEGORIES  = ['Emergency Contacts', 'Hospitals', 'Police', 'Fire Services', 'Disaster Response Contacts']
+# Business Directory categories are no longer a hardcoded list — they live in
+# directory_category_groups / directory_subcategories (Category Management,
+# admin panel), see the helpers below.
+
+
+# ── Category Management (Business Directory) ─────────────────────────────────
+def _load_category_groups():
+    try:
+        res = supabase.table('directory_category_groups').select('*').execute()
+        return res.data or []
+    except Exception:
+        return []
+
+
+def _load_subcategories():
+    try:
+        res = supabase.table('directory_subcategories').select('*').execute()
+        return res.data or []
+    except Exception:
+        return []
+
+
+def _row_to_category_group(g):
+    return {
+        'id': g['id'], 'name': g.get('name', ''), 'icon': g.get('icon', ''),
+        'color': g.get('color', 'blue'), 'displayOrder': g.get('display_order', 0),
+        'active': g.get('active', True),
+    }
+
+
+def _row_to_subcategory(s):
+    return {
+        'id': s['id'], 'groupId': s.get('group_id', ''), 'name': s.get('name', ''),
+        'description': s.get('description', ''), 'displayOrder': s.get('display_order', 0),
+        'active': s.get('active', True),
+    }
+
+
+def _category_groups_with_subs(active_only):
+    groups = _load_category_groups()
+    subs = _load_subcategories()
+    if active_only:
+        groups = [g for g in groups if g.get('active', True)]
+        subs = [s for s in subs if s.get('active', True)]
+    groups.sort(key=lambda g: g.get('display_order', 0))
+    subs.sort(key=lambda s: s.get('display_order', 0))
+    out = []
+    for g in groups:
+        gsubs = [_row_to_subcategory(s) for s in subs if s.get('group_id') == g['id']]
+        row = _row_to_category_group(g)
+        row['subcategories'] = gsubs
+        out.append(row)
+    return out
+
+
+def _active_biz_category_names():
+    return set(s.get('name', '') for s in _load_subcategories() if s.get('active', True))
+
+
+def _default_biz_category(active_names):
+    if 'General Services' in active_names:
+        return 'General Services'
+    return sorted(active_names)[0] if active_names else ''
 
 
 def _to_float(v):
@@ -2686,6 +2748,142 @@ def api_dir_emergency():
     return jsonify({'status': 'ok', 'contacts': items})
 
 
+@app.route('/api/directory/categories')
+def api_directory_categories():
+    return jsonify({'status': 'ok', 'groups': _category_groups_with_subs(active_only=True)})
+
+
+# ── Directory — admin CRUD: Category Management (Business Directory) ─────────
+@app.route('/admin/api/directory/categories')
+@admin_required
+def admin_directory_categories():
+    return jsonify({'status': 'ok', 'groups': _category_groups_with_subs(active_only=False)})
+
+
+@app.route('/admin/api/directory/categories/groups', methods=['POST'])
+@admin_required
+def admin_category_group_create():
+    d = request.get_json(silent=True) or {}
+    name = _clean(d.get('name'), 60)
+    if not name:
+        return jsonify({'error': 'Category name is required'}), 400
+    row = {
+        'id': uuid.uuid4().hex, 'name': name, 'icon': _clean(d.get('icon'), 8),
+        'color': d.get('color') if d.get('color') in ('blue', 'teal', 'gold', 'red') else 'blue',
+        'display_order': int(d.get('displayOrder') or 0), 'active': bool(d.get('active', True)),
+    }
+    try:
+        res = supabase.table('directory_category_groups').insert(row).execute()
+    except Exception as exc:
+        return jsonify({'error': f'Could not create category (name may already exist): {exc}'}), 400
+    return jsonify({'status': 'ok', 'group': _row_to_category_group(res.data[0])}), 201
+
+
+@app.route('/admin/api/directory/categories/groups/<group_id>', methods=['PUT'])
+@admin_required
+def admin_category_group_update(group_id):
+    d = request.get_json(silent=True) or {}
+    patch = {}
+    if 'name' in d:
+        name = _clean(d['name'], 60)
+        if not name:
+            return jsonify({'error': 'Category name is required'}), 400
+        patch['name'] = name
+    if 'icon' in d:
+        patch['icon'] = _clean(d['icon'], 8)
+    if 'color' in d and d['color'] in ('blue', 'teal', 'gold', 'red'):
+        patch['color'] = d['color']
+    if 'displayOrder' in d:
+        patch['display_order'] = int(d['displayOrder'] or 0)
+    if 'active' in d:
+        patch['active'] = bool(d['active'])
+    try:
+        res = supabase.table('directory_category_groups').update(patch).eq('id', group_id).execute()
+    except Exception as exc:
+        return jsonify({'error': f'Could not update category: {exc}'}), 400
+    if not res.data:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'group': _row_to_category_group(res.data[0])})
+
+
+@app.route('/admin/api/directory/categories/groups/<group_id>', methods=['DELETE'])
+@admin_required
+def admin_category_group_delete(group_id):
+    subs = supabase.table('directory_subcategories').select('id').eq('group_id', group_id).execute()
+    if subs.data:
+        return jsonify({'error': 'This category still has subcategories — deactivate it instead of deleting.'}), 400
+    res = supabase.table('directory_category_groups').delete().eq('id', group_id).execute()
+    if not res.data:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok'})
+
+
+@app.route('/admin/api/directory/categories/subcategories', methods=['POST'])
+@admin_required
+def admin_subcategory_create():
+    d = request.get_json(silent=True) or {}
+    name = _clean(d.get('name'), 80)
+    group_id = d.get('groupId')
+    if not name:
+        return jsonify({'error': 'Subcategory name is required'}), 400
+    group_ids = {g['id'] for g in _load_category_groups()}
+    if group_id not in group_ids:
+        return jsonify({'error': 'Invalid category group'}), 400
+    row = {
+        'id': uuid.uuid4().hex, 'group_id': group_id, 'name': name,
+        'description': _clean(d.get('description'), 300),
+        'display_order': int(d.get('displayOrder') or 0), 'active': bool(d.get('active', True)),
+    }
+    try:
+        res = supabase.table('directory_subcategories').insert(row).execute()
+    except Exception as exc:
+        return jsonify({'error': f'Could not create subcategory (name may already exist): {exc}'}), 400
+    return jsonify({'status': 'ok', 'subcategory': _row_to_subcategory(res.data[0])}), 201
+
+
+@app.route('/admin/api/directory/categories/subcategories/<sub_id>', methods=['PUT'])
+@admin_required
+def admin_subcategory_update(sub_id):
+    d = request.get_json(silent=True) or {}
+    patch = {}
+    if 'name' in d:
+        name = _clean(d['name'], 80)
+        if not name:
+            return jsonify({'error': 'Subcategory name is required'}), 400
+        patch['name'] = name
+    if 'description' in d:
+        patch['description'] = _clean(d['description'], 300)
+    if 'groupId' in d:
+        group_ids = {g['id'] for g in _load_category_groups()}
+        if d['groupId'] not in group_ids:
+            return jsonify({'error': 'Invalid category group'}), 400
+        patch['group_id'] = d['groupId']
+    if 'displayOrder' in d:
+        patch['display_order'] = int(d['displayOrder'] or 0)
+    if 'active' in d:
+        patch['active'] = bool(d['active'])
+    try:
+        res = supabase.table('directory_subcategories').update(patch).eq('id', sub_id).execute()
+    except Exception as exc:
+        return jsonify({'error': f'Could not update subcategory: {exc}'}), 400
+    if not res.data:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'subcategory': _row_to_subcategory(res.data[0])})
+
+
+@app.route('/admin/api/directory/categories/subcategories/<sub_id>', methods=['DELETE'])
+@admin_required
+def admin_subcategory_delete(sub_id):
+    sub = supabase.table('directory_subcategories').select('name').eq('id', sub_id).execute()
+    if not sub.data:
+        return jsonify({'error': 'Not found'}), 404
+    in_use = supabase.table('directory_businesses').select('id').eq('category', sub.data[0]['name']).limit(1).execute()
+    if in_use.data:
+        return jsonify({'error': 'Businesses are still using this subcategory — deactivate it instead of deleting.'}), 400
+    supabase.table('directory_subcategories').delete().eq('id', sub_id).execute()
+    return jsonify({'status': 'ok'})
+
+
 # ── Directory — admin CRUD: Community Map ─────────────────────────────────────
 @app.route('/admin/api/directory/map')
 @admin_required
@@ -2785,7 +2983,8 @@ def admin_dirbiz_create():
     status = d.get('status', 'draft')
     if status not in ('draft', 'published', 'hidden'):
         status = 'draft'
-    category = d.get('category') if d.get('category') in DIR_BIZ_CATEGORIES else DIR_BIZ_CATEGORIES[-1]
+    active_names = _active_biz_category_names()
+    category = d.get('category') if d.get('category') in active_names else _default_biz_category(active_names)
     gallery = d.get('gallery') or []
     if not isinstance(gallery, list):
         gallery = []
@@ -2818,7 +3017,7 @@ def admin_dirbiz_update(item_id):
                           ('hoursOpen', 20), ('hoursClose', 20)]:
         if field in d:
             patch[field] = _clean(d[field], maxlen)
-    if 'category' in d and d['category'] in DIR_BIZ_CATEGORIES:
+    if 'category' in d and d['category'] in _active_biz_category_names():
         patch['category'] = d['category']
     if 'lat' in d:
         patch['lat'] = _to_float(d['lat'])
