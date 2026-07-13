@@ -303,6 +303,11 @@ a{text-decoration:none;color:inherit}
   box-shadow:0 1px 4px rgba(0,0,0,.1);font-weight:700}
 .tab:hover:not(.active){background:rgba(255,255,255,.6);color:var(--text)}
 
+/* Module tabs use longer labels than the other .tabs instances (status
+   filters) — scroll horizontally instead of overflowing on narrow screens. */
+#dircats-module-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:16px}
+#dircats-module-tabs .tab{flex:0 0 auto}
+
 /* --- LIST CARDS ------------------------------------------- */
 .ann-list{display:flex;flex-direction:column;gap:10px}
 .ann-card{background:var(--card);border:1px solid #e8edf4;border-radius:12px;
@@ -433,9 +438,9 @@ a{text-decoration:none;color:inherit}
 .cat-select-input:focus{outline:none;border-color:var(--blue)}
 .cat-select-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;max-height:220px;overflow-y:auto;background:var(--card);border:1px solid var(--border);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:20}
 .cat-select-dropdown.open{display:block}
-.cat-select-opt{padding:8px 12px;font-size:.84rem;cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+.cat-select-opt{padding:7px 12px 7px 22px;font-size:.84rem;cursor:pointer}
 .cat-select-opt:hover{background:var(--bg)}
-.cat-select-group{color:var(--gray);font-size:.74rem}
+.cat-select-group-label{padding:7px 12px 3px;font-size:.7rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.06em}
 .cat-select-empty{padding:10px 12px;font-size:.82rem;color:var(--gray)}
 .default-imgs{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
 .default-imgs label{font-size:.72rem;color:var(--gray);display:block;margin-bottom:7px;font-weight:500;text-align:left}
@@ -1341,12 +1346,18 @@ a{text-decoration:none;color:inherit}
       <div class="page-hdr">
         <div>
           <h2>Category Management</h2>
-          <p>Manage the official categories and subcategories businesses can be assigned to on the public Business Directory.</p>
+          <p>Manage the categories and subcategories each Directory module can be tagged with.</p>
         </div>
         <button class="btn-new" id="btn-new-catgroup">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           New Category
         </button>
+      </div>
+      <div class="tabs" id="dircats-module-tabs">
+        <button class="tab active" data-module="business">Business Directory</button>
+        <button class="tab" data-module="map">Map Locations</button>
+        <button class="tab" data-module="organization">Organization Directory</button>
+        <button class="tab" data-module="emergency">Emergency Directory</button>
       </div>
       <div id="dircats-list"><div class="loading">Loading...</div></div>
     </section>
@@ -1955,14 +1966,12 @@ a{text-decoration:none;color:inherit}
           <input type="text" id="dirmap-name" maxlength="150">
         </div>
         <div class="field">
-          <label>Category</label>
-          <select id="dirmap-cat">
-            <option>Barangay Hall</option>
-            <option>Health Center</option>
-            <option>Schools</option>
-            <option>Evacuation Centers</option>
-            <option>Public Facilities</option>
-          </select>
+          <label>Category <span style="color:#ef4444">*</span></label>
+          <div class="cat-select">
+            <input type="text" id="dirmap-cat-input" class="cat-select-input" placeholder="Search category..." autocomplete="off">
+            <input type="hidden" id="dirmap-cat-value">
+            <div class="cat-select-dropdown" id="dirmap-cat-dropdown"></div>
+          </div>
         </div>
         <div class="field">
           <label>Contact Number</label>
@@ -2201,13 +2210,12 @@ a{text-decoration:none;color:inherit}
           <input type="text" id="dirorg-name" maxlength="150">
         </div>
         <div class="field">
-          <label>Category</label>
-          <select id="dirorg-cat">
-            <option>Associations</option>
-            <option>Youth Organizations</option>
-            <option>Senior Citizens</option>
-            <option>Community Groups</option>
-          </select>
+          <label>Category <span style="color:#ef4444">*</span></label>
+          <div class="cat-select">
+            <input type="text" id="dirorg-cat-input" class="cat-select-input" placeholder="Search category..." autocomplete="off">
+            <input type="hidden" id="dirorg-cat-value">
+            <div class="cat-select-dropdown" id="dirorg-cat-dropdown"></div>
+          </div>
         </div>
         <div class="field">
           <label>Contact Person</label>
@@ -2321,14 +2329,12 @@ a{text-decoration:none;color:inherit}
           <input type="text" id="direm-name" maxlength="150">
         </div>
         <div class="field">
-          <label>Category</label>
-          <select id="direm-cat">
-            <option>Emergency Contacts</option>
-            <option>Hospitals</option>
-            <option>Police</option>
-            <option>Fire Services</option>
-            <option>Disaster Response Contacts</option>
-          </select>
+          <label>Category <span style="color:#ef4444">*</span></label>
+          <div class="cat-select">
+            <input type="text" id="direm-cat-input" class="cat-select-input" placeholder="Search category..." autocomplete="off">
+            <input type="hidden" id="direm-cat-value">
+            <div class="cat-select-dropdown" id="direm-cat-dropdown"></div>
+          </div>
         </div>
         <div class="field">
           <label>Emergency Contact Number <span style="color:#ef4444">*</span></label>
@@ -5224,7 +5230,7 @@ $('btn-new-dirmap').onclick = openDirMapNew;
 
 function resetDirMapForm() {
   SDM.editingId=null; SDM.imageUrl=''; SDM.gallery=[];
-  $('dirmap-name').value=''; $('dirmap-cat').value='Barangay Hall';
+  $('dirmap-name').value=''; setCatSelectValue('dirmap', '');
   $('dirmap-contact').value=''; $('dirmap-desc').value=''; $('dirmap-address').value='';
   $('dirmap-hours').value=''; $('dirmap-lat').value=''; $('dirmap-lng').value='';
   $('dirmap-website').value=''; $('dirmap-email').value=''; $('dirmap-facebook').value=''; $('dirmap-keywords').value='';
@@ -5246,7 +5252,7 @@ function openDirMapEdit(id) {
   const p = SDM.items.find(x=>x.id===id); if(!p) return;
   resetDirMapForm(); SDM.editingId=id; SDM.imageUrl=p.imageUrl||''; SDM.gallery=(p.gallery||[]).slice();
   $('dirmap-modal-title').textContent='Edit Location';
-  $('dirmap-name').value=p.name||''; $('dirmap-cat').value=p.category||'Barangay Hall';
+  $('dirmap-name').value=p.name||''; setCatSelectValue('dirmap', p.category||'');
   $('dirmap-contact').value=p.contact||''; $('dirmap-desc').value=p.description||'';
   $('dirmap-address').value=p.address||''; $('dirmap-hours').value=p.hours||'';
   $('dirmap-lat').value=p.lat??''; $('dirmap-lng').value=p.lng??'';
@@ -5293,9 +5299,11 @@ $('dirmap-gallery-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) r
 async function saveDirMapForm(forceStatus) {
   const name=$('dirmap-name').value.trim();
   if(!name){toast('Location name is required','err');$('dirmap-name').focus();return;}
+  const category=getCatSelectValue('dirmap');
+  if(!category){toast('Please choose a category','err');$('dirmap-cat-input').focus();return;}
   const status=forceStatus||document.querySelector('input[name="dirmap-status"]:checked')?.value||'draft';
   const body={
-    name, category:$('dirmap-cat').value, description:$('dirmap-desc').value.trim(),
+    name, category, description:$('dirmap-desc').value.trim(),
     address:$('dirmap-address').value.trim(), contact:$('dirmap-contact').value.trim(),
     hours:$('dirmap-hours').value.trim(), imageUrl:SDM.imageUrl,
     lat: $('dirmap-lat').value===''?null:parseFloat($('dirmap-lat').value),
@@ -5591,7 +5599,7 @@ $('btn-new-dirorg').onclick = openDirOrgNew;
 
 function resetDirOrgForm() {
   SDO.editingId=null; SDO.imageUrl=''; SDO.gallery=[];
-  $('dirorg-name').value=''; $('dirorg-cat').value='Associations';
+  $('dirorg-name').value=''; setCatSelectValue('dirorg', '');
   $('dirorg-contact-person').value=''; $('dirorg-desc').value=''; $('dirorg-contact-details').value='';
   $('dirorg-location').value=''; $('dirorg-officers').value=''; $('dirorg-programs').value='';
   $('dirorg-lat').value=''; $('dirorg-lng').value='';
@@ -5613,7 +5621,7 @@ function openDirOrgEdit(id) {
   const p = SDO.items.find(x=>x.id===id); if(!p) return;
   resetDirOrgForm(); SDO.editingId=id; SDO.imageUrl=p.imageUrl||''; SDO.gallery=(p.gallery||[]).slice();
   $('dirorg-modal-title').textContent='Edit Organization';
-  $('dirorg-name').value=p.name||''; $('dirorg-cat').value=p.category||'Associations';
+  $('dirorg-name').value=p.name||''; setCatSelectValue('dirorg', p.category||'');
   $('dirorg-contact-person').value=p.contactPerson||''; $('dirorg-desc').value=p.description||'';
   $('dirorg-contact-details').value=p.contactDetails||''; $('dirorg-location').value=p.location||'';
   $('dirorg-officers').value=(p.officers||[]).join('\n'); $('dirorg-programs').value=p.programs||'';
@@ -5659,10 +5667,12 @@ $('dirorg-gallery-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) r
 async function saveDirOrgForm(forceStatus) {
   const name=$('dirorg-name').value.trim();
   if(!name){toast('Organization name is required','err');$('dirorg-name').focus();return;}
+  const category=getCatSelectValue('dirorg');
+  if(!category){toast('Please choose a category','err');$('dirorg-cat-input').focus();return;}
   const status=forceStatus||document.querySelector('input[name="dirorg-status"]:checked')?.value||'draft';
   const officers=$('dirorg-officers').value.split('\n').map(s=>s.trim()).filter(Boolean);
   const body={
-    name, category:$('dirorg-cat').value, description:$('dirorg-desc').value.trim(),
+    name, category, description:$('dirorg-desc').value.trim(),
     contactPerson:$('dirorg-contact-person').value.trim(), officers,
     contactDetails:$('dirorg-contact-details').value.trim(), programs:$('dirorg-programs').value.trim(),
     location:$('dirorg-location').value.trim(), imageUrl:SDO.imageUrl,
@@ -5772,7 +5782,7 @@ $('btn-new-direm').onclick = openDirEmNew;
 
 function resetDirEmForm() {
   SDE.editingId=null; SDE.imageUrl=''; SDE.gallery=[];
-  $('direm-name').value=''; $('direm-cat').value='Emergency Contacts';
+  $('direm-name').value=''; setCatSelectValue('direm', '');
   $('direm-number').value=''; $('direm-alt-number').value=''; $('direm-address').value='';
   $('direm-services').value=''; $('direm-lat').value=''; $('direm-lng').value='';
   $('direm-website').value=''; $('direm-email').value=''; $('direm-facebook').value=''; $('direm-keywords').value='';
@@ -5793,7 +5803,7 @@ function openDirEmEdit(id) {
   const p = SDE.items.find(x=>x.id===id); if(!p) return;
   resetDirEmForm(); SDE.editingId=id; SDE.imageUrl=p.imageUrl||''; SDE.gallery=(p.gallery||[]).slice();
   $('direm-modal-title').textContent='Edit Emergency Contact';
-  $('direm-name').value=p.name||''; $('direm-cat').value=p.category||'Emergency Contacts';
+  $('direm-name').value=p.name||''; setCatSelectValue('direm', p.category||'');
   $('direm-number').value=p.number||''; $('direm-alt-number').value=p.altNumber||'';
   $('direm-address').value=p.address||''; $('direm-services').value=p.services||'';
   $('direm-lat').value=p.lat??''; $('direm-lng').value=p.lng??'';
@@ -5874,9 +5884,11 @@ async function saveDirEmForm(forceStatus) {
   const number=$('direm-number').value.trim();
   if(!name){toast('Organization name is required','err');$('direm-name').focus();return;}
   if(!number){toast('Emergency contact number is required','err');$('direm-number').focus();return;}
+  const category=getCatSelectValue('direm');
+  if(!category){toast('Please choose a category','err');$('direm-cat-input').focus();return;}
   const status=forceStatus||document.querySelector('input[name="direm-status"]:checked')?.value||'draft';
   const body={
-    name, category:$('direm-cat').value, number, altNumber:$('direm-alt-number').value.trim(),
+    name, category, number, altNumber:$('direm-alt-number').value.trim(),
     address:$('direm-address').value.trim(), services:$('direm-services').value.trim(), imageUrl:SDE.imageUrl,
     lat: $('direm-lat').value===''?null:parseFloat($('direm-lat').value),
     lng: $('direm-lng').value===''?null:parseFloat($('direm-lng').value),
@@ -5927,27 +5939,38 @@ function confirmDirEmDel(id,name){
   };
 }
 
-// -- Category Management (Business Directory) --------------------------------
-const SCAT = { groups: [] };
+// -- Category Management (all 4 Directory modules) ----------------------------
+const SCAT = { activeModule: 'business', modules: { business: [], map: [], organization: [], emergency: [] } };
+function curCatGroups() { return SCAT.modules[SCAT.activeModule] || []; }
 
 async function loadCategories() {
   try {
     const r = await adminFetch('/admin/api/directory/categories');
     if (!r.ok) return;
     const d = await r.json();
-    SCAT.groups = d.groups || [];
+    SCAT.modules = d.modules || { business: [], map: [], organization: [], emergency: [] };
     renderCategoriesList();
-    if (typeof renderBizCategoryOptions === 'function') renderBizCategoryOptions();
+    refreshOpenCatSelects();
   } catch {}
 }
 
+document.querySelectorAll('#dircats-module-tabs .tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('#dircats-module-tabs .tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    SCAT.activeModule = t.dataset.module;
+    renderCategoriesList();
+  };
+});
+
 function renderCategoriesList() {
   const el = $('dircats-list');
-  if (!SCAT.groups.length) {
+  const groups = curCatGroups();
+  if (!groups.length) {
     el.innerHTML = '<div class="empty-state"><div class="es-icon"></div><h3>No categories yet</h3><p>Click "+ New Category" to add one.</p></div>';
     return;
   }
-  el.innerHTML = SCAT.groups.map(g => {
+  el.innerHTML = groups.map(g => {
     const subs = g.subcategories || [];
     return `<div class="cat-group-card" data-id="${g.id}">
       <div class="cat-group-head">
@@ -5980,7 +6003,7 @@ function renderCategoriesList() {
 function openCatGroupNew() {
   $('catgroup-modal-title').textContent = 'New Category';
   $('catgroup-name').value = ''; $('catgroup-icon').value = ''; $('catgroup-color').value = 'blue';
-  $('catgroup-order').value = String((SCAT.groups.length + 1) * 10);
+  $('catgroup-order').value = String((curCatGroups().length + 1) * 10);
   $('catgroup-active').checked = true;
   $('catgroup-form-overlay').dataset.editId = '';
   $('catgroup-form-overlay').classList.add('open');
@@ -5989,7 +6012,7 @@ function openCatGroupNew() {
 $('btn-new-catgroup').onclick = openCatGroupNew;
 
 function openCatGroupEdit(id) {
-  const g = SCAT.groups.find(x => x.id === id); if (!g) return;
+  const g = curCatGroups().find(x => x.id === id); if (!g) return;
   $('catgroup-modal-title').textContent = 'Edit Category';
   $('catgroup-name').value = g.name || ''; $('catgroup-icon').value = g.icon || '';
   $('catgroup-color').value = g.color || 'blue'; $('catgroup-order').value = g.displayOrder || 0;
@@ -6009,7 +6032,7 @@ async function saveCatGroupForm() {
   if (!name) { toast('Category name is required', 'err'); $('catgroup-name').focus(); return; }
   const editId = $('catgroup-form-overlay').dataset.editId;
   const body = {
-    name, icon: $('catgroup-icon').value.trim(), color: $('catgroup-color').value,
+    name, module: SCAT.activeModule, icon: $('catgroup-icon').value.trim(), color: $('catgroup-color').value,
     displayOrder: parseInt($('catgroup-order').value, 10) || 0, active: $('catgroup-active').checked
   };
   const url = editId ? `/admin/api/directory/categories/groups/${editId}` : '/admin/api/directory/categories/groups';
@@ -6056,7 +6079,7 @@ function confirmCatGroupDel(id, name) {
 
 function renderCatSubGroupOptions(selectedGroupId) {
   const sel = $('catsub-group');
-  sel.innerHTML = SCAT.groups.map(g => `<option value="${g.id}">${esc(g.icon || '')} ${esc(g.name)}</option>`).join('');
+  sel.innerHTML = curCatGroups().map(g => `<option value="${g.id}">${esc(g.icon || '')} ${esc(g.name)}</option>`).join('');
   if (selectedGroupId) sel.value = selectedGroupId;
 }
 
@@ -6064,7 +6087,7 @@ function openCatSubNew(groupId) {
   $('catsub-modal-title').textContent = 'New Subcategory';
   renderCatSubGroupOptions(groupId);
   $('catsub-name').value = ''; $('catsub-desc').value = '';
-  const group = SCAT.groups.find(g => g.id === groupId);
+  const group = curCatGroups().find(g => g.id === groupId);
   $('catsub-order').value = String(group ? ((group.subcategories || []).length + 1) * 10 : 0);
   $('catsub-active').checked = true;
   $('catsub-form-overlay').dataset.editId = '';
@@ -6074,7 +6097,7 @@ function openCatSubNew(groupId) {
 
 function openCatSubEdit(id) {
   let sub = null;
-  for (const g of SCAT.groups) { const found = (g.subcategories || []).find(s => s.id === id); if (found) { sub = found; break; } }
+  for (const g of curCatGroups()) { const found = (g.subcategories || []).find(s => s.id === id); if (found) { sub = found; break; } }
   if (!sub) return;
   $('catsub-modal-title').textContent = 'Edit Subcategory';
   renderCatSubGroupOptions(sub.groupId);
@@ -6140,31 +6163,30 @@ function confirmCatSubDel(id, name) {
   };
 }
 
-// -- Reusable searchable category select (used by the Business Directory form,
-//    reads live from SCAT.groups so it always reflects Category Management) --
-function catSelectFlatOptions() {
-  const out = [];
-  SCAT.groups.filter(g => g.active).forEach(g => {
-    (g.subcategories || []).filter(s => s.active).forEach(s => {
-      out.push({ name: s.name, groupName: g.name, icon: g.icon });
-    });
-  });
-  return out;
-}
+// -- Reusable searchable category select (used by all 4 Directory forms,
+//    reads live from SCAT.modules so it always reflects Category Management) --
+const CAT_SELECT_MODULE = {};
 
 function renderCatSelectDropdown(prefix, query) {
+  const module = CAT_SELECT_MODULE[prefix];
   const dropdown = $(prefix + '-cat-dropdown');
   const q = (query || '').toLowerCase();
-  const opts = catSelectFlatOptions().filter(o => !q || o.name.toLowerCase().includes(q) || o.groupName.toLowerCase().includes(q));
-  dropdown.innerHTML = opts.length
-    ? opts.map(o => `<div class="cat-select-opt" data-name="${esc(o.name)}">${esc(o.icon || '')} ${esc(o.name)} <span class="cat-select-group">${esc(o.groupName)}</span></div>`).join('')
-    : '<div class="cat-select-empty">No matching category</div>';
+  const groups = (SCAT.modules[module] || []).filter(g => g.active);
+  let html = '';
+  groups.forEach(g => {
+    const subs = (g.subcategories || []).filter(s => s.active && (!q || s.name.toLowerCase().includes(q) || g.name.toLowerCase().includes(q)));
+    if (!subs.length) return;
+    html += `<div class="cat-select-group-label">${esc(g.icon || '')} ${esc(g.name)}</div>`;
+    html += subs.map(s => `<div class="cat-select-opt" data-name="${esc(s.name)}">${esc(s.name)}</div>`).join('');
+  });
+  dropdown.innerHTML = html || '<div class="cat-select-empty">No matching category</div>';
   dropdown.classList.add('open');
 }
 
 function closeCatSelectDropdown(prefix) { $(prefix + '-cat-dropdown').classList.remove('open'); }
 
-function initCatSelect(prefix) {
+function initCatSelect(prefix, module) {
+  CAT_SELECT_MODULE[prefix] = module;
   const input = $(prefix + '-cat-input');
   const hidden = $(prefix + '-cat-value');
   const dropdown = $(prefix + '-cat-dropdown');
@@ -6179,7 +6201,10 @@ function initCatSelect(prefix) {
     closeCatSelectDropdown(prefix);
   });
 }
-initCatSelect('dirbiz');
+initCatSelect('dirbiz', 'business');
+initCatSelect('dirmap', 'map');
+initCatSelect('dirorg', 'organization');
+initCatSelect('direm', 'emergency');
 
 function setCatSelectValue(prefix, name) {
   $(prefix + '-cat-input').value = name || '';
@@ -6190,9 +6215,15 @@ function getCatSelectValue(prefix) {
   return $(prefix + '-cat-value').value || $(prefix + '-cat-input').value.trim();
 }
 
-function renderBizCategoryOptions() {
-  if ($('dirbiz-cat-dropdown').classList.contains('open')) renderCatSelectDropdown('dirbiz', $('dirbiz-cat-input').value);
+function refreshOpenCatSelects() {
+  Object.keys(CAT_SELECT_MODULE).forEach(prefix => {
+    const dropdown = document.getElementById(prefix + '-cat-dropdown');
+    if (dropdown && dropdown.classList.contains('open')) {
+      renderCatSelectDropdown(prefix, document.getElementById(prefix + '-cat-input').value);
+    }
+  });
 }
+
 
 document.addEventListener('keydown', e => {
   if (e.key==='Escape') {

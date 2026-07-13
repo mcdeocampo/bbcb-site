@@ -8,11 +8,12 @@
 
   var BOLBOK_CENTER = { lat: 13.7565, lng: 121.0583 };
 
-  // ── Master category grouping (client-side only — DB categories untouched) ──
-  // Business categories are NOT listed here — they're managed in the admin
-  // Category Management screen and fetched from /api/directory/categories
-  // (see BIZ_SUBCAT_INDEX below). 'Business' stays as a resilient fallback
-  // bucket for if that fetch ever fails.
+  // ── Category grouping ────────────────────────────────────────────────────
+  // All 4 modules' categories now live in the admin Category Management
+  // screen and are fetched from /api/directory/categories at boot (see
+  // SUBCAT_INDEX / loadCategoryGroups below). MASTER_MAP/ICON/COLOR below are
+  // kept only as a last-resort fallback if that fetch ever fails.
+  var TYPE_MODULE = { location: 'map', business: 'business', organization: 'organization', emergency: 'emergency' };
   var MASTER_MAP = {
     'Barangay Hall': 'Government',
     'Health Center': 'Healthcare',
@@ -40,9 +41,16 @@
   };
   var MARKER_HEX = { blue: '#1565d8', teal: '#00a884', gold: '#f6c445', red: '#e5484d' };
 
-  // Business Directory subcategory -> { groupName, icon, color }, populated from
-  // /api/directory/categories at boot (the live, admin-managed taxonomy).
-  var BIZ_SUBCAT_INDEX = {};
+  // module -> { subcategoryName -> { groupName, icon, color } }, populated
+  // from /api/directory/categories at boot (the live, admin-managed taxonomy).
+  var SUBCAT_INDEX = { business: {}, map: {}, organization: {}, emergency: {} };
+
+  function resolveMasterCategory(type, categoryName) {
+    var idx = SUBCAT_INDEX[TYPE_MODULE[type]];
+    var hit = idx && idx[categoryName];
+    if (hit) return hit.groupName;
+    return MASTER_MAP[categoryName] || (type === 'business' ? 'Business' : 'Facilities');
+  }
 
   // ── Small helpers ────────────────────────────────────────────────────────
   function esc(s) {
@@ -132,7 +140,7 @@
   function normalize(type, raw) {
     var base = {
       id: raw.id, type: type, name: raw.name || '', category: raw.category || '',
-      masterCategory: MASTER_MAP[raw.category] || 'Facilities',
+      masterCategory: resolveMasterCategory(type, raw.category),
       description: raw.description || '', imageUrl: raw.imageUrl || '',
       lat: raw.lat, lng: raw.lng,
       website: raw.website || '', email: raw.email || '', facebook: raw.facebook || raw.social || '',
@@ -148,8 +156,6 @@
     } else if (type === 'business') {
       base.address = raw.address || ''; base.phone = raw.contact || ''; base.altPhone = '';
       base.hours = raw.hours || '';
-      var bizCat = BIZ_SUBCAT_INDEX[raw.category];
-      base.masterCategory = bizCat ? bizCat.groupName : 'Business';
     } else if (type === 'organization') {
       base.address = raw.location || ''; base.phone = raw.contactDetails || ''; base.altPhone = '';
       base.hours = '';
@@ -160,28 +166,34 @@
     return base;
   }
 
-  // Fetches the admin-managed Business Directory category taxonomy and wires
+  // Fetches the admin-managed category taxonomy for all 4 modules and wires
   // it into the existing MASTER_ICON/MASTER_COLOR/MASTER_ORDER lookups, so
-  // business categories render exactly like every other master group.
+  // every module's real categories render exactly the same way.
   function loadCategoryGroups() {
     return fetchJSON('/api/directory/categories').then(function (d) {
-      var groups = d.groups || [];
-      var bizNames = [];
-      groups.forEach(function (g) {
-        bizNames.push(g.name);
-        MASTER_ICON[g.name] = g.icon || MASTER_ICON[g.name] || '🏪';
-        MASTER_COLOR[g.name] = g.color || MASTER_COLOR[g.name] || 'gold';
-        (g.subcategories || []).forEach(function (s) {
-          BIZ_SUBCAT_INDEX[s.name] = { groupName: g.name, icon: g.icon, color: g.color };
+      var modules = d.modules || {};
+      var newNames = [];
+      Object.keys(modules).forEach(function (module) {
+        if (!SUBCAT_INDEX[module]) SUBCAT_INDEX[module] = {};
+        (modules[module] || []).forEach(function (g) {
+          newNames.push(g.name);
+          MASTER_ICON[g.name] = g.icon || MASTER_ICON[g.name] || '🏪';
+          MASTER_COLOR[g.name] = g.color || MASTER_COLOR[g.name] || 'gold';
+          (g.subcategories || []).forEach(function (s) {
+            SUBCAT_INDEX[module][s.name] = { groupName: g.name, icon: g.icon, color: g.color };
+          });
         });
       });
-      if (bizNames.length) {
-        var idx = MASTER_ORDER.indexOf('Business');
-        if (idx !== -1) MASTER_ORDER.splice.apply(MASTER_ORDER, [idx, 1].concat(bizNames));
-        else MASTER_ORDER = MASTER_ORDER.concat(bizNames);
-        // Some official business groups share a name with an existing non-business
-        // bucket (e.g. "Government" covers both Barangay Hall map entries and
-        // Government-category businesses) — dedupe so each renders one chip.
+      // Replace the old static Government/Healthcare/Education/Facilities/
+      // Business/Organizations/Emergency placeholder buckets with the real,
+      // admin-managed groups fetched above, in the order they were seeded
+      // (business groups first, then map, then organization, then emergency —
+      // matching Object.keys() insertion order from the API response).
+      if (newNames.length) {
+        MASTER_ORDER = newNames.slice();
+        // A few groups intentionally share a name across modules (e.g.
+        // "Government" exists in both Business and Map) — dedupe so each
+        // renders as one combined chip rather than two identical ones.
         var seen = {};
         MASTER_ORDER = MASTER_ORDER.filter(function (name) {
           if (seen[name]) return false;
@@ -211,6 +223,7 @@
   // ── State ────────────────────────────────────────────────────────────────
   var ALL_ITEMS = [];
   var activeMaster = 'All';
+  var activeSubcategory = null;
   var searchQuery = '';
   var sortMode = 'alpha';
   var activeId = null;
@@ -219,7 +232,7 @@
   var map = null, markers = {}, clusterGroup = null;
   var lastFocused = null;
 
-  var listEl, chipsEl, countEl, searchEl, sortEl, mapEl, nearMeBtn, radiusRowEl;
+  var listEl, chipsEl, subchipsEl, countEl, searchEl, searchClearEl, sortEl, mapEl, nearMeBtn, radiusRowEl;
 
   var LIST_BATCH_SIZE = 30;
   var listRenderState = { items: [], rendered: 0 };
@@ -266,7 +279,9 @@
       });
     }
     renderChips(searchFiltered);
-    var finalItems = activeMaster === 'All' ? searchFiltered : searchFiltered.filter(function (it) { return it.masterCategory === activeMaster; });
+    var masterFiltered = activeMaster === 'All' ? searchFiltered : searchFiltered.filter(function (it) { return it.masterCategory === activeMaster; });
+    renderSubchips(masterFiltered);
+    var finalItems = activeSubcategory ? masterFiltered.filter(function (it) { return it.category === activeSubcategory; }) : masterFiltered;
     finalItems = sortItems(finalItems, sortMode);
     // Featured items float to the top; Array#sort is stable, so the chosen
     // sort order is preserved within the featured and non-featured groups.
@@ -274,7 +289,7 @@
     renderList(finalItems);
     renderMarkers(finalItems);
     renderCount(finalItems.length);
-    if (q || activeMaster !== 'All' || nearMeRadius != null) fitToMarkers(finalItems);
+    if (q || activeMaster !== 'All' || activeSubcategory || nearMeRadius != null) fitToMarkers(finalItems);
   }
 
   function renderCount(n) {
@@ -294,6 +309,25 @@
         (MASTER_ICON[g] ? MASTER_ICON[g] + ' ' : '') + esc(g) + ' (' + counts[g] + ')</button>';
     }).join('');
     chipsEl.innerHTML = html;
+  }
+
+  // Second-level chip row: subcategories within the currently active parent
+  // category, so users can filter by parent OR drill into a specific
+  // subcategory (mirrors the Near Me radius-chip pattern below).
+  function renderSubchips(items) {
+    if (!subchipsEl) return;
+    if (activeMaster === 'All') { subchipsEl.innerHTML = ''; subchipsEl.classList.remove('open'); return; }
+    var counts = {};
+    items.forEach(function (it) { if (it.category) counts[it.category] = (counts[it.category] || 0) + 1; });
+    var subNames = Object.keys(counts).sort();
+    if (!subNames.length) { subchipsEl.innerHTML = ''; subchipsEl.classList.remove('open'); return; }
+    var color = MASTER_COLOR[activeMaster] || 'blue';
+    var html = '<button type="button" class="dir2-chip dir2-chip--all' + (!activeSubcategory ? ' active' : '') + '" data-sub="">All ' + esc(activeMaster) + '</button>';
+    html += subNames.map(function (name) {
+      return '<button type="button" class="dir2-chip dir2-chip--' + color + (activeSubcategory === name ? ' active' : '') + '" data-sub="' + esc(name) + '">' + esc(name) + ' (' + counts[name] + ')</button>';
+    }).join('');
+    subchipsEl.innerHTML = html;
+    subchipsEl.classList.add('open');
   }
 
   // ── Near Me (radius filter) ──────────────────────────────────────────────
@@ -372,7 +406,10 @@
       '<div class="dir2-item-logo dir2-item-logo--' + color + '">' + logoOrIconHtml(it, 'dir2-item-logo') + '</div>' +
       '<div class="dir2-item-body">' +
       '<div class="dir2-item-top"><h3>' + esc(it.name) + '</h3>' + (badges ? '<span class="dir2-item-badges">' + badges + '</span>' : '') + '</div>' +
+      '<div class="dir2-item-cat">' +
+      (it.masterCategory && it.masterCategory !== it.category ? '<span class="dir2-parent-cat">' + esc(it.masterCategory) + '</span>' : '') +
       '<span class="dir2-chip dir2-chip--' + color + ' dir2-chip-static">' + esc(it.category) + '</span>' +
+      '</div>' +
       (it.address ? '<p class="dir2-item-addr">📍 ' + esc(it.address) + '</p>' : '') +
       '<div class="dir2-item-meta">' +
       (it.phone ? '<span>📞 ' + esc(it.phone) + '</span>' : '') +
@@ -397,14 +434,35 @@
       clusterGroup = L.markerClusterGroup({ maxClusterRadius: 50, disableClusteringAtZoom: 18, showCoverageOnHover: false });
       map.addLayer(clusterGroup);
     }
+    // Small entrance animation each time a popup opens (CSS respects
+    // prefers-reduced-motion on its own).
+    map.on('popupopen', function (e) {
+      var el = e.popup && e.popup.getElement && e.popup.getElement();
+      if (!el) return;
+      el.classList.remove('dir2-popup-anim');
+      void el.offsetWidth;
+      el.classList.add('dir2-popup-anim');
+    });
+  }
+
+  function prefersReducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
+  // Smooth animated pan/zoom, falling back to an instant jump for visitors
+  // who've asked for reduced motion.
+  function flyOrJump(lat, lng, zoom) {
+    if (!map) return;
+    if (prefersReducedMotion()) map.setView([lat, lng], zoom);
+    else map.flyTo([lat, lng], zoom, { duration: 0.6 });
   }
 
   function fitToMarkers(items) {
     if (!map) return;
     var pts = items.filter(function (it) { return it.lat != null && it.lng != null; }).map(function (it) { return [it.lat, it.lng]; });
     if (!pts.length) return;
-    if (pts.length === 1) { map.setView(pts[0], 17); return; }
-    map.fitBounds(pts, { padding: [30, 30], maxZoom: 17 });
+    if (pts.length === 1) { flyOrJump(pts[0][0], pts[0][1], 17); return; }
+    map.fitBounds(pts, { padding: [30, 30], maxZoom: 17, animate: !prefersReducedMotion(), duration: 0.6 });
   }
 
   function popupHtml(it) {
@@ -421,6 +479,18 @@
       '</div></div>';
   }
 
+  // Selected marker gets a bigger radius + thicker ring and stays that way
+  // until a different listing is selected.
+  var MARKER_DEFAULT_STYLE = { radius: 9, weight: 2, fillOpacity: 0.95 };
+  var MARKER_ACTIVE_STYLE = { radius: 13, weight: 3, fillOpacity: 1 };
+
+  function setMarkerActive(id, active) {
+    var m = markers[id];
+    if (!m) return;
+    m.setStyle(active ? MARKER_ACTIVE_STYLE : MARKER_DEFAULT_STYLE);
+    if (active && m.bringToFront) m.bringToFront();
+  }
+
   function renderMarkers(items) {
     if (!map) return;
     var layerGroup = clusterGroup || map;
@@ -431,7 +501,8 @@
       var color = MARKER_HEX[MASTER_COLOR[it.masterCategory] || 'blue'];
       var m = markers[it.id];
       if (!m) {
-        m = L.circleMarker([it.lat, it.lng], { radius: 9, color: '#fff', weight: 2, fillColor: color, fillOpacity: 0.95 });
+        var style = it.id === activeId ? MARKER_ACTIVE_STYLE : MARKER_DEFAULT_STYLE;
+        m = L.circleMarker([it.lat, it.lng], { radius: style.radius, color: '#fff', weight: style.weight, fillColor: color, fillOpacity: style.fillOpacity });
         m.bindPopup(popupHtml(it));
         m.on('click', function () { selectItem(it.id, { fromMap: true }); });
         markers[it.id] = m;
@@ -455,10 +526,13 @@
 
   function selectItem(id, opts) {
     opts = opts || {};
+    var prevId = activeId;
     activeId = id;
     var it = ALL_ITEMS.find(function (x) { return x.id === id; });
     if (!it) return;
     highlightListItem(id);
+    if (prevId && prevId !== id) setMarkerActive(prevId, false);
+    setMarkerActive(id, true);
     if (opts.fromMap) {
       var el = listEl && listEl.querySelector('.dir2-item[data-id="' + id + '"]');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -471,7 +545,7 @@
         if (clusterGroup && clusterGroup.hasLayer(marker)) {
           clusterGroup.zoomToShowLayer(marker, function () { marker.openPopup(); });
         } else {
-          map.setView([it.lat, it.lng], 17);
+          flyOrJump(it.lat, it.lng, 17);
           marker.openPopup();
         }
       }
@@ -525,7 +599,10 @@
 
     return cover +
       '<div class="dir2-modal-content">' +
+      '<div class="dir2-item-cat">' +
+      (it.masterCategory && it.masterCategory !== it.category ? '<span class="dir2-parent-cat">' + esc(it.masterCategory) + '</span>' : '') +
       '<span class="dir2-chip dir2-chip--' + color + ' dir2-chip-static">' + esc(it.category) + '</span>' +
+      '</div>' +
       (badges ? '<span class="dir2-item-badges">' + badges + '</span>' : '') +
       '<h2 id="dir2-modal-title">' + esc(it.name) + '</h2>' +
       (it.description ? '<p class="dir2-modal-desc">' + esc(it.description) + '</p>' : '') +
@@ -596,13 +673,32 @@
     }
   }
 
+  function toggleSearchClearBtn() {
+    if (!searchClearEl || !searchEl) return;
+    searchClearEl.hidden = !searchEl.value;
+  }
+
   // ── Event wiring ─────────────────────────────────────────────────────────
   function wireEvents() {
     if (searchEl) {
+      searchEl.addEventListener('input', function () {
+        toggleSearchClearBtn();
+      });
       searchEl.addEventListener('input', debounce(function () {
         searchQuery = searchEl.value;
         applyFilters();
       }, 200));
+    }
+    if (searchClearEl) {
+      searchClearEl.addEventListener('click', function () {
+        searchEl.value = '';
+        searchQuery = '';
+        activeMaster = 'All';
+        activeSubcategory = null;
+        toggleSearchClearBtn();
+        applyFilters();
+        searchEl.focus();
+      });
     }
 
     if (sortEl) {
@@ -626,6 +722,16 @@
         var btn = e.target.closest('.dir2-chip');
         if (!btn) return;
         activeMaster = btn.getAttribute('data-cat');
+        activeSubcategory = null;
+        applyFilters();
+      });
+    }
+
+    if (subchipsEl) {
+      subchipsEl.addEventListener('click', function (e) {
+        var btn = e.target.closest('.dir2-chip');
+        if (!btn) return;
+        activeSubcategory = btn.getAttribute('data-sub') || null;
         applyFilters();
       });
     }
@@ -698,8 +804,10 @@
   function boot() {
     listEl = document.getElementById('dir2-list');
     chipsEl = document.getElementById('dir2-chips');
+    subchipsEl = document.getElementById('dir2-subchips');
     countEl = document.getElementById('dir2-count');
     searchEl = document.getElementById('dir2-search');
+    searchClearEl = document.getElementById('dir2-search-clear');
     sortEl = document.getElementById('dir2-sort');
     mapEl = document.getElementById('dir2-map');
     nearMeBtn = document.getElementById('dir2-nearme-btn');
