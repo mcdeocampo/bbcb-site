@@ -1928,6 +1928,20 @@ a{text-decoration:none;color:inherit}
           <label>Operating Hours</label>
           <input type="text" id="dirmap-hours" maxlength="150">
         </div>
+        <div class="form-section-label">Media <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional)</span></div>
+        <div class="field field-full">
+          <label>Location Photo</label>
+          <div class="img-area" id="dirmap-drop-area">
+            <img class="img-preview" id="dirmap-img-preview" src="" alt="" style="display:none">
+            <div class="img-upload-row">
+              <label class="btn-upload-file" for="dirmap-img-file">Upload Image</label>
+              <input type="file" id="dirmap-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+              <button type="button" class="btn-act" id="dirmap-img-remove" style="font-size:.7rem" onclick="clearDirMapImage()">Remove</button>
+            </div>
+            <div class="img-url-note" id="dirmap-img-url-note"></div>
+            <div class="img-hint">JPG, PNG, WebP - max 5 MB. Leave empty to use a category icon.</div>
+          </div>
+        </div>
         <div class="form-section-label">Map Coordinates</div>
         <div class="field">
           <label>Latitude</label>
@@ -2007,9 +2021,10 @@ a{text-decoration:none;color:inherit}
             <div class="img-upload-row">
               <label class="btn-upload-file" for="dirbiz-img-file">Upload Image</label>
               <input type="file" id="dirbiz-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+              <button type="button" class="btn-act" id="dirbiz-img-remove" style="font-size:.7rem" onclick="clearDirBizImage()">Remove</button>
             </div>
             <div class="img-url-note" id="dirbiz-img-url-note"></div>
-            <div class="img-hint">JPG, PNG, WebP - max 5 MB.</div>
+            <div class="img-hint">JPG, PNG, WebP - max 5 MB. Leave empty to use a category icon.</div>
           </div>
         </div>
         <div class="form-section-label">Map Coordinates</div>
@@ -2087,6 +2102,20 @@ a{text-decoration:none;color:inherit}
           <label>Activities / Programs</label>
           <textarea id="dirorg-programs" rows="3" maxlength="1000"></textarea>
         </div>
+        <div class="form-section-label">Media</div>
+        <div class="field field-full">
+          <label>Organization Logo / Emblem</label>
+          <div class="img-area" id="dirorg-drop-area">
+            <img class="img-preview" id="dirorg-img-preview" src="" alt="" style="display:none">
+            <div class="img-upload-row">
+              <label class="btn-upload-file" for="dirorg-img-file">Upload Image</label>
+              <input type="file" id="dirorg-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+              <button type="button" class="btn-act" id="dirorg-img-remove" style="font-size:.7rem" onclick="clearDirOrgImage()">Remove</button>
+            </div>
+            <div class="img-url-note" id="dirorg-img-url-note"></div>
+            <div class="img-hint">JPG, PNG, WebP - max 5 MB. Leave empty to use a category icon.</div>
+          </div>
+        </div>
         <div class="form-section-label">Map Coordinates</div>
         <div class="field">
           <label>Latitude</label>
@@ -2154,6 +2183,20 @@ a{text-decoration:none;color:inherit}
         <div class="field field-full">
           <label>Available Services</label>
           <textarea id="direm-services" rows="2" maxlength="1000"></textarea>
+        </div>
+        <div class="form-section-label">Media</div>
+        <div class="field field-full">
+          <label>Agency Logo</label>
+          <div class="img-area" id="direm-drop-area">
+            <img class="img-preview" id="direm-img-preview" src="" alt="" style="display:none">
+            <div class="img-upload-row">
+              <label class="btn-upload-file" for="direm-img-file">Upload Image</label>
+              <input type="file" id="direm-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+              <button type="button" class="btn-act" id="direm-img-remove" style="font-size:.7rem" onclick="clearDirEmImage()">Remove</button>
+            </div>
+            <div class="img-url-note" id="direm-img-url-note"></div>
+            <div class="img-hint">JPG, PNG, WebP - max 5 MB. Leave empty to use a category icon.</div>
+          </div>
         </div>
         <div class="form-section-label">Map Coordinates</div>
         <div class="field">
@@ -4851,7 +4894,7 @@ function eaDeleteDraft(id, title) {
 // ================== DIRECTORY MANAGEMENT ==================
 
 // -- Community Map ------------------------------------------------------------
-const SDM = { items:[], filter:'all', search:'', editingId:null };
+const SDM = { items:[], filter:'all', search:'', editingId:null, imageUrl:'' };
 
 async function loadDirMap() {
   try {
@@ -4876,8 +4919,12 @@ function renderDirMapList() {
     el.innerHTML = `<div class="empty-state"><div class="es-icon"></div><h3>No locations found</h3><p>${SDM.filter==='all'?'Click "+ New Location" to add one.':'No '+SDM.filter+' locations.'}</p></div>`;
     return;
   }
-  el.innerHTML = items.map(p => `<div class="ann-card" data-id="${p.id}">
-    <div class="ann-thumb-ph"></div>
+  el.innerHTML = items.map(p => {
+    const thumb = p.imageUrl
+      ? `<img class="ann-thumb" draggable="false" src="${p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl}" alt="" onerror="this.style.display='none'">`
+      : `<div class="ann-thumb-ph"></div>`;
+    return `<div class="ann-card" data-id="${p.id}">
+    ${thumb}
     <div class="ann-body">
       <div class="ann-meta">
         <span class="badge badge-${p.status}">${p.status}</span>
@@ -4891,7 +4938,8 @@ function renderDirMapList() {
       <button class="btn-act" onclick="toggleDirMapStatus('${p.id}','${p.status}')">${p.status==='hidden'?'Show':'Hide'}</button>
       <button class="btn-act danger" onclick="confirmDirMapDel('${p.id}','${esc(p.name||'')}')">Delete</button>
     </div>
-  </div>`).join('');
+  </div>`;
+  }).join('');
 }
 
 $('dirmap-search').addEventListener('input', e => { SDM.search=e.target.value; renderDirMapList(); });
@@ -4901,11 +4949,12 @@ document.querySelectorAll('#dirmap-tabs .tab').forEach(t => {
 $('btn-new-dirmap').onclick = openDirMapNew;
 
 function resetDirMapForm() {
-  SDM.editingId=null;
+  SDM.editingId=null; SDM.imageUrl='';
   $('dirmap-name').value=''; $('dirmap-cat').value='Barangay Hall';
   $('dirmap-contact').value=''; $('dirmap-desc').value=''; $('dirmap-address').value='';
   $('dirmap-hours').value=''; $('dirmap-lat').value=''; $('dirmap-lng').value='';
   $('dirmap-s-draft').checked=true;
+  $('dirmap-img-preview').style.display='none'; $('dirmap-img-preview').src='';
 }
 
 function openDirMapNew() {
@@ -4917,13 +4966,14 @@ function openDirMapNew() {
 
 function openDirMapEdit(id) {
   const p = SDM.items.find(x=>x.id===id); if(!p) return;
-  resetDirMapForm(); SDM.editingId=id;
+  resetDirMapForm(); SDM.editingId=id; SDM.imageUrl=p.imageUrl||'';
   $('dirmap-modal-title').textContent='Edit Location';
   $('dirmap-name').value=p.name||''; $('dirmap-cat').value=p.category||'Barangay Hall';
   $('dirmap-contact').value=p.contact||''; $('dirmap-desc').value=p.description||'';
   $('dirmap-address').value=p.address||''; $('dirmap-hours').value=p.hours||'';
   $('dirmap-lat').value=p.lat??''; $('dirmap-lng').value=p.lng??'';
   const sEl=document.getElementById('dirmap-s-'+p.status); if(sEl) sEl.checked=true; else $('dirmap-s-draft').checked=true;
+  if(p.imageUrl){ $('dirmap-img-preview').src=p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl; $('dirmap-img-preview').style.display='block'; }
   $('dirmap-form-overlay').classList.add('open');
   $('dirmap-name').focus();
 }
@@ -4933,6 +4983,28 @@ $('btn-close-dirmap-form').onclick=closeDirMapForm;
 $('btn-cancel-dirmap').onclick=closeDirMapForm;
 $('dirmap-form-overlay').onclick=e=>{ if(e.target===$('dirmap-form-overlay')) closeDirMapForm(); };
 
+function clearDirMapImage() {
+  SDM.imageUrl=''; $('dirmap-img-preview').style.display='none'; $('dirmap-img-preview').src='';
+}
+
+async function uploadDirMapImage(file) {
+  const form=new FormData(); form.append('image',file);
+  try {
+    const r=await adminFetch('/admin/api/upload/map-location-image',{method:'POST',body:form});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Upload failed','err');return;}
+    SDM.imageUrl=d.url;
+    $('dirmap-img-preview').src=d.url.indexOf('http')===0?d.url:'/'+d.url;
+    $('dirmap-img-preview').style.display='block';
+    toast('Image uploaded','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
+}
+$('dirmap-img-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadDirMapImage(f); e.target.value=''; };
+const dirmapDropArea=$('dirmap-drop-area');
+dirmapDropArea.addEventListener('dragover',e=>{e.preventDefault();dirmapDropArea.classList.add('drag-over');});
+dirmapDropArea.addEventListener('dragleave',()=>dirmapDropArea.classList.remove('drag-over'));
+dirmapDropArea.addEventListener('drop',async e=>{ e.preventDefault();dirmapDropArea.classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(!f) return; await uploadDirMapImage(f); });
+
 async function saveDirMapForm(forceStatus) {
   const name=$('dirmap-name').value.trim();
   if(!name){toast('Location name is required','err');$('dirmap-name').focus();return;}
@@ -4940,7 +5012,7 @@ async function saveDirMapForm(forceStatus) {
   const body={
     name, category:$('dirmap-cat').value, description:$('dirmap-desc').value.trim(),
     address:$('dirmap-address').value.trim(), contact:$('dirmap-contact').value.trim(),
-    hours:$('dirmap-hours').value.trim(),
+    hours:$('dirmap-hours').value.trim(), imageUrl:SDM.imageUrl,
     lat: $('dirmap-lat').value===''?null:parseFloat($('dirmap-lat').value),
     lng: $('dirmap-lng').value===''?null:parseFloat($('dirmap-lng').value),
     status
@@ -5078,6 +5150,10 @@ $('btn-close-dirbiz-form').onclick=closeDirBizForm;
 $('btn-cancel-dirbiz').onclick=closeDirBizForm;
 $('dirbiz-form-overlay').onclick=e=>{ if(e.target===$('dirbiz-form-overlay')) closeDirBizForm(); };
 
+function clearDirBizImage() {
+  SDB.imageUrl=''; $('dirbiz-img-preview').style.display='none'; $('dirbiz-img-preview').src='';
+}
+
 async function uploadDirBizLogo(file) {
   const form=new FormData(); form.append('image',file);
   try {
@@ -5150,7 +5226,7 @@ function confirmDirBizDel(id,name){
 }
 
 // -- Organization Directory -----------------------------------------------------
-const SDO = { items:[], filter:'all', search:'', editingId:null };
+const SDO = { items:[], filter:'all', search:'', editingId:null, imageUrl:'' };
 
 async function loadDirOrg() {
   try {
@@ -5175,8 +5251,12 @@ function renderDirOrgList() {
     el.innerHTML = `<div class="empty-state"><div class="es-icon"></div><h3>No organizations found</h3><p>${SDO.filter==='all'?'Click "+ New Organization" to add one.':'No '+SDO.filter+' organizations.'}</p></div>`;
     return;
   }
-  el.innerHTML = items.map(p => `<div class="ann-card" data-id="${p.id}">
-    <div class="ann-thumb-ph"></div>
+  el.innerHTML = items.map(p => {
+    const thumb = p.imageUrl
+      ? `<img class="ann-thumb" draggable="false" src="${p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl}" alt="" onerror="this.style.display='none'">`
+      : `<div class="ann-thumb-ph"></div>`;
+    return `<div class="ann-card" data-id="${p.id}">
+    ${thumb}
     <div class="ann-body">
       <div class="ann-meta">
         <span class="badge badge-${p.status}">${p.status}</span>
@@ -5190,7 +5270,8 @@ function renderDirOrgList() {
       <button class="btn-act" onclick="toggleDirOrgStatus('${p.id}','${p.status}')">${p.status==='hidden'?'Show':'Hide'}</button>
       <button class="btn-act danger" onclick="confirmDirOrgDel('${p.id}','${esc(p.name||'')}')">Delete</button>
     </div>
-  </div>`).join('');
+  </div>`;
+  }).join('');
 }
 
 $('dirorg-search').addEventListener('input', e => { SDO.search=e.target.value; renderDirOrgList(); });
@@ -5200,12 +5281,13 @@ document.querySelectorAll('#dirorg-tabs .tab').forEach(t => {
 $('btn-new-dirorg').onclick = openDirOrgNew;
 
 function resetDirOrgForm() {
-  SDO.editingId=null;
+  SDO.editingId=null; SDO.imageUrl='';
   $('dirorg-name').value=''; $('dirorg-cat').value='Associations';
   $('dirorg-contact-person').value=''; $('dirorg-desc').value=''; $('dirorg-contact-details').value='';
   $('dirorg-location').value=''; $('dirorg-officers').value=''; $('dirorg-programs').value='';
   $('dirorg-lat').value=''; $('dirorg-lng').value='';
   $('dirorg-s-draft').checked=true;
+  $('dirorg-img-preview').style.display='none'; $('dirorg-img-preview').src='';
 }
 
 function openDirOrgNew() {
@@ -5217,7 +5299,7 @@ function openDirOrgNew() {
 
 function openDirOrgEdit(id) {
   const p = SDO.items.find(x=>x.id===id); if(!p) return;
-  resetDirOrgForm(); SDO.editingId=id;
+  resetDirOrgForm(); SDO.editingId=id; SDO.imageUrl=p.imageUrl||'';
   $('dirorg-modal-title').textContent='Edit Organization';
   $('dirorg-name').value=p.name||''; $('dirorg-cat').value=p.category||'Associations';
   $('dirorg-contact-person').value=p.contactPerson||''; $('dirorg-desc').value=p.description||'';
@@ -5225,6 +5307,7 @@ function openDirOrgEdit(id) {
   $('dirorg-officers').value=(p.officers||[]).join('\n'); $('dirorg-programs').value=p.programs||'';
   $('dirorg-lat').value=p.lat??''; $('dirorg-lng').value=p.lng??'';
   const sEl=document.getElementById('dirorg-s-'+p.status); if(sEl) sEl.checked=true; else $('dirorg-s-draft').checked=true;
+  if(p.imageUrl){ $('dirorg-img-preview').src=p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl; $('dirorg-img-preview').style.display='block'; }
   $('dirorg-form-overlay').classList.add('open');
   $('dirorg-name').focus();
 }
@@ -5233,6 +5316,28 @@ function closeDirOrgForm(){ $('dirorg-form-overlay').classList.remove('open'); }
 $('btn-close-dirorg-form').onclick=closeDirOrgForm;
 $('btn-cancel-dirorg').onclick=closeDirOrgForm;
 $('dirorg-form-overlay').onclick=e=>{ if(e.target===$('dirorg-form-overlay')) closeDirOrgForm(); };
+
+function clearDirOrgImage() {
+  SDO.imageUrl=''; $('dirorg-img-preview').style.display='none'; $('dirorg-img-preview').src='';
+}
+
+async function uploadDirOrgLogo(file) {
+  const form=new FormData(); form.append('image',file);
+  try {
+    const r=await adminFetch('/admin/api/upload/organization-logo',{method:'POST',body:form});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Upload failed','err');return;}
+    SDO.imageUrl=d.url;
+    $('dirorg-img-preview').src=d.url.indexOf('http')===0?d.url:'/'+d.url;
+    $('dirorg-img-preview').style.display='block';
+    toast('Image uploaded','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
+}
+$('dirorg-img-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadDirOrgLogo(f); e.target.value=''; };
+const dirorgDropArea=$('dirorg-drop-area');
+dirorgDropArea.addEventListener('dragover',e=>{e.preventDefault();dirorgDropArea.classList.add('drag-over');});
+dirorgDropArea.addEventListener('dragleave',()=>dirorgDropArea.classList.remove('drag-over'));
+dirorgDropArea.addEventListener('drop',async e=>{ e.preventDefault();dirorgDropArea.classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(!f) return; await uploadDirOrgLogo(f); });
 
 async function saveDirOrgForm(forceStatus) {
   const name=$('dirorg-name').value.trim();
@@ -5243,7 +5348,7 @@ async function saveDirOrgForm(forceStatus) {
     name, category:$('dirorg-cat').value, description:$('dirorg-desc').value.trim(),
     contactPerson:$('dirorg-contact-person').value.trim(), officers,
     contactDetails:$('dirorg-contact-details').value.trim(), programs:$('dirorg-programs').value.trim(),
-    location:$('dirorg-location').value.trim(),
+    location:$('dirorg-location').value.trim(), imageUrl:SDO.imageUrl,
     lat: $('dirorg-lat').value===''?null:parseFloat($('dirorg-lat').value),
     lng: $('dirorg-lng').value===''?null:parseFloat($('dirorg-lng').value),
     status
@@ -5290,7 +5395,7 @@ function confirmDirOrgDel(id,name){
 }
 
 // -- Emergency Directory --------------------------------------------------------
-const SDE = { items:[], filter:'all', search:'', editingId:null };
+const SDE = { items:[], filter:'all', search:'', editingId:null, imageUrl:'' };
 
 async function loadDirEm() {
   try {
@@ -5315,8 +5420,12 @@ function renderDirEmList() {
     el.innerHTML = `<div class="empty-state"><div class="es-icon"></div><h3>No emergency contacts found</h3><p>${SDE.filter==='all'?'Click "+ New Contact" to add one.':'No '+SDE.filter+' contacts.'}</p></div>`;
     return;
   }
-  el.innerHTML = items.map(p => `<div class="ann-card" data-id="${p.id}">
-    <div class="ann-thumb-ph"></div>
+  el.innerHTML = items.map(p => {
+    const thumb = p.imageUrl
+      ? `<img class="ann-thumb" draggable="false" src="${p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl}" alt="" onerror="this.style.display='none'">`
+      : `<div class="ann-thumb-ph"></div>`;
+    return `<div class="ann-card" data-id="${p.id}">
+    ${thumb}
     <div class="ann-body">
       <div class="ann-meta">
         <span class="badge badge-${p.status}">${p.status}</span>
@@ -5330,7 +5439,8 @@ function renderDirEmList() {
       <button class="btn-act" onclick="toggleDirEmStatus('${p.id}','${p.status}')">${p.status==='hidden'?'Show':'Hide'}</button>
       <button class="btn-act danger" onclick="confirmDirEmDel('${p.id}','${esc(p.name||'')}')">Delete</button>
     </div>
-  </div>`).join('');
+  </div>`;
+  }).join('');
 }
 
 $('direm-search').addEventListener('input', e => { SDE.search=e.target.value; renderDirEmList(); });
@@ -5340,11 +5450,12 @@ document.querySelectorAll('#direm-tabs .tab').forEach(t => {
 $('btn-new-direm').onclick = openDirEmNew;
 
 function resetDirEmForm() {
-  SDE.editingId=null;
+  SDE.editingId=null; SDE.imageUrl='';
   $('direm-name').value=''; $('direm-cat').value='Emergency Contacts';
   $('direm-number').value=''; $('direm-alt-number').value=''; $('direm-address').value='';
   $('direm-services').value=''; $('direm-lat').value=''; $('direm-lng').value='';
   $('direm-s-draft').checked=true;
+  $('direm-img-preview').style.display='none'; $('direm-img-preview').src='';
 }
 
 function openDirEmNew() {
@@ -5356,13 +5467,14 @@ function openDirEmNew() {
 
 function openDirEmEdit(id) {
   const p = SDE.items.find(x=>x.id===id); if(!p) return;
-  resetDirEmForm(); SDE.editingId=id;
+  resetDirEmForm(); SDE.editingId=id; SDE.imageUrl=p.imageUrl||'';
   $('direm-modal-title').textContent='Edit Emergency Contact';
   $('direm-name').value=p.name||''; $('direm-cat').value=p.category||'Emergency Contacts';
   $('direm-number').value=p.number||''; $('direm-alt-number').value=p.altNumber||'';
   $('direm-address').value=p.address||''; $('direm-services').value=p.services||'';
   $('direm-lat').value=p.lat??''; $('direm-lng').value=p.lng??'';
   const sEl=document.getElementById('direm-s-'+p.status); if(sEl) sEl.checked=true; else $('direm-s-draft').checked=true;
+  if(p.imageUrl){ $('direm-img-preview').src=p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl; $('direm-img-preview').style.display='block'; }
   $('direm-form-overlay').classList.add('open');
   $('direm-name').focus();
 }
@@ -5372,6 +5484,28 @@ $('btn-close-direm-form').onclick=closeDirEmForm;
 $('btn-cancel-direm').onclick=closeDirEmForm;
 $('direm-form-overlay').onclick=e=>{ if(e.target===$('direm-form-overlay')) closeDirEmForm(); };
 
+function clearDirEmImage() {
+  SDE.imageUrl=''; $('direm-img-preview').style.display='none'; $('direm-img-preview').src='';
+}
+
+async function uploadDirEmLogo(file) {
+  const form=new FormData(); form.append('image',file);
+  try {
+    const r=await adminFetch('/admin/api/upload/emergency-logo',{method:'POST',body:form});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Upload failed','err');return;}
+    SDE.imageUrl=d.url;
+    $('direm-img-preview').src=d.url.indexOf('http')===0?d.url:'/'+d.url;
+    $('direm-img-preview').style.display='block';
+    toast('Image uploaded','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
+}
+$('direm-img-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadDirEmLogo(f); e.target.value=''; };
+const diremDropArea=$('direm-drop-area');
+diremDropArea.addEventListener('dragover',e=>{e.preventDefault();diremDropArea.classList.add('drag-over');});
+diremDropArea.addEventListener('dragleave',()=>diremDropArea.classList.remove('drag-over'));
+diremDropArea.addEventListener('drop',async e=>{ e.preventDefault();diremDropArea.classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(!f) return; await uploadDirEmLogo(f); });
+
 async function saveDirEmForm(forceStatus) {
   const name=$('direm-name').value.trim();
   const number=$('direm-number').value.trim();
@@ -5380,7 +5514,7 @@ async function saveDirEmForm(forceStatus) {
   const status=forceStatus||document.querySelector('input[name="direm-status"]:checked')?.value||'draft';
   const body={
     name, category:$('direm-cat').value, number, altNumber:$('direm-alt-number').value.trim(),
-    address:$('direm-address').value.trim(), services:$('direm-services').value.trim(),
+    address:$('direm-address').value.trim(), services:$('direm-services').value.trim(), imageUrl:SDE.imageUrl,
     lat: $('direm-lat').value===''?null:parseFloat($('direm-lat').value),
     lng: $('direm-lng').value===''?null:parseFloat($('direm-lng').value),
     status

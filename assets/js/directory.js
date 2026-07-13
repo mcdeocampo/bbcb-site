@@ -44,6 +44,15 @@
   function mapsLink(lat, lng) {
     return 'https://www.google.com/maps?q=' + lat + ',' + lng;
   }
+  // Shared banner: shows the uploaded image if present, otherwise falls back
+  // to the category icon. Used by all 4 directory card types. If the image
+  // fails to load, swap back to the icon so a broken-image glyph never shows.
+  function bannerHtml(imageUrl, fallbackIcon) {
+    if (!imageUrl) return fallbackIcon;
+    var src = imageUrl.indexOf('http') === 0 ? imageUrl : '/' + imageUrl;
+    return '<img src="' + esc(src) + '" alt="" style="width:100%;height:100%;object-fit:cover" ' +
+      'onerror="this.outerHTML=' + esc(JSON.stringify(fallbackIcon)) + '">';
+  }
   function matches(item, query, fields) {
     if (!query) return true;
     var q = query.toLowerCase();
@@ -112,7 +121,11 @@
           var marker = L.circleMarker([loc.lat, loc.lng], {
             radius: 9, color: '#fff', weight: 2, fillColor: color, fillOpacity: 0.95
           }).addTo(map);
+          var popupThumb = loc.imageUrl
+            ? '<img src="' + esc(loc.imageUrl.indexOf('http') === 0 ? loc.imageUrl : '/' + loc.imageUrl) + '" alt="" style="width:100%;max-width:220px;height:110px;object-fit:cover;border-radius:8px;margin-bottom:6px" onerror="this.remove()">'
+            : '';
           marker.bindPopup(
+            popupThumb +
             '<strong>' + esc(loc.name) + '</strong><br>' +
             '<span style="color:#00a884;font-weight:700">' + esc(loc.category) + '</span><br>' +
             esc(loc.description) + '<br>' +
@@ -128,7 +141,7 @@
         listEl.innerHTML = items.map(function (loc) {
           var color = CAT_COLOR[loc.category] || 'blue';
           return '<article class="dir-card reveal visible">' +
-            '<div class="dir-card-banner dir-card-banner--' + color + '">' + (CAT_ICON[loc.category] || '📍') + '</div>' +
+            '<div class="dir-card-banner dir-card-banner--' + color + '">' + bannerHtml(loc.imageUrl, CAT_ICON[loc.category] || '📍') + '</div>' +
             '<div class="dir-card-body">' +
             '<span class="dir-chip dir-chip--' + color + ' dir-chip-static">' + esc(loc.category) + '</span>' +
             '<h3>' + esc(loc.name) + '</h3>' +
@@ -194,11 +207,8 @@
       function render(items) {
         listEl.innerHTML = items.map(function (b) {
           var color = CAT_COLOR[b.category] || 'blue';
-          var banner = b.imageUrl
-            ? '<img src="' + esc(b.imageUrl.indexOf('http') === 0 ? b.imageUrl : '/' + b.imageUrl) + '" alt="" style="width:100%;height:100%;object-fit:cover">'
-            : (CAT_ICON[b.category] || '🏪');
           return '<article class="dir-card reveal visible">' +
-            '<div class="dir-card-banner dir-card-banner--' + color + '">' + banner + '</div>' +
+            '<div class="dir-card-banner dir-card-banner--' + color + '">' + bannerHtml(b.imageUrl, CAT_ICON[b.category] || '🏪') + '</div>' +
             '<div class="dir-card-body">' +
             '<span class="dir-chip dir-chip--' + color + ' dir-chip-static">' + esc(b.category) + '</span>' +
             '<h3>' + esc(b.name) + '</h3>' +
@@ -248,7 +258,7 @@
           var color = CAT_COLOR[o.category] || 'blue';
           var officers = o.officers || [];
           return '<article class="dir-card reveal visible">' +
-            '<div class="dir-card-banner dir-card-banner--' + color + '">' + (CAT_ICON[o.category] || '🤝') + '</div>' +
+            '<div class="dir-card-banner dir-card-banner--' + color + '">' + bannerHtml(o.imageUrl, CAT_ICON[o.category] || '🤝') + '</div>' +
             '<div class="dir-card-body">' +
             '<span class="dir-chip dir-chip--' + color + ' dir-chip-static">' + esc(o.category) + '</span>' +
             '<h3>' + esc(o.name) + '</h3>' +
@@ -297,7 +307,7 @@
         listEl.innerHTML = items.map(function (e) {
           var color = CAT_COLOR[e.category] || 'red';
           return '<article class="dir-card dir-card-emergency reveal visible">' +
-            '<div class="dir-card-banner dir-card-banner--' + color + '">' + (CAT_ICON[e.category] || '🚨') + '</div>' +
+            '<div class="dir-card-banner dir-card-banner--' + color + '">' + bannerHtml(e.imageUrl, CAT_ICON[e.category] || '🚨') + '</div>' +
             '<div class="dir-card-body">' +
             '<span class="dir-chip dir-chip--' + color + ' dir-chip-static">' + esc(e.category) + '</span>' +
             '<h3>' + esc(e.name) + '</h3>' +

@@ -2401,6 +2401,7 @@ def _row_to_dirmap(row):
         'id': row['id'], 'name': row.get('name', ''), 'category': row.get('category', ''),
         'description': row.get('description', ''), 'address': row.get('address', ''),
         'contact': row.get('contact', ''), 'hours': row.get('hours', ''),
+        'imageUrl': row.get('image_url', ''),
         'lat': row.get('lat'), 'lng': row.get('lng'),
         'status': row.get('status', 'draft'),
         'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
@@ -2420,6 +2421,7 @@ def _dirmap_create(d):
         'id': d['id'], 'name': d.get('name', ''), 'category': d.get('category', ''),
         'description': d.get('description', ''), 'address': d.get('address', ''),
         'contact': d.get('contact', ''), 'hours': d.get('hours', ''),
+        'image_url': d.get('imageUrl', ''),
         'lat': d.get('lat'), 'lng': d.get('lng'), 'status': d.get('status', 'draft'),
         'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
     }
@@ -2432,7 +2434,7 @@ def _dirmap_update(item_id, patch):
     row = {'updated_at': now}
     for camel, snake in [('name', 'name'), ('category', 'category'), ('description', 'description'),
                          ('address', 'address'), ('contact', 'contact'), ('hours', 'hours'),
-                         ('lat', 'lat'), ('lng', 'lng'), ('status', 'status')]:
+                         ('imageUrl', 'image_url'), ('lat', 'lat'), ('lng', 'lng'), ('status', 'status')]:
         if camel in patch:
             row[snake] = patch[camel]
     res = supabase.table('directory_map_locations').update(row).eq('id', item_id).execute()
@@ -2504,6 +2506,7 @@ def _row_to_dirorg(row):
         'description': row.get('description', ''), 'contactPerson': row.get('contact_person', ''),
         'officers': row.get('officers') or [], 'contactDetails': row.get('contact_details', ''),
         'programs': row.get('programs', ''), 'location': row.get('location', ''),
+        'imageUrl': row.get('image_url', ''),
         'lat': row.get('lat'), 'lng': row.get('lng'),
         'status': row.get('status', 'draft'),
         'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
@@ -2524,6 +2527,7 @@ def _dirorg_create(d):
         'description': d.get('description', ''), 'contact_person': d.get('contactPerson', ''),
         'officers': d.get('officers') or [], 'contact_details': d.get('contactDetails', ''),
         'programs': d.get('programs', ''), 'location': d.get('location', ''),
+        'image_url': d.get('imageUrl', ''),
         'lat': d.get('lat'), 'lng': d.get('lng'), 'status': d.get('status', 'draft'),
         'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
     }
@@ -2537,7 +2541,7 @@ def _dirorg_update(item_id, patch):
     field_map = {'name': 'name', 'category': 'category', 'description': 'description',
                  'contactPerson': 'contact_person', 'officers': 'officers',
                  'contactDetails': 'contact_details', 'programs': 'programs', 'location': 'location',
-                 'lat': 'lat', 'lng': 'lng', 'status': 'status'}
+                 'imageUrl': 'image_url', 'lat': 'lat', 'lng': 'lng', 'status': 'status'}
     for camel, snake in field_map.items():
         if camel in patch:
             row[snake] = patch[camel]
@@ -2556,6 +2560,7 @@ def _row_to_direm(row):
         'id': row['id'], 'name': row.get('name', ''), 'category': row.get('category', ''),
         'number': row.get('number', ''), 'altNumber': row.get('alt_number', ''),
         'address': row.get('address', ''), 'services': row.get('services', ''),
+        'imageUrl': row.get('image_url', ''),
         'lat': row.get('lat'), 'lng': row.get('lng'),
         'status': row.get('status', 'draft'),
         'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
@@ -2575,6 +2580,7 @@ def _direm_create(d):
         'id': d['id'], 'name': d.get('name', ''), 'category': d.get('category', ''),
         'number': d.get('number', ''), 'alt_number': d.get('altNumber', ''),
         'address': d.get('address', ''), 'services': d.get('services', ''),
+        'image_url': d.get('imageUrl', ''),
         'lat': d.get('lat'), 'lng': d.get('lng'), 'status': d.get('status', 'draft'),
         'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
     }
@@ -2587,7 +2593,7 @@ def _direm_update(item_id, patch):
     row = {'updated_at': now}
     field_map = {'name': 'name', 'category': 'category', 'number': 'number',
                  'altNumber': 'alt_number', 'address': 'address', 'services': 'services',
-                 'lat': 'lat', 'lng': 'lng', 'status': 'status'}
+                 'imageUrl': 'image_url', 'lat': 'lat', 'lng': 'lng', 'status': 'status'}
     for camel, snake in field_map.items():
         if camel in patch:
             row[snake] = patch[camel]
@@ -2651,6 +2657,7 @@ def admin_dirmap_create():
         'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
         'description': _clean(d.get('description'), 1000), 'address': _clean(d.get('address'), 300),
         'contact': _clean(d.get('contact'), 100), 'hours': _clean(d.get('hours'), 150),
+        'imageUrl': _clean(d.get('imageUrl'), 300),
         'lat': _to_float(d.get('lat')), 'lng': _to_float(d.get('lng')), 'status': status,
         'createdAt': now, 'updatedAt': now,
     }
@@ -2664,7 +2671,7 @@ def admin_dirmap_update(item_id):
     d = request.get_json(silent=True) or {}
     patch = {}
     for field, maxlen in [('name', 150), ('description', 1000), ('address', 300),
-                          ('contact', 100), ('hours', 150)]:
+                          ('contact', 100), ('hours', 150), ('imageUrl', 300)]:
         if field in d:
             patch[field] = _clean(d[field], maxlen)
     if 'category' in d and d['category'] in DIR_MAP_CATEGORIES:
@@ -2777,6 +2784,7 @@ def admin_dirorg_create():
         'description': _clean(d.get('description'), 1000), 'contactPerson': _clean(d.get('contactPerson'), 150),
         'officers': officers, 'contactDetails': _clean(d.get('contactDetails'), 150),
         'programs': _clean(d.get('programs'), 1000), 'location': _clean(d.get('location'), 300),
+        'imageUrl': _clean(d.get('imageUrl'), 300),
         'lat': _to_float(d.get('lat')), 'lng': _to_float(d.get('lng')), 'status': status,
         'createdAt': now, 'updatedAt': now,
     }
@@ -2790,7 +2798,7 @@ def admin_dirorg_update(item_id):
     d = request.get_json(silent=True) or {}
     patch = {}
     for field, maxlen in [('name', 150), ('description', 1000), ('contactPerson', 150),
-                          ('contactDetails', 150), ('programs', 1000), ('location', 300)]:
+                          ('contactDetails', 150), ('programs', 1000), ('location', 300), ('imageUrl', 300)]:
         if field in d:
             patch[field] = _clean(d[field], maxlen)
     if 'category' in d and d['category'] in DIR_ORG_CATEGORIES:
@@ -2840,6 +2848,7 @@ def admin_direm_create():
         'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
         'number': _clean(d.get('number'), 100), 'altNumber': _clean(d.get('altNumber'), 100),
         'address': _clean(d.get('address'), 300), 'services': _clean(d.get('services'), 1000),
+        'imageUrl': _clean(d.get('imageUrl'), 300),
         'lat': _to_float(d.get('lat')), 'lng': _to_float(d.get('lng')), 'status': status,
         'createdAt': now, 'updatedAt': now,
     }
@@ -2853,7 +2862,7 @@ def admin_direm_update(item_id):
     d = request.get_json(silent=True) or {}
     patch = {}
     for field, maxlen in [('name', 150), ('number', 100), ('altNumber', 100),
-                          ('address', 300), ('services', 1000)]:
+                          ('address', 300), ('services', 1000), ('imageUrl', 300)]:
         if field in d:
             patch[field] = _clean(d[field], maxlen)
     if 'category' in d and d['category'] in DIR_EM_CATEGORIES:
@@ -2894,6 +2903,66 @@ def admin_upload_business_logo():
     data, ext = _optimize_image(data, ext)
     try:
         url = _upload_to_storage(data, 'business-directory', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({'status': 'ok', 'url': url})
+
+
+@app.route('/admin/api/upload/organization-logo', methods=['POST'])
+@admin_required
+def admin_upload_organization_logo():
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
+    try:
+        url = _upload_to_storage(data, 'organization-directory', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({'status': 'ok', 'url': url})
+
+
+@app.route('/admin/api/upload/emergency-logo', methods=['POST'])
+@admin_required
+def admin_upload_emergency_logo():
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
+    try:
+        url = _upload_to_storage(data, 'emergency-directory', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({'status': 'ok', 'url': url})
+
+
+@app.route('/admin/api/upload/map-location-image', methods=['POST'])
+@admin_required
+def admin_upload_map_location_image():
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
+    try:
+        url = _upload_to_storage(data, 'community-map', ext)
     except Exception as exc:
         return jsonify({'error': f'Upload failed: {exc}'}), 500
     return jsonify({'status': 'ok', 'url': url})
