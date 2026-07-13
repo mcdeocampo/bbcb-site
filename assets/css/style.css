@@ -21354,7 +21354,11 @@ body[data-page="projects.html"] #proj-grid .image-card .text-link {
 @keyframes dir2PopupIn{from{opacity:0;transform:scale(.92) translateY(4px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @media (prefers-reduced-motion:reduce){.dir2-popup-anim{animation:none}}
 .dir2-popup{min-width:200px}
-.dir2-popup-thumb{width:100%;max-width:220px;height:100px;object-fit:cover;border-radius:8px;margin-bottom:6px;display:block;cursor:pointer}
+.dir2-popup-thumb-wrap{position:relative;max-width:220px;margin-bottom:8px;border-radius:12px;overflow:hidden;cursor:pointer;box-shadow:0 6px 16px rgba(10,36,83,.16)}
+.dir2-popup-thumb{width:100%;height:100px;object-fit:cover;display:block;transition:transform .3s ease}
+.dir2-popup-thumb-wrap:hover .dir2-popup-thumb{transform:scale(1.05)}
+.dir2-popup-thumb-expand{position:absolute;right:7px;bottom:7px;width:24px;height:24px;border-radius:50%;background:rgba(10,36,83,.6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;line-height:1;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.dir2-popup-thumb-wrap:hover .dir2-popup-thumb{transform:none}}
 .dir2-popup strong{display:block;color:var(--blue-dark);font-size:1rem;margin-bottom:2px}
 .dir2-popup-cat{display:inline-block;font-size:.72rem;font-weight:800;margin-bottom:6px}
 .dir2-popup-cat--blue{color:var(--blue-2)}
