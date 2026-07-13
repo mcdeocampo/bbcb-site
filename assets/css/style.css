@@ -21305,6 +21305,38 @@ body[data-page="projects.html"] #proj-grid .image-card .text-link {
 .dir2-chip--gold.active,.dir2-chip--gold{background:var(--soft-gold);color:#8b6400}
 .dir2-chip--red.active,.dir2-chip--red{background:#fee2e2;color:#991b1b}
 .dir2-chip.active{box-shadow:var(--shadow-sm);border-color:currentColor}
+
+/* Category filter chips (sidebar + subcategory rail): neutral outline at rest,
+   solid fill only when selected — avoids every category being permanently
+   pastel-filled at once, and uses distinct hues instead of the shared
+   --soft-blue/--soft-green tokens (which resolve to the same pale value). */
+#dir2-chips .dir2-chip,
+#dir2-subchips .dir2-chip{background:#fff;border-color:#e2e8f0;color:#475569}
+#dir2-chips .dir2-chip:hover,
+#dir2-subchips .dir2-chip:hover{background:#f8fafc;border-color:#cbd5e1;transform:translateY(-2px)}
+#dir2-chips .dir2-chip--all,
+#dir2-subchips .dir2-chip--all{color:#334155}
+#dir2-chips .dir2-chip--blue,
+#dir2-subchips .dir2-chip--blue{color:#1d4ed8}
+#dir2-chips .dir2-chip--teal,
+#dir2-subchips .dir2-chip--teal{color:#0f766e}
+#dir2-chips .dir2-chip--gold,
+#dir2-subchips .dir2-chip--gold{color:#a16207}
+#dir2-chips .dir2-chip--red,
+#dir2-subchips .dir2-chip--red{color:#b91c1c}
+#dir2-chips .dir2-chip--all.active,
+#dir2-subchips .dir2-chip--all.active{background:var(--blue-dark);border-color:var(--blue-dark);color:#fff}
+#dir2-chips .dir2-chip--blue.active,
+#dir2-subchips .dir2-chip--blue.active{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
+#dir2-chips .dir2-chip--teal.active,
+#dir2-subchips .dir2-chip--teal.active{background:#0f766e;border-color:#0f766e;color:#fff}
+#dir2-chips .dir2-chip--gold.active,
+#dir2-subchips .dir2-chip--gold.active{background:#a16207;border-color:#a16207;color:#fff}
+#dir2-chips .dir2-chip--red.active,
+#dir2-subchips .dir2-chip--red.active{background:#b91c1c;border-color:#b91c1c;color:#fff}
+#dir2-chips .dir2-chip.active,
+#dir2-subchips .dir2-chip.active{box-shadow:0 6px 16px rgba(15,23,42,.16)}
+
 .dir2-chip-static{cursor:default;font-size:.74rem;padding:5px 12px;margin-bottom:11px;display:inline-flex}
 .dir2-chip-static:hover{transform:none}
 .dir2-item-cat{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
