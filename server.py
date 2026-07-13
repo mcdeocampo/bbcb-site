@@ -2404,6 +2404,12 @@ def _row_to_dirmap(row):
         'imageUrl': row.get('image_url', ''),
         'lat': row.get('lat'), 'lng': row.get('lng'),
         'status': row.get('status', 'draft'),
+        'featured': row.get('featured', False), 'verified': row.get('verified', False),
+        'website': row.get('website', ''), 'email': row.get('email', ''),
+        'facebook': row.get('facebook', ''), 'keywords': row.get('keywords', ''),
+        'gallery': row.get('gallery') or [],
+        'hoursOpen': row.get('hours_open', ''), 'hoursClose': row.get('hours_close', ''),
+        'hoursIs24h': row.get('hours_is_24h', False),
         'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
     }
 
@@ -2423,6 +2429,12 @@ def _dirmap_create(d):
         'contact': d.get('contact', ''), 'hours': d.get('hours', ''),
         'image_url': d.get('imageUrl', ''),
         'lat': d.get('lat'), 'lng': d.get('lng'), 'status': d.get('status', 'draft'),
+        'featured': d.get('featured', False), 'verified': d.get('verified', False),
+        'website': d.get('website', ''), 'email': d.get('email', ''),
+        'facebook': d.get('facebook', ''), 'keywords': d.get('keywords', ''),
+        'gallery': d.get('gallery') or [],
+        'hours_open': d.get('hoursOpen', ''), 'hours_close': d.get('hoursClose', ''),
+        'hours_is_24h': d.get('hoursIs24h', False),
         'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
     }
     res = supabase.table('directory_map_locations').insert(row).execute()
@@ -2434,7 +2446,11 @@ def _dirmap_update(item_id, patch):
     row = {'updated_at': now}
     for camel, snake in [('name', 'name'), ('category', 'category'), ('description', 'description'),
                          ('address', 'address'), ('contact', 'contact'), ('hours', 'hours'),
-                         ('imageUrl', 'image_url'), ('lat', 'lat'), ('lng', 'lng'), ('status', 'status')]:
+                         ('imageUrl', 'image_url'), ('lat', 'lat'), ('lng', 'lng'), ('status', 'status'),
+                         ('featured', 'featured'), ('verified', 'verified'),
+                         ('website', 'website'), ('email', 'email'), ('facebook', 'facebook'),
+                         ('keywords', 'keywords'), ('gallery', 'gallery'),
+                         ('hoursOpen', 'hours_open'), ('hoursClose', 'hours_close'), ('hoursIs24h', 'hours_is_24h')]:
         if camel in patch:
             row[snake] = patch[camel]
     res = supabase.table('directory_map_locations').update(row).eq('id', item_id).execute()
@@ -2455,6 +2471,11 @@ def _row_to_dirbiz(row):
         'imageUrl': row.get('image_url', ''), 'social': row.get('social_link', ''),
         'lat': row.get('lat'), 'lng': row.get('lng'),
         'status': row.get('status', 'draft'),
+        'featured': row.get('featured', False), 'verified': row.get('verified', False),
+        'website': row.get('website', ''), 'email': row.get('email', ''),
+        'keywords': row.get('keywords', ''), 'gallery': row.get('gallery') or [],
+        'hoursOpen': row.get('hours_open', ''), 'hoursClose': row.get('hours_close', ''),
+        'hoursIs24h': row.get('hours_is_24h', False),
         'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
     }
 
@@ -2474,6 +2495,11 @@ def _dirbiz_create(d):
         'contact': d.get('contact', ''), 'hours': d.get('hours', ''),
         'image_url': d.get('imageUrl', ''), 'social_link': d.get('social', ''),
         'lat': d.get('lat'), 'lng': d.get('lng'), 'status': d.get('status', 'draft'),
+        'featured': d.get('featured', False), 'verified': d.get('verified', False),
+        'website': d.get('website', ''), 'email': d.get('email', ''),
+        'keywords': d.get('keywords', ''), 'gallery': d.get('gallery') or [],
+        'hours_open': d.get('hoursOpen', ''), 'hours_close': d.get('hoursClose', ''),
+        'hours_is_24h': d.get('hoursIs24h', False),
         'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
     }
     res = supabase.table('directory_businesses').insert(row).execute()
@@ -2486,7 +2512,10 @@ def _dirbiz_update(item_id, patch):
     field_map = {'name': 'name', 'category': 'category', 'description': 'description',
                  'address': 'address', 'contact': 'contact', 'hours': 'hours',
                  'imageUrl': 'image_url', 'social': 'social_link',
-                 'lat': 'lat', 'lng': 'lng', 'status': 'status'}
+                 'lat': 'lat', 'lng': 'lng', 'status': 'status',
+                 'featured': 'featured', 'verified': 'verified',
+                 'website': 'website', 'email': 'email', 'keywords': 'keywords', 'gallery': 'gallery',
+                 'hoursOpen': 'hours_open', 'hoursClose': 'hours_close', 'hoursIs24h': 'hours_is_24h'}
     for camel, snake in field_map.items():
         if camel in patch:
             row[snake] = patch[camel]
@@ -2509,6 +2538,10 @@ def _row_to_dirorg(row):
         'imageUrl': row.get('image_url', ''),
         'lat': row.get('lat'), 'lng': row.get('lng'),
         'status': row.get('status', 'draft'),
+        'featured': row.get('featured', False), 'verified': row.get('verified', False),
+        'website': row.get('website', ''), 'email': row.get('email', ''),
+        'facebook': row.get('facebook', ''), 'keywords': row.get('keywords', ''),
+        'gallery': row.get('gallery') or [],
         'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
     }
 
@@ -2529,6 +2562,10 @@ def _dirorg_create(d):
         'programs': d.get('programs', ''), 'location': d.get('location', ''),
         'image_url': d.get('imageUrl', ''),
         'lat': d.get('lat'), 'lng': d.get('lng'), 'status': d.get('status', 'draft'),
+        'featured': d.get('featured', False), 'verified': d.get('verified', False),
+        'website': d.get('website', ''), 'email': d.get('email', ''),
+        'facebook': d.get('facebook', ''), 'keywords': d.get('keywords', ''),
+        'gallery': d.get('gallery') or [],
         'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
     }
     res = supabase.table('directory_organizations').insert(row).execute()
@@ -2541,7 +2578,10 @@ def _dirorg_update(item_id, patch):
     field_map = {'name': 'name', 'category': 'category', 'description': 'description',
                  'contactPerson': 'contact_person', 'officers': 'officers',
                  'contactDetails': 'contact_details', 'programs': 'programs', 'location': 'location',
-                 'imageUrl': 'image_url', 'lat': 'lat', 'lng': 'lng', 'status': 'status'}
+                 'imageUrl': 'image_url', 'lat': 'lat', 'lng': 'lng', 'status': 'status',
+                 'featured': 'featured', 'verified': 'verified',
+                 'website': 'website', 'email': 'email', 'facebook': 'facebook',
+                 'keywords': 'keywords', 'gallery': 'gallery'}
     for camel, snake in field_map.items():
         if camel in patch:
             row[snake] = patch[camel]
@@ -2563,6 +2603,10 @@ def _row_to_direm(row):
         'imageUrl': row.get('image_url', ''),
         'lat': row.get('lat'), 'lng': row.get('lng'),
         'status': row.get('status', 'draft'),
+        'featured': row.get('featured', False), 'verified': row.get('verified', False),
+        'website': row.get('website', ''), 'email': row.get('email', ''),
+        'facebook': row.get('facebook', ''), 'keywords': row.get('keywords', ''),
+        'gallery': row.get('gallery') or [],
         'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
     }
 
@@ -2582,6 +2626,10 @@ def _direm_create(d):
         'address': d.get('address', ''), 'services': d.get('services', ''),
         'image_url': d.get('imageUrl', ''),
         'lat': d.get('lat'), 'lng': d.get('lng'), 'status': d.get('status', 'draft'),
+        'featured': d.get('featured', False), 'verified': d.get('verified', False),
+        'website': d.get('website', ''), 'email': d.get('email', ''),
+        'facebook': d.get('facebook', ''), 'keywords': d.get('keywords', ''),
+        'gallery': d.get('gallery') or [],
         'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
     }
     res = supabase.table('directory_emergency').insert(row).execute()
@@ -2593,7 +2641,10 @@ def _direm_update(item_id, patch):
     row = {'updated_at': now}
     field_map = {'name': 'name', 'category': 'category', 'number': 'number',
                  'altNumber': 'alt_number', 'address': 'address', 'services': 'services',
-                 'imageUrl': 'image_url', 'lat': 'lat', 'lng': 'lng', 'status': 'status'}
+                 'imageUrl': 'image_url', 'lat': 'lat', 'lng': 'lng', 'status': 'status',
+                 'featured': 'featured', 'verified': 'verified',
+                 'website': 'website', 'email': 'email', 'facebook': 'facebook',
+                 'keywords': 'keywords', 'gallery': 'gallery'}
     for camel, snake in field_map.items():
         if camel in patch:
             row[snake] = patch[camel]
@@ -2653,12 +2704,22 @@ def admin_dirmap_create():
     if status not in ('draft', 'published', 'hidden'):
         status = 'draft'
     category = d.get('category') if d.get('category') in DIR_MAP_CATEGORIES else DIR_MAP_CATEGORIES[-1]
+    gallery = d.get('gallery') or []
+    if not isinstance(gallery, list):
+        gallery = []
+    gallery = [_clean(g, 500) for g in gallery if _clean(g, 500)]
     item = {
         'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
         'description': _clean(d.get('description'), 1000), 'address': _clean(d.get('address'), 300),
         'contact': _clean(d.get('contact'), 100), 'hours': _clean(d.get('hours'), 150),
         'imageUrl': _clean(d.get('imageUrl'), 300),
         'lat': _to_float(d.get('lat')), 'lng': _to_float(d.get('lng')), 'status': status,
+        'featured': bool(d.get('featured')), 'verified': bool(d.get('verified')),
+        'website': _clean(d.get('website'), 300), 'email': _clean(d.get('email'), 200),
+        'facebook': _clean(d.get('facebook'), 300), 'keywords': _clean(d.get('keywords'), 300),
+        'gallery': gallery,
+        'hoursOpen': _clean(d.get('hoursOpen'), 20), 'hoursClose': _clean(d.get('hoursClose'), 20),
+        'hoursIs24h': bool(d.get('hoursIs24h')),
         'createdAt': now, 'updatedAt': now,
     }
     item = _dirmap_create(item)
@@ -2671,7 +2732,9 @@ def admin_dirmap_update(item_id):
     d = request.get_json(silent=True) or {}
     patch = {}
     for field, maxlen in [('name', 150), ('description', 1000), ('address', 300),
-                          ('contact', 100), ('hours', 150), ('imageUrl', 300)]:
+                          ('contact', 100), ('hours', 150), ('imageUrl', 300),
+                          ('website', 300), ('email', 200), ('facebook', 300), ('keywords', 300),
+                          ('hoursOpen', 20), ('hoursClose', 20)]:
         if field in d:
             patch[field] = _clean(d[field], maxlen)
     if 'category' in d and d['category'] in DIR_MAP_CATEGORIES:
@@ -2682,6 +2745,15 @@ def admin_dirmap_update(item_id):
         patch['lng'] = _to_float(d['lng'])
     if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
         patch['status'] = d['status']
+    if 'featured' in d:
+        patch['featured'] = bool(d['featured'])
+    if 'verified' in d:
+        patch['verified'] = bool(d['verified'])
+    if 'hoursIs24h' in d:
+        patch['hoursIs24h'] = bool(d['hoursIs24h'])
+    if 'gallery' in d:
+        gallery = d['gallery'] if isinstance(d['gallery'], list) else []
+        patch['gallery'] = [_clean(g, 500) for g in gallery if _clean(g, 500)]
     item = _dirmap_update(item_id, patch)
     if not item:
         return jsonify({'error': 'Not found'}), 404
@@ -2714,12 +2786,21 @@ def admin_dirbiz_create():
     if status not in ('draft', 'published', 'hidden'):
         status = 'draft'
     category = d.get('category') if d.get('category') in DIR_BIZ_CATEGORIES else DIR_BIZ_CATEGORIES[-1]
+    gallery = d.get('gallery') or []
+    if not isinstance(gallery, list):
+        gallery = []
+    gallery = [_clean(g, 500) for g in gallery if _clean(g, 500)]
     item = {
         'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
         'description': _clean(d.get('description'), 1000), 'address': _clean(d.get('address'), 300),
         'contact': _clean(d.get('contact'), 100), 'hours': _clean(d.get('hours'), 150),
         'imageUrl': _clean(d.get('imageUrl'), 300), 'social': _clean(d.get('social'), 300),
         'lat': _to_float(d.get('lat')), 'lng': _to_float(d.get('lng')), 'status': status,
+        'featured': bool(d.get('featured')), 'verified': bool(d.get('verified')),
+        'website': _clean(d.get('website'), 300), 'email': _clean(d.get('email'), 200),
+        'keywords': _clean(d.get('keywords'), 300), 'gallery': gallery,
+        'hoursOpen': _clean(d.get('hoursOpen'), 20), 'hoursClose': _clean(d.get('hoursClose'), 20),
+        'hoursIs24h': bool(d.get('hoursIs24h')),
         'createdAt': now, 'updatedAt': now,
     }
     item = _dirbiz_create(item)
@@ -2732,7 +2813,9 @@ def admin_dirbiz_update(item_id):
     d = request.get_json(silent=True) or {}
     patch = {}
     for field, maxlen in [('name', 150), ('description', 1000), ('address', 300),
-                          ('contact', 100), ('hours', 150), ('imageUrl', 300), ('social', 300)]:
+                          ('contact', 100), ('hours', 150), ('imageUrl', 300), ('social', 300),
+                          ('website', 300), ('email', 200), ('keywords', 300),
+                          ('hoursOpen', 20), ('hoursClose', 20)]:
         if field in d:
             patch[field] = _clean(d[field], maxlen)
     if 'category' in d and d['category'] in DIR_BIZ_CATEGORIES:
@@ -2743,6 +2826,15 @@ def admin_dirbiz_update(item_id):
         patch['lng'] = _to_float(d['lng'])
     if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
         patch['status'] = d['status']
+    if 'featured' in d:
+        patch['featured'] = bool(d['featured'])
+    if 'verified' in d:
+        patch['verified'] = bool(d['verified'])
+    if 'hoursIs24h' in d:
+        patch['hoursIs24h'] = bool(d['hoursIs24h'])
+    if 'gallery' in d:
+        gallery = d['gallery'] if isinstance(d['gallery'], list) else []
+        patch['gallery'] = [_clean(g, 500) for g in gallery if _clean(g, 500)]
     item = _dirbiz_update(item_id, patch)
     if not item:
         return jsonify({'error': 'Not found'}), 404
@@ -2779,6 +2871,10 @@ def admin_dirorg_create():
     if not isinstance(officers, list):
         officers = []
     officers = [_clean(o, 150) for o in officers if _clean(o, 150)]
+    gallery = d.get('gallery') or []
+    if not isinstance(gallery, list):
+        gallery = []
+    gallery = [_clean(g, 500) for g in gallery if _clean(g, 500)]
     item = {
         'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
         'description': _clean(d.get('description'), 1000), 'contactPerson': _clean(d.get('contactPerson'), 150),
@@ -2786,6 +2882,10 @@ def admin_dirorg_create():
         'programs': _clean(d.get('programs'), 1000), 'location': _clean(d.get('location'), 300),
         'imageUrl': _clean(d.get('imageUrl'), 300),
         'lat': _to_float(d.get('lat')), 'lng': _to_float(d.get('lng')), 'status': status,
+        'featured': bool(d.get('featured')), 'verified': bool(d.get('verified')),
+        'website': _clean(d.get('website'), 300), 'email': _clean(d.get('email'), 200),
+        'facebook': _clean(d.get('facebook'), 300), 'keywords': _clean(d.get('keywords'), 300),
+        'gallery': gallery,
         'createdAt': now, 'updatedAt': now,
     }
     item = _dirorg_create(item)
@@ -2798,7 +2898,8 @@ def admin_dirorg_update(item_id):
     d = request.get_json(silent=True) or {}
     patch = {}
     for field, maxlen in [('name', 150), ('description', 1000), ('contactPerson', 150),
-                          ('contactDetails', 150), ('programs', 1000), ('location', 300), ('imageUrl', 300)]:
+                          ('contactDetails', 150), ('programs', 1000), ('location', 300), ('imageUrl', 300),
+                          ('website', 300), ('email', 200), ('facebook', 300), ('keywords', 300)]:
         if field in d:
             patch[field] = _clean(d[field], maxlen)
     if 'category' in d and d['category'] in DIR_ORG_CATEGORIES:
@@ -2812,6 +2913,13 @@ def admin_dirorg_update(item_id):
         patch['lng'] = _to_float(d['lng'])
     if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
         patch['status'] = d['status']
+    if 'featured' in d:
+        patch['featured'] = bool(d['featured'])
+    if 'verified' in d:
+        patch['verified'] = bool(d['verified'])
+    if 'gallery' in d:
+        gallery = d['gallery'] if isinstance(d['gallery'], list) else []
+        patch['gallery'] = [_clean(g, 500) for g in gallery if _clean(g, 500)]
     item = _dirorg_update(item_id, patch)
     if not item:
         return jsonify({'error': 'Not found'}), 404
@@ -2844,12 +2952,20 @@ def admin_direm_create():
     if status not in ('draft', 'published', 'hidden'):
         status = 'draft'
     category = d.get('category') if d.get('category') in DIR_EM_CATEGORIES else DIR_EM_CATEGORIES[0]
+    gallery = d.get('gallery') or []
+    if not isinstance(gallery, list):
+        gallery = []
+    gallery = [_clean(g, 500) for g in gallery if _clean(g, 500)]
     item = {
         'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
         'number': _clean(d.get('number'), 100), 'altNumber': _clean(d.get('altNumber'), 100),
         'address': _clean(d.get('address'), 300), 'services': _clean(d.get('services'), 1000),
         'imageUrl': _clean(d.get('imageUrl'), 300),
         'lat': _to_float(d.get('lat')), 'lng': _to_float(d.get('lng')), 'status': status,
+        'featured': bool(d.get('featured')), 'verified': bool(d.get('verified')),
+        'website': _clean(d.get('website'), 300), 'email': _clean(d.get('email'), 200),
+        'facebook': _clean(d.get('facebook'), 300), 'keywords': _clean(d.get('keywords'), 300),
+        'gallery': gallery,
         'createdAt': now, 'updatedAt': now,
     }
     item = _direm_create(item)
@@ -2862,7 +2978,8 @@ def admin_direm_update(item_id):
     d = request.get_json(silent=True) or {}
     patch = {}
     for field, maxlen in [('name', 150), ('number', 100), ('altNumber', 100),
-                          ('address', 300), ('services', 1000), ('imageUrl', 300)]:
+                          ('address', 300), ('services', 1000), ('imageUrl', 300),
+                          ('website', 300), ('email', 200), ('facebook', 300), ('keywords', 300)]:
         if field in d:
             patch[field] = _clean(d[field], maxlen)
     if 'category' in d and d['category'] in DIR_EM_CATEGORIES:
@@ -2873,6 +2990,13 @@ def admin_direm_update(item_id):
         patch['lng'] = _to_float(d['lng'])
     if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
         patch['status'] = d['status']
+    if 'featured' in d:
+        patch['featured'] = bool(d['featured'])
+    if 'verified' in d:
+        patch['verified'] = bool(d['verified'])
+    if 'gallery' in d:
+        gallery = d['gallery'] if isinstance(d['gallery'], list) else []
+        patch['gallery'] = [_clean(g, 500) for g in gallery if _clean(g, 500)]
     item = _direm_update(item_id, patch)
     if not item:
         return jsonify({'error': 'Not found'}), 404
@@ -2966,6 +3090,50 @@ def admin_upload_map_location_image():
     except Exception as exc:
         return jsonify({'error': f'Upload failed: {exc}'}), 500
     return jsonify({'status': 'ok', 'url': url})
+
+
+# ── Directory — gallery image uploads (one file per request, reuses the same
+#    optimize/storage pipeline as the single-logo uploads above) ─────────────
+def _upload_gallery_image(folder):
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
+    try:
+        url = _upload_to_storage(data, folder, ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({'status': 'ok', 'url': url})
+
+
+@app.route('/admin/api/upload/map-location-gallery', methods=['POST'])
+@admin_required
+def admin_upload_map_location_gallery():
+    return _upload_gallery_image('community-map-gallery')
+
+
+@app.route('/admin/api/upload/business-gallery', methods=['POST'])
+@admin_required
+def admin_upload_business_gallery():
+    return _upload_gallery_image('business-directory-gallery')
+
+
+@app.route('/admin/api/upload/organization-gallery', methods=['POST'])
+@admin_required
+def admin_upload_organization_gallery():
+    return _upload_gallery_image('organization-directory-gallery')
+
+
+@app.route('/admin/api/upload/emergency-gallery', methods=['POST'])
+@admin_required
+def admin_upload_emergency_gallery():
+    return _upload_gallery_image('emergency-directory-gallery')
 
 
 # ── Bootstrap ─────────────────────────────────────────────────────────────────

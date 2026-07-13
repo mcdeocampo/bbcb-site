@@ -1,66 +1,71 @@
-// Barangay Bolbok — Directory Module (Phase 2: backed by /api/directory/*)
+// Barangay Bolbok — Directory Module v2.0 (unified map + list)
 // Self-contained: does not touch main.js or any other existing script.
-// Data is fetched from the public read-only endpoints added in Phase 2
-// (server.py), which only return records an administrator has published
-// via Directory Management in the admin panel.
+// Fetches the 4 existing read-only endpoints (unchanged from Phase 1/2/F),
+// normalizes each record into one common shape client-side, and renders a
+// single synchronized map + compact list. No backend/API/DB changes.
 (function () {
   'use strict';
 
   var BOLBOK_CENTER = { lat: 13.7565, lng: 121.0583 };
 
-  // ── Category color tokens (kept consistent with the site's existing palette) ──
-  var CAT_COLOR = {
-    'Barangay Hall': 'blue',
-    'Health Center': 'teal',
-    'Schools': 'gold',
-    'Evacuation Centers': 'red',
-    'Public Facilities': 'blue',
-    'Food & Restaurants': 'gold',
-    'Stores': 'blue',
-    'Services': 'teal',
-    'Local Entrepreneurs': 'gold',
-    'Associations': 'blue',
-    'Youth Organizations': 'teal',
-    'Senior Citizens': 'gold',
-    'Community Groups': 'blue',
-    'Emergency Contacts': 'red',
-    'Hospitals': 'red',
-    'Police': 'blue',
-    'Fire Services': 'gold',
-    'Disaster Response Contacts': 'red'
+  // ── Master category grouping (client-side only — DB categories untouched) ──
+  var MASTER_MAP = {
+    'Barangay Hall': 'Government',
+    'Health Center': 'Healthcare',
+    'Schools': 'Education',
+    'Evacuation Centers': 'Facilities',
+    'Public Facilities': 'Facilities',
+    'Food & Restaurants': 'Business',
+    'Stores': 'Business',
+    'Services': 'Business',
+    'Local Entrepreneurs': 'Business',
+    'Associations': 'Organizations',
+    'Youth Organizations': 'Organizations',
+    'Senior Citizens': 'Organizations',
+    'Community Groups': 'Organizations',
+    'Emergency Contacts': 'Emergency',
+    'Hospitals': 'Emergency',
+    'Police': 'Emergency',
+    'Fire Services': 'Emergency',
+    'Disaster Response Contacts': 'Emergency'
   };
-  var CAT_ICON = {
-    'Barangay Hall': '🏛️', 'Health Center': '🏥', 'Schools': '🏫',
-    'Evacuation Centers': '⛑️', 'Public Facilities': '🏗️',
-    'Food & Restaurants': '🍽️', 'Stores': '🛒', 'Services': '🔧', 'Local Entrepreneurs': '🧺',
-    'Associations': '🤝', 'Youth Organizations': '🧑‍🤝‍🧑', 'Senior Citizens': '👴', 'Community Groups': '👥',
-    'Emergency Contacts': '🚨', 'Hospitals': '🏥', 'Police': '🚓', 'Fire Services': '🚒', 'Disaster Response Contacts': '📡'
+  var MASTER_ORDER = ['Government', 'Healthcare', 'Education', 'Facilities', 'Business', 'Organizations', 'Emergency'];
+  var MASTER_ICON = {
+    Government: '🏛️', Healthcare: '🏥', Education: '🏫', Facilities: '🏗️',
+    Business: '🏪', Organizations: '🤝', Emergency: '🚨'
   };
+  var MASTER_COLOR = {
+    Government: 'blue', Healthcare: 'teal', Education: 'gold', Facilities: 'blue',
+    Business: 'gold', Organizations: 'blue', Emergency: 'red'
+  };
+  var MARKER_HEX = { blue: '#1565d8', teal: '#00a884', gold: '#f6c445', red: '#e5484d' };
 
   // ── Small helpers ────────────────────────────────────────────────────────
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
+  function normSrc(url) {
+    return url.indexOf('http') === 0 ? url : '/' + url;
+  }
   function mapsLink(lat, lng) {
     return 'https://www.google.com/maps?q=' + lat + ',' + lng;
   }
-  // Shared banner: shows the uploaded image if present, otherwise falls back
-  // to the category icon. Used by all 4 directory card types. If the image
-  // fails to load, swap back to the icon so a broken-image glyph never shows.
-  function bannerHtml(imageUrl, fallbackIcon) {
-    if (!imageUrl) return fallbackIcon;
-    var src = imageUrl.indexOf('http') === 0 ? imageUrl : '/' + imageUrl;
-    return '<img src="' + esc(src) + '" alt="" style="width:100%;height:100%;object-fit:cover" ' +
-      'onerror="this.outerHTML=' + esc(JSON.stringify(fallbackIcon)) + '">';
+  function directionsLink(lat, lng) {
+    return 'https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng;
   }
-  function matches(item, query, fields) {
-    if (!query) return true;
-    var q = query.toLowerCase();
-    return fields.some(function (f) {
-      var v = item[f];
-      if (Array.isArray(v)) v = v.join(' ');
-      return String(v || '').toLowerCase().indexOf(q) !== -1;
-    });
+  function wazeLink(lat, lng) {
+    return 'https://waze.com/ul?ll=' + lat + ',' + lng + '&navigate=yes';
+  }
+  function telHref(v) {
+    return 'tel:' + String(v || '').split('/')[0].replace(/[^0-9+]/g, '');
+  }
+  function debounce(fn, wait) {
+    var t;
+    return function () {
+      var args = arguments, ctx = this;
+      clearTimeout(t);
+      t = setTimeout(function () { fn.apply(ctx, args); }, wait);
+    };
   }
   function fetchJSON(url) {
     return fetch(url).then(function (r) {
@@ -68,278 +73,619 @@
       return r.json();
     });
   }
-
-  // Builds "All" + one chip per category found in `items`, wires click handlers,
-  // and calls onChange(activeCategory) whenever the selection changes.
-  function buildChips(container, items, onChange) {
-    var cats = [];
-    items.forEach(function (i) { if (cats.indexOf(i.category) === -1) cats.push(i.category); });
-    var active = 'All';
-    function render() {
-      container.innerHTML = ['All'].concat(cats).map(function (c) {
-        var color = CAT_COLOR[c] || 'blue';
-        return '<button type="button" class="dir-chip dir-chip--' + color + (c === active ? ' active' : '') + '" data-cat="' + esc(c) + '">' +
-          (CAT_ICON[c] ? CAT_ICON[c] + ' ' : '') + esc(c) + '</button>';
-      }).join('');
-    }
-    render();
-    container.addEventListener('click', function (e) {
-      var btn = e.target.closest('.dir-chip');
-      if (!btn) return;
-      active = btn.getAttribute('data-cat');
-      render();
-      onChange(active);
-    });
-    return { getActive: function () { return active; } };
+  function haversineMeters(a, b) {
+    var R = 6371000, toRad = Math.PI / 180;
+    var dLat = (b.lat - a.lat) * toRad, dLng = (b.lng - a.lng) * toRad;
+    var la1 = a.lat * toRad, la2 = b.lat * toRad;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * R * Math.asin(Math.sqrt(h));
   }
 
-  // ── Community Map (Leaflet) ──────────────────────────────────────────────
-  function initMapSection() {
-    var searchEl = document.getElementById('map-search');
-    var filtersEl = document.getElementById('map-filters');
-    var listEl = document.getElementById('map-list');
-    var mapEl = document.getElementById('dir-map');
+  // Current time-of-day in Asia/Manila, in minutes since midnight (matches the
+  // Asia/Manila convention already used by the site's date/time widget).
+  function nowInManilaMinutes() {
+    var fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', hour12: false, hour: '2-digit', minute: '2-digit' });
+    var h = 0, m = 0;
+    fmt.formatToParts(new Date()).forEach(function (p) {
+      if (p.type === 'hour') h = parseInt(p.value, 10) % 24;
+      if (p.type === 'minute') m = parseInt(p.value, 10);
+    });
+    return h * 60 + m;
+  }
+
+  // Computes a live Open/Closed/Opening Soon/Closing Soon/24-Hours badge from
+  // structured hours. Returns null when structured hours aren't set (callers
+  // fall back to showing the free-text `hours` field instead).
+  function computeHoursStatus(it) {
+    if (it.hoursIs24h) return { label: '24 Hours', cls: 'open' };
+    if (!it.hoursOpen || !it.hoursClose) return null;
+    function toMins(t) { var p = t.split(':'); return (+p[0]) * 60 + (+p[1]); }
+    var nowM = nowInManilaMinutes();
+    var openM = toMins(it.hoursOpen), closeM = toMins(it.hoursClose);
+    var isOpen = openM <= closeM ? (nowM >= openM && nowM < closeM) : (nowM >= openM || nowM < closeM);
+    if (isOpen) {
+      var toClose = (closeM - nowM + 1440) % 1440;
+      return toClose <= 30 ? { label: 'Closing Soon', cls: 'closing' } : { label: 'Open', cls: 'open' };
+    }
+    var toOpen = (openM - nowM + 1440) % 1440;
+    return toOpen <= 30 ? { label: 'Opening Soon', cls: 'opening' } : { label: 'Closed', cls: 'closed' };
+  }
+
+  // Minimal transient toast (public site has no existing toast helper — admin's is not shared).
+  function toast(msg) {
+    var el = document.createElement('div');
+    el.className = 'dir2-toast';
+    el.textContent = msg;
+    document.body.appendChild(el);
+    requestAnimationFrame(function () { el.classList.add('show'); });
+    setTimeout(function () {
+      el.classList.remove('show');
+      setTimeout(function () { el.remove(); }, 300);
+    }, 2200);
+  }
+
+  // ── Normalize the 4 distinct API shapes into one common item shape ──────
+  function normalize(type, raw) {
+    var base = {
+      id: raw.id, type: type, name: raw.name || '', category: raw.category || '',
+      masterCategory: MASTER_MAP[raw.category] || 'Facilities',
+      description: raw.description || '', imageUrl: raw.imageUrl || '',
+      lat: raw.lat, lng: raw.lng,
+      website: raw.website || '', email: raw.email || '', facebook: raw.facebook || raw.social || '',
+      featured: !!raw.featured, verified: !!raw.verified,
+      keywords: raw.keywords || '', gallery: raw.gallery || [],
+      hoursOpen: raw.hoursOpen || '', hoursClose: raw.hoursClose || '', hoursIs24h: !!raw.hoursIs24h,
+      createdAt: raw.createdAt || '', updatedAt: raw.updatedAt || '',
+      raw: raw
+    };
+    if (type === 'location') {
+      base.address = raw.address || ''; base.phone = raw.contact || ''; base.altPhone = '';
+      base.hours = raw.hours || '';
+    } else if (type === 'business') {
+      base.address = raw.address || ''; base.phone = raw.contact || ''; base.altPhone = '';
+      base.hours = raw.hours || '';
+    } else if (type === 'organization') {
+      base.address = raw.location || ''; base.phone = raw.contactDetails || ''; base.altPhone = '';
+      base.hours = '';
+    } else if (type === 'emergency') {
+      base.address = raw.address || ''; base.phone = raw.number || ''; base.altPhone = raw.altNumber || '';
+      base.hours = '';
+    }
+    return base;
+  }
+
+  function loadAll() {
+    function safe(url, key, type) {
+      return fetchJSON(url).then(function (d) {
+        return (d[key] || []).map(function (x) { return normalize(type, x); });
+      }).catch(function () { return []; });
+    }
+    return Promise.all([
+      safe('/api/directory/map', 'locations', 'location'),
+      safe('/api/directory/businesses', 'businesses', 'business'),
+      safe('/api/directory/organizations', 'organizations', 'organization'),
+      safe('/api/directory/emergency', 'contacts', 'emergency')
+    ]).then(function (results) {
+      return results[0].concat(results[1], results[2], results[3]);
+    });
+  }
+
+  // ── State ────────────────────────────────────────────────────────────────
+  var ALL_ITEMS = [];
+  var activeMaster = 'All';
+  var searchQuery = '';
+  var sortMode = 'alpha';
+  var activeId = null;
+  var userLoc = null;
+  var nearMeRadius = null;
+  var map = null, markers = {}, clusterGroup = null;
+  var lastFocused = null;
+
+  var listEl, chipsEl, countEl, searchEl, sortEl, mapEl, nearMeBtn, radiusRowEl;
+
+  var LIST_BATCH_SIZE = 30;
+  var listRenderState = { items: [], rendered: 0 };
+  var listObserver = null;
+
+  // ── Sorting ──────────────────────────────────────────────────────────────
+  function sortItems(items, mode) {
+    var arr = items.slice();
+    if (mode === 'newest') {
+      arr.sort(function (a, b) { return new Date(b.createdAt || 0) - new Date(a.createdAt || 0); });
+    } else if (mode === 'updated') {
+      arr.sort(function (a, b) { return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0); });
+    } else if (mode === 'nearest' && userLoc) {
+      arr.sort(function (a, b) {
+        var da = (a.lat != null) ? haversineMeters(userLoc, a) : Infinity;
+        var db = (b.lat != null) ? haversineMeters(userLoc, b) : Infinity;
+        return da - db;
+      });
+    } else {
+      arr.sort(function (a, b) { return a.name.localeCompare(b.name); });
+    }
+    return arr;
+  }
+
+  function requestGeolocation(cb) {
+    if (!navigator.geolocation) { cb(false); return; }
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      userLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      cb(true);
+    }, function () { cb(false); }, { timeout: 8000 });
+  }
+
+  // ── Filtering / rendering pipeline ──────────────────────────────────────
+  function applyFilters() {
+    var q = searchQuery.trim().toLowerCase();
+    var searchFiltered = ALL_ITEMS.filter(function (it) {
+      if (!q) return true;
+      var hay = [it.name, it.category, it.address, it.description, it.raw.services, it.keywords].filter(Boolean).join(' ').toLowerCase();
+      return hay.indexOf(q) !== -1;
+    });
+    if (nearMeRadius != null && userLoc) {
+      searchFiltered = searchFiltered.filter(function (it) {
+        return it.lat != null && it.lng != null && haversineMeters(userLoc, it) <= nearMeRadius;
+      });
+    }
+    renderChips(searchFiltered);
+    var finalItems = activeMaster === 'All' ? searchFiltered : searchFiltered.filter(function (it) { return it.masterCategory === activeMaster; });
+    finalItems = sortItems(finalItems, sortMode);
+    // Featured items float to the top; Array#sort is stable, so the chosen
+    // sort order is preserved within the featured and non-featured groups.
+    finalItems = finalItems.slice().sort(function (a, b) { return (b.featured ? 1 : 0) - (a.featured ? 1 : 0); });
+    renderList(finalItems);
+    renderMarkers(finalItems);
+    renderCount(finalItems.length);
+    if (q || activeMaster !== 'All' || nearMeRadius != null) fitToMarkers(finalItems);
+  }
+
+  function renderCount(n) {
+    if (!countEl) return;
+    countEl.textContent = n + (n === 1 ? ' Result Found' : ' Results Found');
+  }
+
+  function renderChips(items) {
+    if (!chipsEl) return;
+    var counts = {};
+    items.forEach(function (it) { counts[it.masterCategory] = (counts[it.masterCategory] || 0) + 1; });
+    var groups = MASTER_ORDER.filter(function (g) { return counts[g]; });
+    var html = '<button type="button" class="dir2-chip dir2-chip--all' + (activeMaster === 'All' ? ' active' : '') + '" data-cat="All">All (' + items.length + ')</button>';
+    html += groups.map(function (g) {
+      var color = MASTER_COLOR[g] || 'blue';
+      return '<button type="button" class="dir2-chip dir2-chip--' + color + (activeMaster === g ? ' active' : '') + '" data-cat="' + esc(g) + '">' +
+        (MASTER_ICON[g] ? MASTER_ICON[g] + ' ' : '') + esc(g) + ' (' + counts[g] + ')</button>';
+    }).join('');
+    chipsEl.innerHTML = html;
+  }
+
+  // ── Near Me (radius filter) ──────────────────────────────────────────────
+  var NEAR_ME_RADII = [500, 1000, 2000, 5000];
+  var NEAR_ME_LABELS = { 500: '500m', 1000: '1km', 2000: '2km', 5000: '5km' };
+
+  function renderRadiusChips() {
+    if (!radiusRowEl) return;
+    var html = '<button type="button" class="dir2-chip dir2-chip--all' + (nearMeRadius == null ? ' active' : '') + '" data-radius="">All Distances</button>';
+    html += NEAR_ME_RADII.map(function (r) {
+      return '<button type="button" class="dir2-chip dir2-chip--teal' + (nearMeRadius === r ? ' active' : '') + '" data-radius="' + r + '">' + NEAR_ME_LABELS[r] + '</button>';
+    }).join('');
+    radiusRowEl.innerHTML = html;
+    radiusRowEl.classList.add('open');
+  }
+
+  function logoOrIconHtml(it, cssClass) {
+    var icon = MASTER_ICON[it.masterCategory] || '📍';
+    if (!it.imageUrl) return '<span class="' + cssClass + '-icon">' + icon + '</span>';
+    return '<img class="' + cssClass + '-img" loading="lazy" src="' + esc(normSrc(it.imageUrl)) + '" alt="" ' +
+      'onerror="this.outerHTML=' + esc(JSON.stringify('<span class="' + cssClass + '-icon">' + icon + '</span>')) + '">';
+  }
+
+  // Rendered in batches with an IntersectionObserver sentinel so a large
+  // directory doesn't dump hundreds of DOM nodes into the list at once.
+  function renderList(items) {
     if (!listEl) return;
+    if (listObserver) { listObserver.disconnect(); listObserver = null; }
+    if (!items.length) {
+      listEl.innerHTML = '<p class="dir2-empty">No listings match your search.</p>';
+      return;
+    }
+    listRenderState = { items: items, rendered: 0 };
+    listEl.innerHTML = '';
+    renderNextListBatch();
+  }
 
-    listEl.innerHTML = '<p class="dir-empty">Loading locations…</p>';
+  function renderNextListBatch() {
+    var items = listRenderState.items;
+    var start = listRenderState.rendered;
+    var end = Math.min(start + LIST_BATCH_SIZE, items.length);
+    var wrap = document.createElement('div');
+    wrap.innerHTML = items.slice(start, end).map(renderListItem).join('');
+    while (wrap.firstChild) listEl.appendChild(wrap.firstChild);
+    listRenderState.rendered = end;
 
-    fetchJSON('/api/directory/map').then(function (d) {
-      var MAP_LOCATIONS = d.locations || [];
-      var map = null, markers = {};
+    var oldSentinel = listEl.querySelector('.dir2-list-sentinel');
+    if (oldSentinel) oldSentinel.remove();
 
-      if (mapEl && window.L) {
-        map = L.map(mapEl, { scrollWheelZoom: false }).setView([BOLBOK_CENTER.lat, BOLBOK_CENTER.lng], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+    if (listRenderState.rendered >= items.length) return;
 
-        var MARKER_HEX = { blue: '#1565d8', teal: '#00a884', gold: '#f6c445', red: '#e5484d' };
-        MAP_LOCATIONS.forEach(function (loc) {
-          if (loc.lat == null || loc.lng == null) return;
-          var color = MARKER_HEX[CAT_COLOR[loc.category] || 'blue'];
-          var marker = L.circleMarker([loc.lat, loc.lng], {
-            radius: 9, color: '#fff', weight: 2, fillColor: color, fillOpacity: 0.95
-          }).addTo(map);
-          var popupThumb = loc.imageUrl
-            ? '<img src="' + esc(loc.imageUrl.indexOf('http') === 0 ? loc.imageUrl : '/' + loc.imageUrl) + '" alt="" style="width:100%;max-width:220px;height:110px;object-fit:cover;border-radius:8px;margin-bottom:6px" onerror="this.remove()">'
-            : '';
-          marker.bindPopup(
-            popupThumb +
-            '<strong>' + esc(loc.name) + '</strong><br>' +
-            '<span style="color:#00a884;font-weight:700">' + esc(loc.category) + '</span><br>' +
-            esc(loc.description) + '<br>' +
-            '<em>' + esc(loc.address) + '</em><br>' +
-            (loc.contact ? '📞 ' + esc(loc.contact) + '<br>' : '') +
-            (loc.hours ? '🕒 ' + esc(loc.hours) : '')
-          );
-          markers[loc.id] = marker;
+    var sentinel = document.createElement('div');
+    sentinel.className = 'dir2-list-sentinel';
+    listEl.appendChild(sentinel);
+    if ('IntersectionObserver' in window) {
+      listObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            listObserver.disconnect();
+            renderNextListBatch();
+          }
         });
-      }
+      }, { root: listEl, rootMargin: '200px' });
+      listObserver.observe(sentinel);
+    } else {
+      renderNextListBatch();
+    }
+  }
 
-      function renderList(items) {
-        listEl.innerHTML = items.map(function (loc) {
-          var color = CAT_COLOR[loc.category] || 'blue';
-          return '<article class="dir-card reveal visible">' +
-            '<div class="dir-card-banner dir-card-banner--' + color + '">' + bannerHtml(loc.imageUrl, CAT_ICON[loc.category] || '📍') + '</div>' +
-            '<div class="dir-card-body">' +
-            '<span class="dir-chip dir-chip--' + color + ' dir-chip-static">' + esc(loc.category) + '</span>' +
-            '<h3>' + esc(loc.name) + '</h3>' +
-            '<p>' + esc(loc.description) + '</p>' +
-            '<ul class="dir-meta-list">' +
-            '<li>📍 ' + esc(loc.address) + '</li>' +
-            (loc.contact ? '<li>📞 ' + esc(loc.contact) + '</li>' : '') +
-            (loc.hours ? '<li>🕒 ' + esc(loc.hours) + '</li>' : '') +
-            '</ul>' +
-            '<button type="button" class="text-link dir-locate-btn" data-id="' + loc.id + '" style="background:none;border:none;cursor:pointer;font-family:inherit">Locate on Map →</button>' +
-            '</div></article>';
-        }).join('') || '<p class="dir-empty">No locations match your search.</p>';
-      }
+  function renderListItem(it) {
+    var color = MASTER_COLOR[it.masterCategory] || 'blue';
+    var badges = (it.featured ? '<span class="dir2-badge dir2-badge-featured">★ Featured</span>' : '') +
+      (it.verified ? '<span class="dir2-badge dir2-badge-verified">✔ Verified</span>' : '');
+    var status = computeHoursStatus(it);
+    return '<article class="dir2-item' + (it.id === activeId ? ' active' : '') + (it.featured ? ' dir2-item-featured' : '') + '" data-id="' + esc(it.id) + '" tabindex="0" role="button" aria-label="View details for ' + esc(it.name) + '">' +
+      '<div class="dir2-item-logo dir2-item-logo--' + color + '">' + logoOrIconHtml(it, 'dir2-item-logo') + '</div>' +
+      '<div class="dir2-item-body">' +
+      '<div class="dir2-item-top"><h3>' + esc(it.name) + '</h3>' + (badges ? '<span class="dir2-item-badges">' + badges + '</span>' : '') + '</div>' +
+      '<span class="dir2-chip dir2-chip--' + color + ' dir2-chip-static">' + esc(it.category) + '</span>' +
+      (it.address ? '<p class="dir2-item-addr">📍 ' + esc(it.address) + '</p>' : '') +
+      '<div class="dir2-item-meta">' +
+      (it.phone ? '<span>📞 ' + esc(it.phone) + '</span>' : '') +
+      (it.hours ? '<span>🕒 ' + esc(it.hours) + '</span>' : '') +
+      (status ? '<span class="dir2-status dir2-status--' + status.cls + '">' + status.label + '</span>' : '') +
+      '</div>' +
+      '<div class="dir2-item-actions">' +
+      '<button type="button" class="dir2-link" data-act="details" data-id="' + esc(it.id) + '">View Details</button>' +
+      (it.lat != null && it.lng != null ? '<button type="button" class="dir2-link" data-act="locate" data-id="' + esc(it.id) + '">Locate on Map →</button>' : '') +
+      '</div></div></article>';
+  }
 
-      function apply() {
-        var q = searchEl ? searchEl.value.trim() : '';
-        var cat = chips.getActive();
-        var items = MAP_LOCATIONS.filter(function (loc) {
-          return (cat === 'All' || loc.category === cat) && matches(loc, q, ['name', 'description', 'address']);
-        });
-        renderList(items);
-        if (map) {
-          Object.keys(markers).forEach(function (id) {
-            var show = items.some(function (i) { return i.id === id; });
-            var m = markers[id];
-            if (show && !map.hasLayer(m)) m.addTo(map);
-            else if (!show && map.hasLayer(m)) map.removeLayer(m);
-          });
+  // ── Map ──────────────────────────────────────────────────────────────────
+  function initMap() {
+    if (!mapEl || !window.L) return;
+    map = L.map(mapEl, { scrollWheelZoom: false }).setView([BOLBOK_CENTER.lat, BOLBOK_CENTER.lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    if (window.L.markerClusterGroup) {
+      clusterGroup = L.markerClusterGroup({ maxClusterRadius: 50, disableClusteringAtZoom: 18, showCoverageOnHover: false });
+      map.addLayer(clusterGroup);
+    }
+  }
+
+  function fitToMarkers(items) {
+    if (!map) return;
+    var pts = items.filter(function (it) { return it.lat != null && it.lng != null; }).map(function (it) { return [it.lat, it.lng]; });
+    if (!pts.length) return;
+    if (pts.length === 1) { map.setView(pts[0], 17); return; }
+    map.fitBounds(pts, { padding: [30, 30], maxZoom: 17 });
+  }
+
+  function popupHtml(it) {
+    var color = MASTER_COLOR[it.masterCategory] || 'blue';
+    var thumb = it.imageUrl ? '<img src="' + esc(normSrc(it.imageUrl)) + '" alt="" class="dir2-popup-thumb" loading="lazy" onerror="this.remove()">' : '';
+    return '<div class="dir2-popup">' + thumb +
+      '<strong>' + esc(it.name) + '</strong>' +
+      '<span class="dir2-popup-cat dir2-popup-cat--' + color + '">' + esc(it.category) + '</span>' +
+      (it.address ? '<span class="dir2-popup-line">📍 ' + esc(it.address) + '</span>' : '') +
+      (it.phone ? '<span class="dir2-popup-line">📞 ' + esc(it.phone) + '</span>' : '') +
+      '<div class="dir2-popup-actions">' +
+      '<button type="button" class="dir2-popup-btn" data-act="details" data-id="' + esc(it.id) + '">View Details</button>' +
+      (it.lat != null && it.lng != null ? '<a class="dir2-popup-btn" href="' + directionsLink(it.lat, it.lng) + '" target="_blank" rel="noopener noreferrer">Directions</a>' : '') +
+      '</div></div>';
+  }
+
+  function renderMarkers(items) {
+    if (!map) return;
+    var layerGroup = clusterGroup || map;
+    var seen = {};
+    items.forEach(function (it) {
+      if (it.lat == null || it.lng == null) return;
+      seen[it.id] = true;
+      var color = MARKER_HEX[MASTER_COLOR[it.masterCategory] || 'blue'];
+      var m = markers[it.id];
+      if (!m) {
+        m = L.circleMarker([it.lat, it.lng], { radius: 9, color: '#fff', weight: 2, fillColor: color, fillOpacity: 0.95 });
+        m.bindPopup(popupHtml(it));
+        m.on('click', function () { selectItem(it.id, { fromMap: true }); });
+        markers[it.id] = m;
+      } else {
+        m.setPopupContent(popupHtml(it));
+      }
+      if (!layerGroup.hasLayer(m)) layerGroup.addLayer(m);
+    });
+    Object.keys(markers).forEach(function (id) {
+      if (!seen[id] && layerGroup.hasLayer(markers[id])) layerGroup.removeLayer(markers[id]);
+    });
+  }
+
+  // ── Map ↔ list synchronization ──────────────────────────────────────────
+  function highlightListItem(id) {
+    if (!listEl) return;
+    listEl.querySelectorAll('.dir2-item').forEach(function (el) {
+      el.classList.toggle('active', el.getAttribute('data-id') === id);
+    });
+  }
+
+  function selectItem(id, opts) {
+    opts = opts || {};
+    activeId = id;
+    var it = ALL_ITEMS.find(function (x) { return x.id === id; });
+    if (!it) return;
+    highlightListItem(id);
+    if (opts.fromMap) {
+      var el = listEl && listEl.querySelector('.dir2-item[data-id="' + id + '"]');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else if (it.lat != null && it.lng != null && map) {
+      mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      var marker = markers[id];
+      var layerGroup = clusterGroup || map;
+      if (marker) {
+        if (!layerGroup.hasLayer(marker)) layerGroup.addLayer(marker);
+        if (clusterGroup && clusterGroup.hasLayer(marker)) {
+          clusterGroup.zoomToShowLayer(marker, function () { marker.openPopup(); });
+        } else {
+          map.setView([it.lat, it.lng], 17);
+          marker.openPopup();
         }
       }
+    }
+  }
 
-      var chips = buildChips(filtersEl, MAP_LOCATIONS, apply);
-      if (searchEl) searchEl.addEventListener('input', apply);
-      apply();
+  // ── Details modal ────────────────────────────────────────────────────────
+  var modalOverlay, modalBody, modalClose;
+  var lightboxOverlay, lightboxImg, lightboxClose;
 
-      listEl.addEventListener('click', function (e) {
-        var btn = e.target.closest('.dir-locate-btn');
-        if (!btn || !map) return;
-        var loc = MAP_LOCATIONS.find(function (l) { return l.id === btn.getAttribute('data-id'); });
-        if (!loc) return;
-        mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        map.setView([loc.lat, loc.lng], 17);
-        var marker = markers[loc.id];
-        if (marker) { if (!map.hasLayer(marker)) marker.addTo(map); marker.openPopup(); }
+  function metaRow(icon, html) { return '<li>' + icon + ' ' + html + '</li>'; }
+
+  function detailsHtml(it) {
+    var color = MASTER_COLOR[it.masterCategory] || 'blue';
+    var cover = '<div class="dir2-modal-cover dir2-modal-cover--' + color + '">' + logoOrIconHtml(it, 'dir2-modal-cover') + '</div>';
+
+    var status = computeHoursStatus(it);
+    var hoursText = it.hours ? esc(it.hours) : '';
+    if (status) hoursText = (hoursText ? hoursText + ' &middot; ' : '') + '<span class="dir2-status dir2-status--' + status.cls + '">' + status.label + '</span>';
+
+    var rows = [];
+    if (it.address) rows.push(metaRow('📍', esc(it.address)));
+    if (it.phone) rows.push(metaRow('📞', '<a href="' + telHref(it.phone) + '">' + esc(it.phone) + '</a>'));
+    if (it.altPhone) rows.push(metaRow('📞', '<a href="' + telHref(it.altPhone) + '">' + esc(it.altPhone) + '</a> (alternate)'));
+    if (hoursText) rows.push(metaRow('🕒', hoursText));
+    if (it.raw.contactPerson) rows.push(metaRow('👤', esc(it.raw.contactPerson)));
+    if (it.raw.services) rows.push(metaRow('🛟', esc(it.raw.services)));
+    if (it.email) rows.push(metaRow('✉️', '<a href="mailto:' + esc(it.email) + '">' + esc(it.email) + '</a>'));
+
+    var officers = it.raw.officers || [];
+    var badges = (it.featured ? '<span class="dir2-badge dir2-badge-featured">★ Featured</span>' : '') +
+      (it.verified ? '<span class="dir2-badge dir2-badge-verified">✔ Verified</span>' : '');
+
+    var gallery = it.gallery || [];
+    var galleryHtml = gallery.length
+      ? '<p class="dir2-subhead">Gallery</p><div class="dir2-gallery-strip">' + gallery.map(function (url) {
+          var src = normSrc(url);
+          return '<img src="' + esc(src) + '" alt="" loading="lazy" class="dir2-gallery-thumb" data-full="' + esc(src) + '" onerror="this.remove()">';
+        }).join('') + '</div>'
+      : '';
+
+    var actions = [];
+    if (it.lat != null && it.lng != null) {
+      actions.push('<a class="dir2-btn" href="' + mapsLink(it.lat, it.lng) + '" target="_blank" rel="noopener noreferrer">Google Maps</a>');
+      actions.push('<a class="dir2-btn" href="' + wazeLink(it.lat, it.lng) + '" target="_blank" rel="noopener noreferrer">Waze</a>');
+    }
+    if (it.phone) actions.push('<a class="dir2-btn" href="' + telHref(it.phone) + '">Call</a>');
+    if (it.website) actions.push('<a class="dir2-btn" href="' + esc(it.website) + '" target="_blank" rel="noopener noreferrer">Website</a>');
+    if (it.facebook) actions.push('<a class="dir2-btn" href="' + esc(it.facebook) + '" target="_blank" rel="noopener noreferrer">Facebook</a>');
+    actions.push('<button type="button" class="dir2-btn" id="dir2-share-btn" data-id="' + esc(it.id) + '">Share</button>');
+
+    return cover +
+      '<div class="dir2-modal-content">' +
+      '<span class="dir2-chip dir2-chip--' + color + ' dir2-chip-static">' + esc(it.category) + '</span>' +
+      (badges ? '<span class="dir2-item-badges">' + badges + '</span>' : '') +
+      '<h2 id="dir2-modal-title">' + esc(it.name) + '</h2>' +
+      (it.description ? '<p class="dir2-modal-desc">' + esc(it.description) + '</p>' : '') +
+      (rows.length ? '<ul class="dir2-modal-meta">' + rows.join('') + '</ul>' : '') +
+      (officers.length ? '<p class="dir2-subhead">Officers</p><ul class="dir2-modal-meta">' + officers.map(function (o) { return '<li>' + esc(o) + '</li>'; }).join('') + '</ul>' : '') +
+      (it.raw.programs ? '<p class="dir2-subhead">Activities / Programs</p><p class="dir2-note">' + esc(it.raw.programs) + '</p>' : '') +
+      galleryHtml +
+      '<div class="dir2-modal-actions">' + actions.join('') + '</div>' +
+      '</div>';
+  }
+
+  function trapFocus(e) {
+    var focusable = modalOverlay.querySelectorAll('button, a[href]');
+    if (!focusable.length) return;
+    var first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
+  function onModalKeydown(e) {
+    if (e.key === 'Escape') {
+      if (lightboxOverlay && lightboxOverlay.classList.contains('open')) closeLightbox();
+      else closeDetails();
+    } else if (e.key === 'Tab') {
+      trapFocus(e);
+    }
+  }
+
+  function openLightbox(src) {
+    if (!lightboxOverlay) return;
+    lightboxImg.src = src;
+    lightboxOverlay.classList.add('open');
+  }
+
+  function closeLightbox() {
+    if (!lightboxOverlay) return;
+    lightboxOverlay.classList.remove('open');
+    lightboxImg.src = '';
+  }
+
+  function openDetails(id) {
+    var it = ALL_ITEMS.find(function (x) { return x.id === id; });
+    if (!it || !modalOverlay) return;
+    modalBody.innerHTML = detailsHtml(it);
+    modalOverlay.classList.add('open');
+    document.body.classList.add('dir2-modal-lock');
+    lastFocused = document.activeElement;
+    modalClose.focus();
+    document.addEventListener('keydown', onModalKeydown);
+  }
+
+  function closeDetails() {
+    if (!modalOverlay) return;
+    modalOverlay.classList.remove('open');
+    document.body.classList.remove('dir2-modal-lock');
+    document.removeEventListener('keydown', onModalKeydown);
+    if (lastFocused && lastFocused.focus) lastFocused.focus();
+  }
+
+  function doShare(id) {
+    var it = ALL_ITEMS.find(function (x) { return x.id === id; });
+    if (!it) return;
+    var shareUrl = location.origin + location.pathname;
+    if (navigator.share) {
+      navigator.share({ title: it.name, text: it.name + (it.category ? ' — ' + it.category : ''), url: shareUrl }).catch(function () {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl).then(function () { toast('Link copied to clipboard'); }).catch(function () {});
+    }
+  }
+
+  // ── Event wiring ─────────────────────────────────────────────────────────
+  function wireEvents() {
+    if (searchEl) {
+      searchEl.addEventListener('input', debounce(function () {
+        searchQuery = searchEl.value;
+        applyFilters();
+      }, 200));
+    }
+
+    if (sortEl) {
+      sortEl.addEventListener('change', function () {
+        var mode = sortEl.value;
+        if (mode === 'nearest' && !userLoc) {
+          requestGeolocation(function (ok) {
+            if (!ok) { sortEl.value = 'alpha'; mode = 'alpha'; toast('Location unavailable — showing alphabetical order'); }
+            sortMode = mode;
+            applyFilters();
+          });
+          return;
+        }
+        sortMode = mode;
+        applyFilters();
       });
-    }).catch(function () {
-      listEl.innerHTML = '<p class="dir-empty">Unable to load locations right now. Please try again later.</p>';
+    }
+
+    if (chipsEl) {
+      chipsEl.addEventListener('click', function (e) {
+        var btn = e.target.closest('.dir2-chip');
+        if (!btn) return;
+        activeMaster = btn.getAttribute('data-cat');
+        applyFilters();
+      });
+    }
+
+    if (nearMeBtn) {
+      nearMeBtn.addEventListener('click', function () {
+        if (userLoc) { renderRadiusChips(); return; }
+        requestGeolocation(function (ok) {
+          if (!ok) { toast('Location unavailable — enable location access to use Near Me'); return; }
+          renderRadiusChips();
+        });
+      });
+    }
+    if (radiusRowEl) {
+      radiusRowEl.addEventListener('click', function (e) {
+        var btn = e.target.closest('.dir2-chip');
+        if (!btn) return;
+        var r = btn.getAttribute('data-radius');
+        nearMeRadius = r ? Number(r) : null;
+        renderRadiusChips();
+        applyFilters();
+      });
+    }
+
+    if (listEl) {
+      listEl.addEventListener('click', function (e) {
+        var detailsBtn = e.target.closest('[data-act="details"]');
+        if (detailsBtn) { openDetails(detailsBtn.getAttribute('data-id')); return; }
+        var locateBtn = e.target.closest('[data-act="locate"]');
+        var card = e.target.closest('.dir2-item');
+        var target = locateBtn || card;
+        if (target) selectItem(target.getAttribute('data-id'), { fromMap: false });
+      });
+      listEl.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        var card = e.target.closest('.dir2-item');
+        if (card) { e.preventDefault(); selectItem(card.getAttribute('data-id'), { fromMap: false }); }
+      });
+    }
+
+    // Leaflet popups are (re)created dynamically — delegate at the document level.
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.dir2-popup-btn[data-act="details"]');
+      if (btn) openDetails(btn.getAttribute('data-id'));
     });
-  }
 
-  // ── Business Directory ───────────────────────────────────────────────────
-  function initBusinessSection() {
-    var searchEl = document.getElementById('biz-search');
-    var filtersEl = document.getElementById('biz-filters');
-    var listEl = document.getElementById('biz-list');
-    if (!listEl) return;
+    if (modalClose) modalClose.addEventListener('click', closeDetails);
+    if (modalOverlay) {
+      modalOverlay.addEventListener('click', function (e) {
+        if (e.target === modalOverlay) closeDetails();
+      });
+    }
+    if (modalBody) {
+      modalBody.addEventListener('click', function (e) {
+        var btn = e.target.closest('#dir2-share-btn');
+        if (btn) { doShare(btn.getAttribute('data-id')); return; }
+        var thumb = e.target.closest('.dir2-gallery-thumb');
+        if (thumb) openLightbox(thumb.getAttribute('data-full'));
+      });
+    }
 
-    listEl.innerHTML = '<p class="dir-empty">Loading businesses…</p>';
-
-    fetchJSON('/api/directory/businesses').then(function (d) {
-      var BUSINESSES = d.businesses || [];
-
-      function render(items) {
-        listEl.innerHTML = items.map(function (b) {
-          var color = CAT_COLOR[b.category] || 'blue';
-          return '<article class="dir-card reveal visible">' +
-            '<div class="dir-card-banner dir-card-banner--' + color + '">' + bannerHtml(b.imageUrl, CAT_ICON[b.category] || '🏪') + '</div>' +
-            '<div class="dir-card-body">' +
-            '<span class="dir-chip dir-chip--' + color + ' dir-chip-static">' + esc(b.category) + '</span>' +
-            '<h3>' + esc(b.name) + '</h3>' +
-            '<p>' + esc(b.description) + '</p>' +
-            '<ul class="dir-meta-list">' +
-            '<li>📍 ' + esc(b.address) + '</li>' +
-            '<li>📞 ' + esc(b.contact) + '</li>' +
-            '<li>🕒 ' + esc(b.hours) + '</li>' +
-            '</ul>' +
-            '<div class="dir-card-actions">' +
-            (b.lat != null && b.lng != null ? '<a class="text-link" href="' + mapsLink(b.lat, b.lng) + '" target="_blank" rel="noopener noreferrer">📍 View on Map</a>' : '') +
-            (b.social ? '<a class="text-link" href="' + esc(b.social) + '" target="_blank" rel="noopener noreferrer">🔗 Social Page</a>' : '') +
-            '</div></div></article>';
-        }).join('') || '<p class="dir-empty">No businesses match your search.</p>';
-      }
-
-      function apply() {
-        var q = searchEl ? searchEl.value.trim() : '';
-        var cat = chips.getActive();
-        render(BUSINESSES.filter(function (b) {
-          return (cat === 'All' || b.category === cat) && matches(b, q, ['name', 'description', 'address']);
-        }));
-      }
-
-      var chips = buildChips(filtersEl, BUSINESSES, apply);
-      if (searchEl) searchEl.addEventListener('input', apply);
-      apply();
-    }).catch(function () {
-      listEl.innerHTML = '<p class="dir-empty">Unable to load businesses right now. Please try again later.</p>';
-    });
-  }
-
-  // ── Organization Directory ───────────────────────────────────────────────
-  function initOrganizationSection() {
-    var searchEl = document.getElementById('org-search');
-    var filtersEl = document.getElementById('org-filters');
-    var listEl = document.getElementById('org-list');
-    if (!listEl) return;
-
-    listEl.innerHTML = '<p class="dir-empty">Loading organizations…</p>';
-
-    fetchJSON('/api/directory/organizations').then(function (d) {
-      var ORGANIZATIONS = d.organizations || [];
-
-      function render(items) {
-        listEl.innerHTML = items.map(function (o) {
-          var color = CAT_COLOR[o.category] || 'blue';
-          var officers = o.officers || [];
-          return '<article class="dir-card reveal visible">' +
-            '<div class="dir-card-banner dir-card-banner--' + color + '">' + bannerHtml(o.imageUrl, CAT_ICON[o.category] || '🤝') + '</div>' +
-            '<div class="dir-card-body">' +
-            '<span class="dir-chip dir-chip--' + color + ' dir-chip-static">' + esc(o.category) + '</span>' +
-            '<h3>' + esc(o.name) + '</h3>' +
-            '<p>' + esc(o.description) + '</p>' +
-            '<ul class="dir-meta-list">' +
-            '<li>👤 ' + esc(o.contactPerson) + '</li>' +
-            '<li>📞 ' + esc(o.contactDetails) + '</li>' +
-            '<li>📍 ' + esc(o.location) + '</li>' +
-            '</ul>' +
-            (officers.length ? '<p class="dir-card-subhead">Officers</p><ul class="dir-meta-list">' + officers.map(function (off) { return '<li>' + esc(off) + '</li>'; }).join('') + '</ul>' : '') +
-            (o.programs ? '<p class="dir-card-subhead">Activities / Programs</p><p class="dir-card-note">' + esc(o.programs) + '</p>' : '') +
-            '<div class="dir-card-actions">' +
-            (o.lat != null && o.lng != null ? '<a class="text-link" href="' + mapsLink(o.lat, o.lng) + '" target="_blank" rel="noopener noreferrer">📍 View on Map</a>' : '') +
-            '</div></div></article>';
-        }).join('') || '<p class="dir-empty">No organizations match your search.</p>';
-      }
-
-      function apply() {
-        var q = searchEl ? searchEl.value.trim() : '';
-        var cat = chips.getActive();
-        render(ORGANIZATIONS.filter(function (o) {
-          return (cat === 'All' || o.category === cat) && matches(o, q, ['name', 'description', 'location', 'contactPerson']);
-        }));
-      }
-
-      var chips = buildChips(filtersEl, ORGANIZATIONS, apply);
-      if (searchEl) searchEl.addEventListener('input', apply);
-      apply();
-    }).catch(function () {
-      listEl.innerHTML = '<p class="dir-empty">Unable to load organizations right now. Please try again later.</p>';
-    });
-  }
-
-  // ── Emergency Directory ──────────────────────────────────────────────────
-  function initEmergencySection() {
-    var filtersEl = document.getElementById('em-filters');
-    var listEl = document.getElementById('em-list');
-    if (!listEl) return;
-
-    listEl.innerHTML = '<p class="dir-empty">Loading emergency contacts…</p>';
-
-    fetchJSON('/api/directory/emergency').then(function (d) {
-      var EMERGENCY = d.contacts || [];
-
-      function render(items) {
-        listEl.innerHTML = items.map(function (e) {
-          var color = CAT_COLOR[e.category] || 'red';
-          return '<article class="dir-card dir-card-emergency reveal visible">' +
-            '<div class="dir-card-banner dir-card-banner--' + color + '">' + bannerHtml(e.imageUrl, CAT_ICON[e.category] || '🚨') + '</div>' +
-            '<div class="dir-card-body">' +
-            '<span class="dir-chip dir-chip--' + color + ' dir-chip-static">' + esc(e.category) + '</span>' +
-            '<h3>' + esc(e.name) + '</h3>' +
-            '<a class="dir-emergency-number" href="tel:' + esc((e.number || '').split('/')[0].replace(/[^0-9+]/g, '')) + '">📞 ' + esc(e.number) + '</a>' +
-            (e.altNumber ? '<a class="dir-emergency-number dir-emergency-alt" href="tel:' + esc(e.altNumber.split('/')[0].replace(/[^0-9+]/g, '')) + '">📞 ' + esc(e.altNumber) + ' (alternate)</a>' : '') +
-            '<ul class="dir-meta-list">' +
-            '<li>📍 ' + esc(e.address) + '</li>' +
-            '<li>🛟 ' + esc(e.services) + '</li>' +
-            '</ul>' +
-            '<div class="dir-card-actions">' +
-            (e.lat != null && e.lng != null ? '<a class="text-link" href="' + mapsLink(e.lat, e.lng) + '" target="_blank" rel="noopener noreferrer">📍 View on Map</a>' : '') +
-            '</div></div></article>';
-        }).join('') || '<p class="dir-empty">No entries match this category.</p>';
-      }
-
-      function apply() {
-        var cat = chips.getActive();
-        render(EMERGENCY.filter(function (e) { return cat === 'All' || e.category === cat; }));
-      }
-
-      var chips = buildChips(filtersEl, EMERGENCY, apply);
-      apply();
-    }).catch(function () {
-      listEl.innerHTML = '<p class="dir-empty">Unable to load emergency contacts right now. Please try again later.</p>';
-    });
+    if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox);
+    if (lightboxOverlay) {
+      lightboxOverlay.addEventListener('click', function (e) {
+        if (e.target === lightboxOverlay) closeLightbox();
+      });
+    }
   }
 
   function boot() {
-    initMapSection();
-    initBusinessSection();
-    initOrganizationSection();
-    initEmergencySection();
+    listEl = document.getElementById('dir2-list');
+    chipsEl = document.getElementById('dir2-chips');
+    countEl = document.getElementById('dir2-count');
+    searchEl = document.getElementById('dir2-search');
+    sortEl = document.getElementById('dir2-sort');
+    mapEl = document.getElementById('dir2-map');
+    nearMeBtn = document.getElementById('dir2-nearme-btn');
+    radiusRowEl = document.getElementById('dir2-radius-row');
+    modalOverlay = document.getElementById('dir2-modal-overlay');
+    modalBody = document.getElementById('dir2-modal-body');
+    modalClose = document.getElementById('dir2-modal-close');
+    lightboxOverlay = document.getElementById('dir2-lightbox-overlay');
+    lightboxImg = document.getElementById('dir2-lightbox-img');
+    lightboxClose = document.getElementById('dir2-lightbox-close');
+
+    if (!listEl) return; // not on the directory page
+
+    if (!navigator.geolocation && nearMeBtn) nearMeBtn.style.display = 'none';
+
+    initMap();
+    wireEvents();
+
+    loadAll().then(function (items) {
+      ALL_ITEMS = items;
+      applyFilters();
+    }).catch(function () {
+      if (countEl) countEl.textContent = 'Unable to load the directory right now. Please try again later.';
+    });
   }
 
   if (document.readyState === 'loading') {

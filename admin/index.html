@@ -404,6 +404,12 @@ a{text-decoration:none;color:inherit}
 .img-url-note{font-size:.72rem;color:var(--gray);margin-top:5px;word-break:break-all;
   background:var(--bg);padding:4px 8px;border-radius:4px;display:none}
 .img-url-note.show-note{display:block}
+.gallery-area{border:2px dashed var(--border);border-radius:var(--radius);padding:14px;text-align:center;background:var(--bg)}
+.gallery-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.gallery-grid:empty{display:none;margin-bottom:0}
+.gallery-thumb{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.gallery-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.gallery-thumb button{position:absolute;top:2px;right:2px;width:20px;height:20px;border:none;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:.7rem;line-height:1;cursor:pointer}
 .default-imgs{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
 .default-imgs label{font-size:.72rem;color:var(--gray);display:block;margin-bottom:7px;font-weight:500;text-align:left}
 .default-imgs-row{display:flex;gap:7px;flex-wrap:wrap}
@@ -1942,6 +1948,48 @@ a{text-decoration:none;color:inherit}
             <div class="img-hint">JPG, PNG, WebP - max 5 MB. Leave empty to use a category icon.</div>
           </div>
         </div>
+        <div class="form-section-label">Additional Details <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional)</span></div>
+        <div class="field">
+          <label>Website</label>
+          <input type="text" id="dirmap-website" maxlength="300" placeholder="https://...">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="dirmap-email" maxlength="200">
+        </div>
+        <div class="field">
+          <label>Facebook Page</label>
+          <input type="text" id="dirmap-facebook" maxlength="300" placeholder="https://facebook.com/...">
+        </div>
+        <div class="field">
+          <label>Keywords <span style="color:#94a3b8;font-size:.68rem">(comma-separated)</span></label>
+          <input type="text" id="dirmap-keywords" maxlength="300">
+        </div>
+        <div class="field">
+          <label>Opens At</label>
+          <input type="time" id="dirmap-hours-open">
+        </div>
+        <div class="field">
+          <label>Closes At</label>
+          <input type="time" id="dirmap-hours-close">
+        </div>
+        <div class="field field-full">
+          <label><input type="checkbox" id="dirmap-hours-24h" style="width:auto;margin-right:6px">Open 24 Hours</label>
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="dirmap-featured" style="width:auto;margin-right:6px">Featured Listing</label>
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="dirmap-verified" style="width:auto;margin-right:6px">Verified</label>
+        </div>
+        <div class="field field-full">
+          <label>Photo Gallery <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional, up to 5 MB each)</span></label>
+          <div class="gallery-area" id="dirmap-gallery-area">
+            <div class="gallery-grid" id="dirmap-gallery-grid"></div>
+            <label class="btn-upload-file" for="dirmap-gallery-file">Add Photo</label>
+            <input type="file" id="dirmap-gallery-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+          </div>
+        </div>
         <div class="form-section-label">Map Coordinates</div>
         <div class="field">
           <label>Latitude</label>
@@ -2025,6 +2073,44 @@ a{text-decoration:none;color:inherit}
             </div>
             <div class="img-url-note" id="dirbiz-img-url-note"></div>
             <div class="img-hint">JPG, PNG, WebP - max 5 MB. Leave empty to use a category icon.</div>
+          </div>
+        </div>
+        <div class="form-section-label">Additional Details <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional)</span></div>
+        <div class="field">
+          <label>Website</label>
+          <input type="text" id="dirbiz-website" maxlength="300" placeholder="https://...">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="dirbiz-email" maxlength="200">
+        </div>
+        <div class="field">
+          <label>Keywords <span style="color:#94a3b8;font-size:.68rem">(comma-separated)</span></label>
+          <input type="text" id="dirbiz-keywords" maxlength="300">
+        </div>
+        <div class="field">
+          <label>Opens At</label>
+          <input type="time" id="dirbiz-hours-open">
+        </div>
+        <div class="field">
+          <label>Closes At</label>
+          <input type="time" id="dirbiz-hours-close">
+        </div>
+        <div class="field field-full">
+          <label><input type="checkbox" id="dirbiz-hours-24h" style="width:auto;margin-right:6px">Open 24 Hours</label>
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="dirbiz-featured" style="width:auto;margin-right:6px">Featured Listing</label>
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="dirbiz-verified" style="width:auto;margin-right:6px">Verified</label>
+        </div>
+        <div class="field field-full">
+          <label>Photo Gallery <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional, up to 5 MB each)</span></label>
+          <div class="gallery-area" id="dirbiz-gallery-area">
+            <div class="gallery-grid" id="dirbiz-gallery-grid"></div>
+            <label class="btn-upload-file" for="dirbiz-gallery-file">Add Photo</label>
+            <input type="file" id="dirbiz-gallery-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
           </div>
         </div>
         <div class="form-section-label">Map Coordinates</div>
@@ -2116,6 +2202,37 @@ a{text-decoration:none;color:inherit}
             <div class="img-hint">JPG, PNG, WebP - max 5 MB. Leave empty to use a category icon.</div>
           </div>
         </div>
+        <div class="form-section-label">Additional Details <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional)</span></div>
+        <div class="field">
+          <label>Website</label>
+          <input type="text" id="dirorg-website" maxlength="300" placeholder="https://...">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="dirorg-email" maxlength="200">
+        </div>
+        <div class="field">
+          <label>Facebook Page</label>
+          <input type="text" id="dirorg-facebook" maxlength="300" placeholder="https://facebook.com/...">
+        </div>
+        <div class="field">
+          <label>Keywords <span style="color:#94a3b8;font-size:.68rem">(comma-separated)</span></label>
+          <input type="text" id="dirorg-keywords" maxlength="300">
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="dirorg-featured" style="width:auto;margin-right:6px">Featured Listing</label>
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="dirorg-verified" style="width:auto;margin-right:6px">Verified</label>
+        </div>
+        <div class="field field-full">
+          <label>Photo Gallery <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional, up to 5 MB each)</span></label>
+          <div class="gallery-area" id="dirorg-gallery-area">
+            <div class="gallery-grid" id="dirorg-gallery-grid"></div>
+            <label class="btn-upload-file" for="dirorg-gallery-file">Add Photo</label>
+            <input type="file" id="dirorg-gallery-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+          </div>
+        </div>
         <div class="form-section-label">Map Coordinates</div>
         <div class="field">
           <label>Latitude</label>
@@ -2196,6 +2313,37 @@ a{text-decoration:none;color:inherit}
             </div>
             <div class="img-url-note" id="direm-img-url-note"></div>
             <div class="img-hint">JPG, PNG, WebP - max 5 MB. Leave empty to use a category icon.</div>
+          </div>
+        </div>
+        <div class="form-section-label">Additional Details <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional)</span></div>
+        <div class="field">
+          <label>Website</label>
+          <input type="text" id="direm-website" maxlength="300" placeholder="https://...">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="direm-email" maxlength="200">
+        </div>
+        <div class="field">
+          <label>Facebook Page</label>
+          <input type="text" id="direm-facebook" maxlength="300" placeholder="https://facebook.com/...">
+        </div>
+        <div class="field">
+          <label>Keywords <span style="color:#94a3b8;font-size:.68rem">(comma-separated)</span></label>
+          <input type="text" id="direm-keywords" maxlength="300">
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="direm-featured" style="width:auto;margin-right:6px">Featured Listing</label>
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="direm-verified" style="width:auto;margin-right:6px">Verified</label>
+        </div>
+        <div class="field field-full">
+          <label>Photo Gallery <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional, up to 5 MB each)</span></label>
+          <div class="gallery-area" id="direm-gallery-area">
+            <div class="gallery-grid" id="direm-gallery-grid"></div>
+            <label class="btn-upload-file" for="direm-gallery-file">Add Photo</label>
+            <input type="file" id="direm-gallery-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
           </div>
         </div>
         <div class="form-section-label">Map Coordinates</div>
@@ -4894,7 +5042,7 @@ function eaDeleteDraft(id, title) {
 // ================== DIRECTORY MANAGEMENT ==================
 
 // -- Community Map ------------------------------------------------------------
-const SDM = { items:[], filter:'all', search:'', editingId:null, imageUrl:'' };
+const SDM = { items:[], filter:'all', search:'', editingId:null, imageUrl:'', gallery:[] };
 
 async function loadDirMap() {
   try {
@@ -4949,12 +5097,16 @@ document.querySelectorAll('#dirmap-tabs .tab').forEach(t => {
 $('btn-new-dirmap').onclick = openDirMapNew;
 
 function resetDirMapForm() {
-  SDM.editingId=null; SDM.imageUrl='';
+  SDM.editingId=null; SDM.imageUrl=''; SDM.gallery=[];
   $('dirmap-name').value=''; $('dirmap-cat').value='Barangay Hall';
   $('dirmap-contact').value=''; $('dirmap-desc').value=''; $('dirmap-address').value='';
   $('dirmap-hours').value=''; $('dirmap-lat').value=''; $('dirmap-lng').value='';
+  $('dirmap-website').value=''; $('dirmap-email').value=''; $('dirmap-facebook').value=''; $('dirmap-keywords').value='';
+  $('dirmap-hours-open').value=''; $('dirmap-hours-close').value=''; $('dirmap-hours-24h').checked=false;
+  $('dirmap-featured').checked=false; $('dirmap-verified').checked=false;
   $('dirmap-s-draft').checked=true;
   $('dirmap-img-preview').style.display='none'; $('dirmap-img-preview').src='';
+  renderGalleryGrid('dirmap', SDM.gallery);
 }
 
 function openDirMapNew() {
@@ -4966,14 +5118,20 @@ function openDirMapNew() {
 
 function openDirMapEdit(id) {
   const p = SDM.items.find(x=>x.id===id); if(!p) return;
-  resetDirMapForm(); SDM.editingId=id; SDM.imageUrl=p.imageUrl||'';
+  resetDirMapForm(); SDM.editingId=id; SDM.imageUrl=p.imageUrl||''; SDM.gallery=(p.gallery||[]).slice();
   $('dirmap-modal-title').textContent='Edit Location';
   $('dirmap-name').value=p.name||''; $('dirmap-cat').value=p.category||'Barangay Hall';
   $('dirmap-contact').value=p.contact||''; $('dirmap-desc').value=p.description||'';
   $('dirmap-address').value=p.address||''; $('dirmap-hours').value=p.hours||'';
   $('dirmap-lat').value=p.lat??''; $('dirmap-lng').value=p.lng??'';
+  $('dirmap-website').value=p.website||''; $('dirmap-email').value=p.email||'';
+  $('dirmap-facebook').value=p.facebook||''; $('dirmap-keywords').value=p.keywords||'';
+  $('dirmap-hours-open').value=p.hoursOpen||''; $('dirmap-hours-close').value=p.hoursClose||'';
+  $('dirmap-hours-24h').checked=!!p.hoursIs24h;
+  $('dirmap-featured').checked=!!p.featured; $('dirmap-verified').checked=!!p.verified;
   const sEl=document.getElementById('dirmap-s-'+p.status); if(sEl) sEl.checked=true; else $('dirmap-s-draft').checked=true;
   if(p.imageUrl){ $('dirmap-img-preview').src=p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl; $('dirmap-img-preview').style.display='block'; }
+  renderGalleryGrid('dirmap', SDM.gallery);
   $('dirmap-form-overlay').classList.add('open');
   $('dirmap-name').focus();
 }
@@ -5004,6 +5162,7 @@ const dirmapDropArea=$('dirmap-drop-area');
 dirmapDropArea.addEventListener('dragover',e=>{e.preventDefault();dirmapDropArea.classList.add('drag-over');});
 dirmapDropArea.addEventListener('dragleave',()=>dirmapDropArea.classList.remove('drag-over'));
 dirmapDropArea.addEventListener('drop',async e=>{ e.preventDefault();dirmapDropArea.classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(!f) return; await uploadDirMapImage(f); });
+$('dirmap-gallery-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadGalleryImage('dirmap','/admin/api/upload/map-location-gallery',f); e.target.value=''; };
 
 async function saveDirMapForm(forceStatus) {
   const name=$('dirmap-name').value.trim();
@@ -5015,6 +5174,12 @@ async function saveDirMapForm(forceStatus) {
     hours:$('dirmap-hours').value.trim(), imageUrl:SDM.imageUrl,
     lat: $('dirmap-lat').value===''?null:parseFloat($('dirmap-lat').value),
     lng: $('dirmap-lng').value===''?null:parseFloat($('dirmap-lng').value),
+    website:$('dirmap-website').value.trim(), email:$('dirmap-email').value.trim(),
+    facebook:$('dirmap-facebook').value.trim(), keywords:$('dirmap-keywords').value.trim(),
+    hoursOpen:$('dirmap-hours-open').value, hoursClose:$('dirmap-hours-close').value,
+    hoursIs24h:$('dirmap-hours-24h').checked,
+    featured:$('dirmap-featured').checked, verified:$('dirmap-verified').checked,
+    gallery:SDM.gallery,
     status
   };
   const url=SDM.editingId?`/admin/api/directory/map/${SDM.editingId}`:'/admin/api/directory/map';
@@ -5059,7 +5224,7 @@ function confirmDirMapDel(id,name){
 }
 
 // -- Business Directory --------------------------------------------------------
-const SDB = { items:[], filter:'all', search:'', editingId:null, imageUrl:'' };
+const SDB = { items:[], filter:'all', search:'', editingId:null, imageUrl:'', gallery:[] };
 
 async function loadDirBiz() {
   try {
@@ -5114,13 +5279,17 @@ document.querySelectorAll('#dirbiz-tabs .tab').forEach(t => {
 $('btn-new-dirbiz').onclick = openDirBizNew;
 
 function resetDirBizForm() {
-  SDB.editingId=null; SDB.imageUrl='';
+  SDB.editingId=null; SDB.imageUrl=''; SDB.gallery=[];
   $('dirbiz-name').value=''; $('dirbiz-cat').value='Food & Restaurants';
   $('dirbiz-contact').value=''; $('dirbiz-desc').value=''; $('dirbiz-address').value='';
   $('dirbiz-hours').value=''; $('dirbiz-social').value='';
   $('dirbiz-lat').value=''; $('dirbiz-lng').value='';
+  $('dirbiz-website').value=''; $('dirbiz-email').value=''; $('dirbiz-keywords').value='';
+  $('dirbiz-hours-open').value=''; $('dirbiz-hours-close').value=''; $('dirbiz-hours-24h').checked=false;
+  $('dirbiz-featured').checked=false; $('dirbiz-verified').checked=false;
   $('dirbiz-s-draft').checked=true;
   $('dirbiz-img-preview').style.display='none'; $('dirbiz-img-preview').src='';
+  renderGalleryGrid('dirbiz', SDB.gallery);
 }
 
 function openDirBizNew() {
@@ -5132,15 +5301,20 @@ function openDirBizNew() {
 
 function openDirBizEdit(id) {
   const p = SDB.items.find(x=>x.id===id); if(!p) return;
-  resetDirBizForm(); SDB.editingId=id; SDB.imageUrl=p.imageUrl||'';
+  resetDirBizForm(); SDB.editingId=id; SDB.imageUrl=p.imageUrl||''; SDB.gallery=(p.gallery||[]).slice();
   $('dirbiz-modal-title').textContent='Edit Business';
   $('dirbiz-name').value=p.name||''; $('dirbiz-cat').value=p.category||'Food & Restaurants';
   $('dirbiz-contact').value=p.contact||''; $('dirbiz-desc').value=p.description||'';
   $('dirbiz-address').value=p.address||''; $('dirbiz-hours').value=p.hours||'';
   $('dirbiz-social').value=p.social||'';
   $('dirbiz-lat').value=p.lat??''; $('dirbiz-lng').value=p.lng??'';
+  $('dirbiz-website').value=p.website||''; $('dirbiz-email').value=p.email||''; $('dirbiz-keywords').value=p.keywords||'';
+  $('dirbiz-hours-open').value=p.hoursOpen||''; $('dirbiz-hours-close').value=p.hoursClose||'';
+  $('dirbiz-hours-24h').checked=!!p.hoursIs24h;
+  $('dirbiz-featured').checked=!!p.featured; $('dirbiz-verified').checked=!!p.verified;
   const sEl=document.getElementById('dirbiz-s-'+p.status); if(sEl) sEl.checked=true; else $('dirbiz-s-draft').checked=true;
   if(p.imageUrl){ $('dirbiz-img-preview').src=p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl; $('dirbiz-img-preview').style.display='block'; }
+  renderGalleryGrid('dirbiz', SDB.gallery);
   $('dirbiz-form-overlay').classList.add('open');
   $('dirbiz-name').focus();
 }
@@ -5171,6 +5345,7 @@ const dirbizDropArea=$('dirbiz-drop-area');
 dirbizDropArea.addEventListener('dragover',e=>{e.preventDefault();dirbizDropArea.classList.add('drag-over');});
 dirbizDropArea.addEventListener('dragleave',()=>dirbizDropArea.classList.remove('drag-over'));
 dirbizDropArea.addEventListener('drop',async e=>{ e.preventDefault();dirbizDropArea.classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(!f) return; await uploadDirBizLogo(f); });
+$('dirbiz-gallery-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadGalleryImage('dirbiz','/admin/api/upload/business-gallery',f); e.target.value=''; };
 
 async function saveDirBizForm(forceStatus) {
   const name=$('dirbiz-name').value.trim();
@@ -5182,6 +5357,12 @@ async function saveDirBizForm(forceStatus) {
     hours:$('dirbiz-hours').value.trim(), imageUrl:SDB.imageUrl, social:$('dirbiz-social').value.trim(),
     lat: $('dirbiz-lat').value===''?null:parseFloat($('dirbiz-lat').value),
     lng: $('dirbiz-lng').value===''?null:parseFloat($('dirbiz-lng').value),
+    website:$('dirbiz-website').value.trim(), email:$('dirbiz-email').value.trim(),
+    keywords:$('dirbiz-keywords').value.trim(),
+    hoursOpen:$('dirbiz-hours-open').value, hoursClose:$('dirbiz-hours-close').value,
+    hoursIs24h:$('dirbiz-hours-24h').checked,
+    featured:$('dirbiz-featured').checked, verified:$('dirbiz-verified').checked,
+    gallery:SDB.gallery,
     status
   };
   const url=SDB.editingId?`/admin/api/directory/businesses/${SDB.editingId}`:'/admin/api/directory/businesses';
@@ -5226,7 +5407,7 @@ function confirmDirBizDel(id,name){
 }
 
 // -- Organization Directory -----------------------------------------------------
-const SDO = { items:[], filter:'all', search:'', editingId:null, imageUrl:'' };
+const SDO = { items:[], filter:'all', search:'', editingId:null, imageUrl:'', gallery:[] };
 
 async function loadDirOrg() {
   try {
@@ -5281,13 +5462,16 @@ document.querySelectorAll('#dirorg-tabs .tab').forEach(t => {
 $('btn-new-dirorg').onclick = openDirOrgNew;
 
 function resetDirOrgForm() {
-  SDO.editingId=null; SDO.imageUrl='';
+  SDO.editingId=null; SDO.imageUrl=''; SDO.gallery=[];
   $('dirorg-name').value=''; $('dirorg-cat').value='Associations';
   $('dirorg-contact-person').value=''; $('dirorg-desc').value=''; $('dirorg-contact-details').value='';
   $('dirorg-location').value=''; $('dirorg-officers').value=''; $('dirorg-programs').value='';
   $('dirorg-lat').value=''; $('dirorg-lng').value='';
+  $('dirorg-website').value=''; $('dirorg-email').value=''; $('dirorg-facebook').value=''; $('dirorg-keywords').value='';
+  $('dirorg-featured').checked=false; $('dirorg-verified').checked=false;
   $('dirorg-s-draft').checked=true;
   $('dirorg-img-preview').style.display='none'; $('dirorg-img-preview').src='';
+  renderGalleryGrid('dirorg', SDO.gallery);
 }
 
 function openDirOrgNew() {
@@ -5299,15 +5483,19 @@ function openDirOrgNew() {
 
 function openDirOrgEdit(id) {
   const p = SDO.items.find(x=>x.id===id); if(!p) return;
-  resetDirOrgForm(); SDO.editingId=id; SDO.imageUrl=p.imageUrl||'';
+  resetDirOrgForm(); SDO.editingId=id; SDO.imageUrl=p.imageUrl||''; SDO.gallery=(p.gallery||[]).slice();
   $('dirorg-modal-title').textContent='Edit Organization';
   $('dirorg-name').value=p.name||''; $('dirorg-cat').value=p.category||'Associations';
   $('dirorg-contact-person').value=p.contactPerson||''; $('dirorg-desc').value=p.description||'';
   $('dirorg-contact-details').value=p.contactDetails||''; $('dirorg-location').value=p.location||'';
   $('dirorg-officers').value=(p.officers||[]).join('\n'); $('dirorg-programs').value=p.programs||'';
   $('dirorg-lat').value=p.lat??''; $('dirorg-lng').value=p.lng??'';
+  $('dirorg-website').value=p.website||''; $('dirorg-email').value=p.email||'';
+  $('dirorg-facebook').value=p.facebook||''; $('dirorg-keywords').value=p.keywords||'';
+  $('dirorg-featured').checked=!!p.featured; $('dirorg-verified').checked=!!p.verified;
   const sEl=document.getElementById('dirorg-s-'+p.status); if(sEl) sEl.checked=true; else $('dirorg-s-draft').checked=true;
   if(p.imageUrl){ $('dirorg-img-preview').src=p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl; $('dirorg-img-preview').style.display='block'; }
+  renderGalleryGrid('dirorg', SDO.gallery);
   $('dirorg-form-overlay').classList.add('open');
   $('dirorg-name').focus();
 }
@@ -5338,6 +5526,7 @@ const dirorgDropArea=$('dirorg-drop-area');
 dirorgDropArea.addEventListener('dragover',e=>{e.preventDefault();dirorgDropArea.classList.add('drag-over');});
 dirorgDropArea.addEventListener('dragleave',()=>dirorgDropArea.classList.remove('drag-over'));
 dirorgDropArea.addEventListener('drop',async e=>{ e.preventDefault();dirorgDropArea.classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(!f) return; await uploadDirOrgLogo(f); });
+$('dirorg-gallery-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadGalleryImage('dirorg','/admin/api/upload/organization-gallery',f); e.target.value=''; };
 
 async function saveDirOrgForm(forceStatus) {
   const name=$('dirorg-name').value.trim();
@@ -5351,6 +5540,10 @@ async function saveDirOrgForm(forceStatus) {
     location:$('dirorg-location').value.trim(), imageUrl:SDO.imageUrl,
     lat: $('dirorg-lat').value===''?null:parseFloat($('dirorg-lat').value),
     lng: $('dirorg-lng').value===''?null:parseFloat($('dirorg-lng').value),
+    website:$('dirorg-website').value.trim(), email:$('dirorg-email').value.trim(),
+    facebook:$('dirorg-facebook').value.trim(), keywords:$('dirorg-keywords').value.trim(),
+    featured:$('dirorg-featured').checked, verified:$('dirorg-verified').checked,
+    gallery:SDO.gallery,
     status
   };
   const url=SDO.editingId?`/admin/api/directory/organizations/${SDO.editingId}`:'/admin/api/directory/organizations';
@@ -5395,7 +5588,7 @@ function confirmDirOrgDel(id,name){
 }
 
 // -- Emergency Directory --------------------------------------------------------
-const SDE = { items:[], filter:'all', search:'', editingId:null, imageUrl:'' };
+const SDE = { items:[], filter:'all', search:'', editingId:null, imageUrl:'', gallery:[] };
 
 async function loadDirEm() {
   try {
@@ -5450,12 +5643,15 @@ document.querySelectorAll('#direm-tabs .tab').forEach(t => {
 $('btn-new-direm').onclick = openDirEmNew;
 
 function resetDirEmForm() {
-  SDE.editingId=null; SDE.imageUrl='';
+  SDE.editingId=null; SDE.imageUrl=''; SDE.gallery=[];
   $('direm-name').value=''; $('direm-cat').value='Emergency Contacts';
   $('direm-number').value=''; $('direm-alt-number').value=''; $('direm-address').value='';
   $('direm-services').value=''; $('direm-lat').value=''; $('direm-lng').value='';
+  $('direm-website').value=''; $('direm-email').value=''; $('direm-facebook').value=''; $('direm-keywords').value='';
+  $('direm-featured').checked=false; $('direm-verified').checked=false;
   $('direm-s-draft').checked=true;
   $('direm-img-preview').style.display='none'; $('direm-img-preview').src='';
+  renderGalleryGrid('direm', SDE.gallery);
 }
 
 function openDirEmNew() {
@@ -5467,14 +5663,18 @@ function openDirEmNew() {
 
 function openDirEmEdit(id) {
   const p = SDE.items.find(x=>x.id===id); if(!p) return;
-  resetDirEmForm(); SDE.editingId=id; SDE.imageUrl=p.imageUrl||'';
+  resetDirEmForm(); SDE.editingId=id; SDE.imageUrl=p.imageUrl||''; SDE.gallery=(p.gallery||[]).slice();
   $('direm-modal-title').textContent='Edit Emergency Contact';
   $('direm-name').value=p.name||''; $('direm-cat').value=p.category||'Emergency Contacts';
   $('direm-number').value=p.number||''; $('direm-alt-number').value=p.altNumber||'';
   $('direm-address').value=p.address||''; $('direm-services').value=p.services||'';
   $('direm-lat').value=p.lat??''; $('direm-lng').value=p.lng??'';
+  $('direm-website').value=p.website||''; $('direm-email').value=p.email||'';
+  $('direm-facebook').value=p.facebook||''; $('direm-keywords').value=p.keywords||'';
+  $('direm-featured').checked=!!p.featured; $('direm-verified').checked=!!p.verified;
   const sEl=document.getElementById('direm-s-'+p.status); if(sEl) sEl.checked=true; else $('direm-s-draft').checked=true;
   if(p.imageUrl){ $('direm-img-preview').src=p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl; $('direm-img-preview').style.display='block'; }
+  renderGalleryGrid('direm', SDE.gallery);
   $('direm-form-overlay').classList.add('open');
   $('direm-name').focus();
 }
@@ -5505,6 +5705,41 @@ const diremDropArea=$('direm-drop-area');
 diremDropArea.addEventListener('dragover',e=>{e.preventDefault();diremDropArea.classList.add('drag-over');});
 diremDropArea.addEventListener('dragleave',()=>diremDropArea.classList.remove('drag-over'));
 diremDropArea.addEventListener('drop',async e=>{ e.preventDefault();diremDropArea.classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(!f) return; await uploadDirEmLogo(f); });
+$('direm-gallery-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadGalleryImage('direm','/admin/api/upload/emergency-gallery',f); e.target.value=''; };
+
+// -- Directory: shared photo-gallery widget (reused by all 4 Directory modules) --
+const DIR_STATE_BY_PREFIX = { dirmap:SDM, dirbiz:SDB, dirorg:SDO, direm:SDE };
+
+function renderGalleryGrid(prefix, gallery) {
+  const el = $(prefix+'-gallery-grid');
+  if (!el) return;
+  el.innerHTML = (gallery||[]).map((url,i) => {
+    const src = url.indexOf('http')===0 ? url : '/'+url;
+    return `<div class="gallery-thumb"><img src="${src}" alt="" onerror="this.parentElement.remove()"><button type="button" onclick="removeGalleryImage('${prefix}',${i})">&times;</button></div>`;
+  }).join('');
+}
+
+function removeGalleryImage(prefix, idx) {
+  const st = DIR_STATE_BY_PREFIX[prefix];
+  if (!st) return;
+  st.gallery.splice(idx,1);
+  renderGalleryGrid(prefix, st.gallery);
+}
+
+async function uploadGalleryImage(prefix, endpoint, file) {
+  const st = DIR_STATE_BY_PREFIX[prefix];
+  if (!st) return;
+  const form=new FormData(); form.append('image',file);
+  try {
+    const r=await adminFetch(endpoint,{method:'POST',body:form});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Upload failed','err');return;}
+    st.gallery = st.gallery || [];
+    st.gallery.push(d.url);
+    renderGalleryGrid(prefix, st.gallery);
+    toast('Photo added','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
+}
 
 async function saveDirEmForm(forceStatus) {
   const name=$('direm-name').value.trim();
@@ -5517,6 +5752,10 @@ async function saveDirEmForm(forceStatus) {
     address:$('direm-address').value.trim(), services:$('direm-services').value.trim(), imageUrl:SDE.imageUrl,
     lat: $('direm-lat').value===''?null:parseFloat($('direm-lat').value),
     lng: $('direm-lng').value===''?null:parseFloat($('direm-lng').value),
+    website:$('direm-website').value.trim(), email:$('direm-email').value.trim(),
+    facebook:$('direm-facebook').value.trim(), keywords:$('direm-keywords').value.trim(),
+    featured:$('direm-featured').checked, verified:$('direm-verified').checked,
+    gallery:SDE.gallery,
     status
   };
   const url=SDE.editingId?`/admin/api/directory/emergency/${SDE.editingId}`:'/admin/api/directory/emergency';

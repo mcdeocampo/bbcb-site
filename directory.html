@@ -20,9 +20,12 @@
   <link rel="icon" type="image/png" sizes="32x32" href="images/bolbok-png.png">
   <link rel="icon" type="image/png" sizes="16x16" href="images/bolbok-png.png">
   <link rel="apple-touch-icon" href="images/bolbok-png.png">
-  <link rel="stylesheet" href="assets/css/style.css?v=22">
-  <!-- Leaflet.js (CDN) — used only on this Directory page for the Community Map -->
+  <link rel="stylesheet" href="assets/css/style.css?v=26">
+  <!-- Leaflet.js (CDN) — used only on this Directory page for the interactive map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <!-- Leaflet.markercluster (CDN) — marker clustering, used only on this Directory page -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" integrity="sha384-pmjIAcz2bAn0xukfxADbZIb3t8oRT9Sv0rvO+BR5Csr6Dhqq+nZs59P0pPKQJkEV" crossorigin="">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" integrity="sha384-wgw+aLYNQ7dlhK47ZPK7FRACiq7ROZwgFNg0m04avm4CaXS+Z9Y7nMu8yNjBKYC+" crossorigin="">
 </head>
 <body data-page="directory.html">
   <header class="site-header" id="top">
@@ -54,94 +57,55 @@
       <div class="container reveal">
         <span class="eyebrow">Community Directory</span>
         <h1>Barangay Directory</h1>
-        <p>Find public locations, local businesses, organizations, and emergency contacts across Barangay Bolbok.</p>
+        <p>Search, filter, and explore public locations, businesses, organizations, and emergency contacts across Barangay Bolbok — all on one interactive map.</p>
       </div>
     </section>
 
-    <section class="section-pad-sm dir-jumpnav-section">
-      <div class="container dir-jumpnav reveal">
-        <a href="#community-map">🗺️ Community Map</a>
-        <a href="#business-directory">🏪 Business Directory</a>
-        <a href="#organization-directory">🤝 Organizations</a>
-        <a href="#emergency-directory">🚨 Emergency Directory</a>
-      </div>
-    </section>
-
-    <!-- ── Community Map ─────────────────────────────────────────────── -->
-    <section class="section-pad" id="community-map">
-      <div class="container">
-        <div class="section-heading reveal">
-          <span class="eyebrow">Find Your Way</span>
-          <h2>Community Map</h2>
-          <p>Locate the Barangay Hall, health center, schools, evacuation centers, and public facilities of Barangay Bolbok.</p>
+    <section class="dir2-section">
+      <div class="container dir2-grid">
+        <div class="dir2-toolbar reveal">
+          <input type="search" class="dir2-search" id="dir2-search" placeholder="Search the directory by name, category, address…" aria-label="Search the directory">
+          <button type="button" class="dir2-nearme-btn" id="dir2-nearme-btn">📍 Near Me</button>
+          <select class="dir2-sort" id="dir2-sort" aria-label="Sort results">
+            <option value="alpha">Sort: Alphabetical</option>
+            <option value="nearest">Sort: Nearest</option>
+            <option value="newest">Sort: Newest</option>
+            <option value="updated">Sort: Recently Updated</option>
+          </select>
+          <div class="dir2-radius-row" id="dir2-radius-row" aria-label="Filter by distance"></div>
         </div>
 
-        <div class="dir-controls reveal">
-          <input type="search" class="dir-search" id="map-search" placeholder="Search locations…" aria-label="Search community map locations">
-          <div class="dir-chips" id="map-filters" role="group" aria-label="Filter locations by category"></div>
+        <div class="dir2-map-shell">
+          <div id="dir2-map" class="dir2-map" role="application" aria-label="Interactive directory map"></div>
         </div>
 
-        <div class="dir-map-wrap reveal">
-          <div id="dir-map" class="dir-map" role="application" aria-label="Interactive map of Barangay Bolbok community locations"></div>
+        <aside class="dir2-cats" aria-label="Filter by category">
+          <h2>Categories</h2>
+          <div class="dir2-chip-rail" id="dir2-chips"></div>
+        </aside>
+
+        <div class="dir2-listwrap">
+          <p class="dir2-count" id="dir2-count" role="status" aria-live="polite">Loading directory…</p>
+          <div class="dir2-list" id="dir2-list" aria-label="Directory results"></div>
         </div>
-
-        <div class="dir-card-grid" id="map-list"></div>
-      </div>
-    </section>
-
-    <!-- ── Business Directory ────────────────────────────────────────── -->
-    <section class="section-pad soft-bg" id="business-directory">
-      <div class="container">
-        <div class="section-heading reveal">
-          <span class="eyebrow">Support Local</span>
-          <h2>Business Directory</h2>
-          <p>Discover restaurants, stores, services, and local entrepreneurs operating in Barangay Bolbok.</p>
-        </div>
-
-        <div class="dir-controls reveal">
-          <input type="search" class="dir-search" id="biz-search" placeholder="Search businesses…" aria-label="Search business directory">
-          <div class="dir-chips" id="biz-filters" role="group" aria-label="Filter businesses by category"></div>
-        </div>
-
-        <div class="dir-card-grid" id="biz-list"></div>
-      </div>
-    </section>
-
-    <!-- ── Organization Directory ────────────────────────────────────── -->
-    <section class="section-pad" id="organization-directory">
-      <div class="container">
-        <div class="section-heading reveal">
-          <span class="eyebrow">People Power</span>
-          <h2>Organization Directory</h2>
-          <p>Meet the associations, youth groups, senior citizens, and community groups serving Barangay Bolbok.</p>
-        </div>
-
-        <div class="dir-controls reveal">
-          <input type="search" class="dir-search" id="org-search" placeholder="Search organizations…" aria-label="Search organization directory">
-          <div class="dir-chips" id="org-filters" role="group" aria-label="Filter organizations by category"></div>
-        </div>
-
-        <div class="dir-card-grid" id="org-list"></div>
-      </div>
-    </section>
-
-    <!-- ── Emergency Directory ───────────────────────────────────────── -->
-    <section class="section-pad soft-bg" id="emergency-directory">
-      <div class="container">
-        <div class="section-heading reveal">
-          <span class="eyebrow">Quick Access</span>
-          <h2>Emergency Directory</h2>
-          <p>Emergency hotlines, hospitals, police, fire services, and disaster response contacts.</p>
-        </div>
-
-        <div class="dir-controls reveal">
-          <div class="dir-chips" id="em-filters" role="group" aria-label="Filter emergency contacts by category"></div>
-        </div>
-
-        <div class="dir-card-grid dir-card-grid-emergency" id="em-list"></div>
       </div>
     </section>
   </main>
+
+  <!-- Directory details modal (built once, filled in per-item by directory.js) -->
+  <div class="dir2-modal-overlay" id="dir2-modal-overlay">
+    <div class="dir2-modal" role="dialog" aria-modal="true" aria-labelledby="dir2-modal-title">
+      <button type="button" class="dir2-modal-close" id="dir2-modal-close" aria-label="Close details">✕</button>
+      <div id="dir2-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Gallery photo lightbox (opened from the details modal's photo gallery) -->
+  <div class="dir2-lightbox-overlay" id="dir2-lightbox-overlay">
+    <button type="button" class="dir2-modal-close" id="dir2-lightbox-close" aria-label="Close photo">✕</button>
+    <img id="dir2-lightbox-img" src="" alt="">
+  </div>
+
   <footer class="site-footer">
     <div class="container footer-grid">
       <div>
@@ -162,6 +126,8 @@
   <script src="assets/js/emergency-alert.js?v=12"></script>
   <!-- Leaflet.js (CDN) — used only on this Directory page -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script src="assets/js/directory.js"></script>
+  <!-- Leaflet.markercluster (CDN) — marker clustering, used only on this Directory page -->
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" integrity="sha384-eXVCORTRlv4FUUgS/xmOyr66XBVraen8ATNLMESp92FKXLAMiKkerixTiBvXriZr" crossorigin=""></script>
+  <script src="assets/js/directory.js?v=5"></script>
 </body>
 </html>
