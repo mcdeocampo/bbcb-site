@@ -424,32 +424,36 @@
 
     // Announcements left content block (eyebrow, heading, description, link)
     // — isolated staggered fade/lift reveal, scoped to just this wrapper.
+    // Uses its own "ann-visible" class (NOT "visible") because main.js's
+    // separate reveal system auto-tags this wrapper with a "reveal" class
+    // too (see its auto-reveal-assignment pass) and independently forces
+    // "visible" onto every ".reveal" element after its own 2s fallback —
+    // reusing that class name would let that unrelated timer prematurely
+    // trigger this section's animation before the user ever scrolls to it.
     var ANN_WRAP=document.querySelector('.ann-heading-wrap');
     if(ANN_WRAP){
       if('IntersectionObserver' in window){
         var annWrapObserver=new IntersectionObserver(function(entries){
           entries.forEach(function(entry){
             if(entry.isIntersecting){
-              entry.target.classList.add('visible');
+              entry.target.classList.add('ann-visible');
               annWrapObserver.unobserve(entry.target);
             }
           });
         },{threshold:0.1});
         annWrapObserver.observe(ANN_WRAP);
-        // Fallback: ensure it becomes visible after 2s regardless (matches
-        // the same safety net the site's shared reveal system already uses).
-        setTimeout(function(){ANN_WRAP.classList.add('visible');},2000);
       } else {
-        ANN_WRAP.classList.add('visible');
+        ANN_WRAP.classList.add('ann-visible');
       }
     }
 
     // Announcements mini-list — isolated staggered fade/lift/scale reveal
     // for the cards, scoped to just this list (doesn't touch main.js).
+    // Same "ann-visible" class for the same reason as above.
     var annCardObserver=('IntersectionObserver' in window)?new IntersectionObserver(function(entries){
       entries.forEach(function(entry){
         if(entry.isIntersecting){
-          entry.target.classList.add('visible');
+          entry.target.classList.add('ann-visible');
           annCardObserver.unobserve(entry.target);
         }
       });
@@ -458,9 +462,8 @@
       var cards=(root||document).querySelectorAll('#ann-mini-list article.reveal');
       if(annCardObserver){
         cards.forEach(function(c){annCardObserver.observe(c);});
-        setTimeout(function(){cards.forEach(function(c){c.classList.add('visible');});},2000);
       } else {
-        cards.forEach(function(c){c.classList.add('visible');});
+        cards.forEach(function(c){c.classList.add('ann-visible');});
       }
     }
     observeAnnCards();

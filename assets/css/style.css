@@ -16411,10 +16411,10 @@ html,body{ max-width:100vw; overflow-x:hidden }
 .ann-heading-wrap h2         { transition-delay: 0.12s !important; }
 .ann-heading-wrap p          { transition-delay: 0.24s !important; }
 .ann-heading-wrap .text-link { transition-delay: 0.36s !important; }
-.ann-heading-wrap.visible .eyebrow,
-.ann-heading-wrap.visible h2,
-.ann-heading-wrap.visible p,
-.ann-heading-wrap.visible .text-link {
+.ann-heading-wrap.ann-visible .eyebrow,
+.ann-heading-wrap.ann-visible h2,
+.ann-heading-wrap.ann-visible p,
+.ann-heading-wrap.ann-visible .text-link {
   opacity: 1 !important;
   transform: none !important;
 }
@@ -16426,7 +16426,7 @@ html,body{ max-width:100vw; overflow-x:hidden }
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) !important;
   transition-delay: 0.05s !important;
 }
-.ann-heading-wrap.visible .eyebrow::before {
+.ann-heading-wrap.ann-visible .eyebrow::before {
   transform: scaleX(1) !important;
 }
 
@@ -16458,16 +16458,20 @@ html,body{ max-width:100vw; overflow-x:hidden }
   transition: none !important;
 }
 
-/* Announcement cards — subtle scale-in added on top of the shared .reveal
-   fade/slide-up (delay-1/2/3 stagger already applied per card in markup). */
+/* Announcement cards — fade/slide/scale entrance, fully decoupled from
+   main.js's shared .reveal/.visible system (same reason as the wrapper
+   above): driven entirely by our own "ann-visible" class. */
 #ann-mini-list article.reveal {
+  opacity: 0 !important;
   transform: translateY(16px) scale(0.98) !important;
 }
-#ann-mini-list article.reveal.visible {
+#ann-mini-list article.reveal.ann-visible {
+  opacity: 1 !important;
   transform: none !important;
 }
 @media (prefers-reduced-motion: reduce) {
   #ann-mini-list article.reveal {
+    opacity: 1 !important;
     transform: none !important;
   }
 }
