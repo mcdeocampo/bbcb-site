@@ -9,6 +9,7 @@ import uuid
 import hashlib
 import hmac
 import re
+import secrets
 import urllib.request
 import urllib.error
 from datetime import datetime, timezone, timedelta
@@ -290,11 +291,11 @@ def _update_user(updated_user):
 
 def _ensure_initial_user():
     """
-    Create the initial admin account only when no users exist in Supabase.
-    Never called when users already exist — never resets a changed password.
+    Create the initial admin account only when no admin account exists in Supabase.
+    Never called when one already exists — never resets a changed password.
     """
     try:
-        res = supabase.table('users').select('id').limit(1).execute()
+        res = supabase.table('users').select('id').eq('role', 'admin').limit(1).execute()
         if res.data:
             return
     except Exception as exc:
@@ -341,9 +342,87 @@ def _ensure_initial_user():
         print(f'[BBCB] ERROR: Could not create initial admin user: {exc}')
 
 
-# ── Audit logging — no-op (temporarily disabled; restore after migration stable) ──
-def _audit(*args, **kwargs):
-    pass
+def _ensure_root_user():
+    """
+    Create the permanent, hidden Root account only when it doesn't exist yet.
+    Same hashing/auth mechanism as the Administrator account. Reserved for
+    emergency recovery — never surfaced in any admin-facing list or API,
+    and never touched by day-to-day admin flows.
+    """
+    try:
+        res = supabase.table('users').select('id').eq('role', 'root').limit(1).execute()
+        if res.data:
+            return
+    except Exception as exc:
+        print(f'[BBCB] WARNING: Could not check for root account: {exc}')
+        return
+
+    username = 'root'
+    plain_pw = os.environ.get('ROOT_PASSWORD', '')
+    if not plain_pw:
+        plain_pw = f'Root@{secrets.token_hex(8)}'
+        print('[BBCB] -------------------------------------------------')
+        print('[BBCB] WARNING: No ROOT_PASSWORD set.')
+        print(f'[BBCB] Auto-generated Root password: {plain_pw}')
+        print('[BBCB] Log in as root and change this password immediately.')
+    else:
+        print('[BBCB] -------------------------------------------------')
+        print('[BBCB] Root account created from ROOT_PASSWORD env var.')
+        print('[BBCB] Log in as root and change this password immediately.')
+    pw_hash = _hash_pw(plain_pw)
+    print('[BBCB] -------------------------------------------------')
+
+    now = datetime.now(timezone.utc).isoformat()
+    row = {
+        'id':                    uuid.uuid4().hex,
+        'full_name':             'Root',
+        'username':              username,
+        'email':                 '',
+        'password_hash':         pw_hash,
+        'role':                  'root',
+        'status':                'active',
+        'force_password_change': True,
+        'failed_login_count':    0,
+        'locked_until':          None,
+        'last_login_at':         None,
+        'created_at':            now,
+        'updated_at':            now,
+    }
+    try:
+        supabase.table('users').insert(row).execute()
+        print('[BBCB] Root account created.')
+    except Exception as exc:
+        print(f'[BBCB] ERROR: Could not create root account: {exc}')
+
+
+# ── Audit logging ──────────────────────────────────────────────────────────────
+def _audit(event_type, message='', user_id=None, success=True):
+    """
+    Persist an audit trail entry. Denormalizes username/role at write time so
+    the trail stays readable even if the acting account is later changed.
+    Never raises — a logging failure must not break the caller's request.
+    """
+    username = None
+    role = None
+    if user_id:
+        u = _get_user_by_id(user_id)
+        if u:
+            username = u.get('username')
+            role = u.get('role')
+    try:
+        supabase.table('audit_logs').insert({
+            'id':         uuid.uuid4().hex,
+            'event_type': event_type,
+            'message':    message,
+            'user_id':    user_id,
+            'username':   username,
+            'role':       role,
+            'success':    bool(success),
+            'ip_address': request.remote_addr,
+            'created_at': datetime.now(timezone.utc).isoformat(),
+        }).execute()
+    except Exception as exc:
+        print(f'[BBCB] WARNING: audit log write failed: {exc}')
 
 
 # ── Session helpers ───────────────────────────────────────────────────────────
@@ -3769,6 +3848,7 @@ def admin_upload_emergency_gallery():
 
 # ── Bootstrap ─────────────────────────────────────────────────────────────────
 _ensure_initial_user()
+_ensure_root_user()
 _ensure_initial_settings()
 
 if __name__ == '__main__':
