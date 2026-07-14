@@ -1065,6 +1065,33 @@ a{text-decoration:none;color:inherit}
           <div class="dash-card-foot">Manage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
         </div>
 
+        <!-- Directory Management (combined: Map + Business + Organization + Emergency) -->
+        <div class="dash-card" onclick="showSection('dirmap')">
+          <div class="dash-card-top" style="background:linear-gradient(90deg,#4338ca,#818cf8)"></div>
+          <div class="dash-card-body">
+            <div class="dash-card-head">
+              <div class="dash-card-icon" style="background:#eef2ff;color:#4338ca">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+              </div>
+              <div>
+                <div class="dash-card-title">Directory Management</div>
+                <div class="dash-card-sub">Map * Business * Org * Emergency</div>
+              </div>
+            </div>
+            <div class="dash-card-stats">
+              <div class="dash-card-stat">
+                <span class="dash-card-num" id="dash-dir-total">-</span>
+                <span class="dash-card-lbl">Total Listings</span>
+              </div>
+              <div class="dash-card-stat">
+                <span class="dash-card-num dc-green" id="dash-dir-pub">-</span>
+                <span class="dash-card-lbl">Published</span>
+              </div>
+            </div>
+          </div>
+          <div class="dash-card-foot">Manage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+
         <!-- Settings -->
         <div class="dash-card" onclick="showSection('settings')">
           <div class="dash-card-top" style="background:linear-gradient(90deg,#475569,#94a3b8)"></div>
@@ -3102,6 +3129,11 @@ function updateStats() {
   $('dash-psvc-pub').textContent    = psvc.filter(x=>x.status==='published').length;
   $('dash-psvc-draft').textContent  = psvc.filter(x=>x.status==='draft').length;
   $('dash-psvc-hidden').textContent = psvc.filter(x=>x.status==='hidden').length;
+
+  // Directory Management — combined across Map/Business/Organization/Emergency
+  const dirAll = [...(SDM.items||[]), ...(SDB.items||[]), ...(SDO.items||[]), ...(SDE.items||[])];
+  $('dash-dir-total').textContent = dirAll.length;
+  $('dash-dir-pub').textContent   = dirAll.filter(x=>x.status==='published').length;
 
   // Calendar — upcoming events in the next 30 days
   const acts = SC.activities || [];
