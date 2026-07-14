@@ -3017,10 +3017,20 @@ function resetSettingsForm() {
 }
 
 // -- Root - Administrator password recovery ----------------------------------
-async function rootResetAdminPassword() {
+function rootResetAdminPassword() {
   if (CURRENT_ROLE !== 'root') return;
-  if (!confirm('Reset the Administrator password? Their current password will stop working immediately.')) return;
+  $('confirm-icon-wrap').style.cssText = 'background:#fee2e2;color:#dc2626';
+  $('confirm-icon-wrap').innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+  $('confirm-title').textContent = 'Reset Administrator password?';
+  $('confirm-msg').textContent = 'Their current password will stop working immediately.';
+  $('confirm-yes').className = 'btn-del';
+  $('confirm-yes').textContent = 'Reset Password';
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick = doRootResetAdminPassword;
+}
 
+async function doRootResetAdminPassword() {
+  $('confirm-overlay').classList.remove('open');
   const btn = $('root-reset-btn');
   const errEl = $('root-reset-err');
   errEl.style.display = 'none';
