@@ -355,7 +355,8 @@
         var yr = s.copyright_year || '';
         var ow = s.copyright_owner || '';
         var sx = s.copyright_suffix || '';
-        if (yr || ow || sx) el.textContent = '© ' + yr + ' ' + ow + '. ' + sx;
+        var core = [yr, ow].filter(Boolean).join(' ');
+        el.textContent = core ? ('© ' + core + (sx ? '. ' + sx : '')) : (sx || '');
       } else {
         el.textContent = s[key] || '';
         if (el.tagName === 'A') {

@@ -568,16 +568,19 @@
   fetch('/api/emergency-hotlines')
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      if (d && Array.isArray(d.hotlines) && d.hotlines.length > 0) {
-        var api = d.hotlines.map(function(h) { return { label: h.label||'', number: h.number||'' }; })
-                            .filter(function(h) { return h.label && h.number; });
-        if (api.length > 0) {
-          BBCB_HOTLINES = api;
-          var overlay = document.getElementById('hotlines-modal-overlay');
-          var list    = document.getElementById('hotlines-list');
-          if (list && overlay && window.getComputedStyle(overlay).display === 'none') list.innerHTML = '';
-        }
-      }
+      // Once the API answers it is authoritative: an empty list means every
+      // hotline was removed in admin, so honour that rather than falling back
+      // to the static list (which only covers an unreachable server).
+      if (!d || !Array.isArray(d.hotlines)) return;
+      BBCB_HOTLINES = d.hotlines.map(function(h) { return { label: h.label||'', number: h.number||'' }; })
+                                .filter(function(h) { return h.label && h.number; });
+      var overlay = document.getElementById('hotlines-modal-overlay');
+      var list    = document.getElementById('hotlines-list');
+      if (list && overlay && window.getComputedStyle(overlay).display === 'none') list.innerHTML = '';
+      // The Other Hotlines tile only opens a list of numbers, so drop it
+      // entirely when there are none to show.
+      var tile = document.getElementById('bbcb-hotlines-trigger');
+      if (tile) tile.style.display = BBCB_HOTLINES.length ? '' : 'none';
     })
     .catch(function() {});
 
