@@ -370,11 +370,13 @@
         }
       }
     });
-    // href attributes
+    // href attributes — the element always renders; a link is attached only when
+    // its URL is configured. Without a URL it stays inert (no href) rather than
+    // falling back to a stale hardcoded link.
     document.querySelectorAll('[data-setting-href]').forEach(function (el) {
       var key = el.getAttribute('data-setting-href');
-      if (s[key]) { el.href = s[key]; el.style.display = ''; }
-      else { el.removeAttribute('href'); el.style.display = 'none'; }
+      if (s[key]) { el.href = s[key]; }
+      else { el.removeAttribute('href'); }
     });
   }).catch(function (err) { console.error('[settings] /api/site-settings fetch failed:', err); });
 })();
