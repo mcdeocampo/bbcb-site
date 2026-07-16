@@ -378,5 +378,12 @@
       if (s[key]) { el.href = s[key]; }
       else { el.removeAttribute('href'); }
     });
+    // An emergency tile exists only to dial its number, so drop the whole tile
+    // when no number is configured rather than leaving a bare label.
+    ['emergency_card_number', 'police_card_number'].forEach(function (key) {
+      var el = document.querySelector('[data-setting="' + key + '"]');
+      var tile = el && el.closest('.hero-emergency-item');
+      if (tile) tile.style.display = s[key] ? '' : 'none';
+    });
   }).catch(function (err) { console.error('[settings] /api/site-settings fetch failed:', err); });
 })();
