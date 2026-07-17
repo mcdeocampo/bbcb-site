@@ -348,6 +348,11 @@
 // ── Site settings sync ────────────────────────────────────────────────────────
 (function () {
   fetch('/api/site-settings').then(function (r) { return r.json(); }).then(function (s) {
+    // /api/site-settings answers {} when the database read fails, which is
+    // indistinguishable from "every setting is blank". Treat that as "no
+    // settings available" and leave the page's own content alone, rather than
+    // blanking the hotline card and footer on a cold start.
+    if (!s || !Object.keys(s).length) return;
     // Text content
     document.querySelectorAll('[data-setting]').forEach(function (el) {
       var key = el.getAttribute('data-setting');
