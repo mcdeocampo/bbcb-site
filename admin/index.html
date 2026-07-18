@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin | Barangay Bolbok</title>
+<title data-admin-title>Admin | Barangay Bolbok</title>
 <link rel="icon" type="image/png" href="../images/bolbok-png.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -661,9 +661,9 @@ a{text-decoration:none;color:inherit}
   <div class="login-card">
     <div class="login-inner">
     <div class="login-logo">
-      <img src="../images/bolbok-png.png" alt="Barangay Bolbok">
-      <div class="login-logo-name">Barangay Bolbok</div>
-      <div class="login-logo-sub">Batangas City, Batangas</div>
+      <img src="../images/bolbok-png.png" alt="Barangay Bolbok" data-setting-src="barangay_logo_url">
+      <div class="login-logo-name" data-setting="barangay_name">Barangay Bolbok</div>
+      <div class="login-logo-sub" data-setting="barangay_locality">Batangas City, Batangas</div>
     </div>
     <hr class="login-divider">
     <div class="field">
@@ -760,9 +760,9 @@ a{text-decoration:none;color:inherit}
 <div id="admin-app">
   <aside class="sidebar">
     <div class="sidebar-header">
-      <img src="../images/bolbok-png.png" alt="Logo">
+      <img src="../images/bolbok-png.png" alt="Logo" data-setting-src="barangay_logo_url">
       <div>
-        <strong>Barangay Bolbok</strong>
+        <strong data-setting="barangay_name">Barangay Bolbok</strong>
         <small>Admin Panel</small>
       </div>
     </div>
@@ -4657,7 +4657,33 @@ async function loadSiteSettings() {
 // history photos reuse the shared upload + gallery widgets.
 const SCM = { logoUrl:'', gallery:[] };
 
+// Admin branding — sidebar, login card, tab title.
+// Uses the PUBLIC settings endpoint because the login card is rendered before
+// the admin is authenticated, so adminFetch is not available yet.
+function applyAdminBranding(s) {
+  if (!s || !Object.keys(s).length) return;   // {} on error must not blank the panel
+  document.querySelectorAll('[data-setting]').forEach(el => {
+    const k = el.getAttribute('data-setting');
+    if (k in s) el.textContent = s[k] || '';
+  });
+  document.querySelectorAll('[data-setting-src]').forEach(el => {
+    const v = s[el.getAttribute('data-setting-src')];
+    if (v) el.src = v.indexOf('http') === 0 ? v : '/' + v;
+  });
+  const t = document.querySelector('title[data-admin-title]');
+  if (t && s.barangay_name) document.title = 'Admin | ' + s.barangay_name;
+}
+
+async function loadAdminBranding() {
+  try {
+    const r = await fetch('/api/site-settings', { cache: 'no-store' });
+    applyAdminBranding(await r.json());
+  } catch (e) { /* keep the shipped markup */ }
+}
+loadAdminBranding();
+
 function applyContentSettings(d) {
+  applyAdminBranding(d);
   [
     ['cm-barangay-name',          d.barangay_name],
     ['cm-barangay-locality',      d.barangay_locality],
@@ -4738,6 +4764,9 @@ async function saveContentIdentity() {
     barangay_logo_url:  SCM.logoUrl || '',
   };
   await saveContentGroup(payload, 'Barangay Identity saved');
+  // Reflect the new identity in the panel straight away rather than making the
+  // admin reload to see whether the change took.
+  applyAdminBranding(payload);
 }
 
 async function saveContentHero() {
