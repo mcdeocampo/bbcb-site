@@ -371,6 +371,11 @@ a{text-decoration:none;color:inherit}
 .settings-subtitle{font-size:.7rem;font-weight:700;color:var(--blue);text-transform:uppercase;
   letter-spacing:.05em;margin-bottom:10px}
 @media(max-width:820px){.settings-grid{grid-template-columns:1fr}}
+.cm-map-preview-wrap{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#f8fafc}
+.cm-map-preview-wrap iframe{width:100%;height:220px;border:0;display:none}
+.cm-map-preview-wrap iframe.show{display:block}
+.cm-map-preview-wrap .img-hint{padding:14px}
+.cm-map-preview-wrap .img-hint.hide{display:none}
 
 /* --- OVERLAYS --------------------------------------------- */
 .overlay{position:fixed;inset:0;background:rgba(15,30,60,.58);z-index:100;
@@ -606,6 +611,8 @@ a{text-decoration:none;color:inherit}
 .badge-alert-draft{background:#f1f5f9;color:#475569}
 .badge-alert-active{background:#dcfce7;color:#15803d}
 .badge-alert-expired{background:#fee2e2;color:#b91c1c}
+.badge-alert-scheduled{background:#fef3c7;color:#a16207}
+.badge-alert-ended{background:#f1f5f9;color:#475569}
 .badge-alert-resolved{background:#e0f2fe;color:#0369a1}
 .badge-alert-archived{background:#f1f5f9;color:#64748b}
 .badge-priority-advisory{background:#fef3c7;color:#b45309}
@@ -816,6 +823,11 @@ a{text-decoration:none;color:inherit}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         Emergency Alerts
         <span class="ea-nav-count" id="ea-nav-active-count" style="display:none">0</span>
+      </button>
+      <div class="nav-label">Website Content</div>
+      <button class="nav-item" data-sec="content">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Content Management
       </button>
       <div class="nav-label">Account</div>
       <button class="nav-item" data-sec="settings">
@@ -1577,6 +1589,167 @@ a{text-decoration:none;color:inherit}
     </section>
 
     <!-- Settings -->
+    <!-- ══════════════════ CONTENT MANAGEMENT ══════════════════ -->
+    <section id="sec-content" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Content Management</h2>
+          <p>Edit the barangay identity, homepage hero, and About Us content shown on the public website.</p>
+        </div>
+      </div>
+
+      <div class="settings-grid">
+
+        <!-- Barangay Identity: header & footer -->
+        <div class="settings-card">
+          <h3>Barangay Identity</h3>
+          <p class="settings-desc">Shown in the header and footer of every page on the public website.</p>
+          <div class="form-grid">
+            <div class="field"><label>Barangay Name</label><input type="text" id="cm-barangay-name" maxlength="120"></div>
+            <div class="field"><label>Location Subtitle</label><input type="text" id="cm-barangay-locality" maxlength="120"></div>
+            <div class="field field-full"><label>Footer Tagline</label><textarea id="cm-footer-tagline" rows="2" maxlength="500"></textarea></div>
+            <div class="field field-full">
+              <label>Barangay Logo</label>
+              <div class="img-area" id="cm-logo-drop-area">
+                <img class="img-preview" id="cm-logo-preview" src="" alt="" style="display:none">
+                <div class="img-upload-row">
+                  <label class="btn-upload-file" for="cm-logo-file">Upload Logo</label>
+                  <input type="file" id="cm-logo-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+                  <button type="button" class="btn-act" id="cm-logo-remove" style="font-size:.7rem" onclick="clearContentLogo()">Remove</button>
+                </div>
+                <div class="img-url-note" id="cm-logo-url-note"></div>
+                <div class="img-hint">JPG, PNG, WebP - max 5 MB. Leave empty to use the built-in logo.</div>
+              </div>
+            </div>
+          </div>
+          <div class="settings-acts">
+            <button class="btn-publish" onclick="saveContentIdentity()">Save Barangay Identity</button>
+          </div>
+        </div>
+
+        <!-- Homepage Hero -->
+        <div class="settings-card">
+          <h3>Homepage Hero</h3>
+          <p class="settings-desc">The large title and description at the top of the homepage.</p>
+          <div class="form-grid">
+            <div class="field field-full"><label>Hero Title</label><input type="text" id="cm-hero-title" maxlength="120"></div>
+            <div class="field field-full"><label>Hero Description</label><textarea id="cm-hero-description" rows="4" maxlength="500"></textarea></div>
+          </div>
+
+          <div class="settings-subgroup"><div class="settings-subtitle">Barangay at a Glance</div></div>
+          <p class="settings-desc">The summary strip below the hero. Each item keeps its icon; only the text is editable.</p>
+          <div class="form-grid">
+            <div class="field field-full"><label>Strip Title</label><input type="text" id="cm-glance-title" maxlength="120"></div>
+            <div class="field"><label>Item 1</label><input type="text" id="cm-glance-item1" maxlength="120"></div>
+            <div class="field"><label>Item 2</label><input type="text" id="cm-glance-item2" maxlength="120"></div>
+            <div class="field"><label>Item 3</label><input type="text" id="cm-glance-item3" maxlength="120"></div>
+            <div class="field"><label>Item 4</label><input type="text" id="cm-glance-item4" maxlength="120"></div>
+          </div>
+          <div class="settings-acts">
+            <button class="btn-publish" onclick="saveContentHero()">Save Hero</button>
+          </div>
+        </div>
+
+        <!-- About Us -->
+        <div class="settings-card settings-grid-full">
+          <h3>About Us Page</h3>
+          <p class="settings-desc">Barangay history, mission, vision, and profile shown on the About Us page.</p>
+
+          <div class="settings-subgroup"><div class="settings-subtitle">Page Hero</div></div>
+          <div class="form-grid">
+            <div class="field field-full"><label>Hero Title</label><input type="text" id="cm-about-hero-title" maxlength="120"></div>
+            <div class="field field-full"><label>Hero Description</label><textarea id="cm-about-hero-description" rows="2" maxlength="500"></textarea></div>
+          </div>
+
+          <div class="settings-subgroup"><div class="settings-subtitle">Barangay History</div></div>
+          <div class="form-grid">
+            <div class="field field-full"><label>History Title</label><input type="text" id="cm-history-title" maxlength="120"></div>
+            <div class="field field-full">
+              <label>History Content</label>
+              <textarea id="cm-history-content" rows="8" maxlength="5000"></textarea>
+              <div class="img-hint">Leave a blank line between paragraphs.</div>
+            </div>
+            <div class="field field-full">
+              <label>History Photos</label>
+              <div class="gallery-area" id="cm-history-gallery-area">
+                <div class="gallery-grid" id="cm-history-gallery-grid"></div>
+                <label class="btn-upload-file" for="cm-history-gallery-file">Add Photo</label>
+                <input type="file" id="cm-history-gallery-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+                <div class="img-hint">JPG, PNG, WebP - max 5 MB each. Leave empty to use the built-in photos.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-subgroup"><div class="settings-subtitle">Mission &amp; Vision</div></div>
+          <div class="form-grid">
+            <div class="field"><label>Mission Title</label><input type="text" id="cm-mission-title" maxlength="120"></div>
+            <div class="field"><label>Vision Title</label><input type="text" id="cm-vision-title" maxlength="120"></div>
+            <div class="field"><label>Mission Statement</label><textarea id="cm-mission-text" rows="4" maxlength="500"></textarea></div>
+            <div class="field"><label>Vision Statement</label><textarea id="cm-vision-text" rows="4" maxlength="500"></textarea></div>
+          </div>
+
+          <div class="settings-subgroup"><div class="settings-subtitle">Barangay Profile</div></div>
+          <div class="form-grid">
+            <div class="field"><label>Section Eyebrow</label><input type="text" id="cm-profile-eyebrow" maxlength="120"></div>
+            <div class="field"><label>Section Heading</label><input type="text" id="cm-profile-title" maxlength="120"></div>
+            <div class="field"><label>City</label><input type="text" id="cm-profile-city" maxlength="120"></div>
+            <div class="field"><label>Province</label><input type="text" id="cm-profile-province" maxlength="120"></div>
+            <div class="field"><label>Region</label><input type="text" id="cm-profile-region" maxlength="120"></div>
+            <div class="field"><label>Community Type</label><input type="text" id="cm-profile-community-type" maxlength="120"></div>
+            <div class="field field-full"><label>Profile Intro Text</label><textarea id="cm-profile-intro" rows="2" maxlength="500"></textarea></div>
+          </div>
+
+          <div class="settings-acts">
+            <button class="btn-publish" onclick="saveContentAbout()">Save About Us</button>
+          </div>
+        </div>
+
+        <!-- Location & Map -->
+        <div class="settings-card settings-grid-full">
+          <h3>Location &amp; Map</h3>
+          <p class="settings-desc">The Location Overview section and embedded map on the About Us page.</p>
+          <div class="form-grid">
+            <div class="field field-full"><label>Location Title</label><input type="text" id="cm-location-title" maxlength="120"></div>
+            <div class="field field-full"><label>Location Description</label><textarea id="cm-location-description" rows="4" maxlength="500"></textarea></div>
+            <div class="field field-full">
+              <label>Google Maps Embed URL</label>
+              <input type="text" id="cm-map-url" maxlength="300" placeholder="https://www.google.com/maps?q=...&amp;output=embed">
+              <div class="img-hint">Paste the map URL only (not the full &lt;iframe&gt; code).</div>
+            </div>
+            <div class="field field-full"><label>Map Badge Text</label><input type="text" id="cm-map-badge" maxlength="120"></div>
+            <div class="field field-full">
+              <label>Map Preview</label>
+              <div class="cm-map-preview-wrap">
+                <iframe id="cm-map-preview" title="Map preview" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                <div class="img-hint" id="cm-map-preview-empty">Enter a URL above to preview the map.</div>
+              </div>
+            </div>
+          </div>
+          <div class="settings-acts">
+            <button class="btn-publish" onclick="saveContentLocation()">Save Location &amp; Map</button>
+          </div>
+        </div>
+
+        <!-- Other Page Descriptions -->
+        <div class="settings-card settings-grid-full">
+          <h3>Other Page Descriptions</h3>
+          <p class="settings-desc">Intro text on the remaining pages. These mention the barangay by name, so update them whenever the identity above changes.</p>
+          <div class="form-grid">
+            <div class="field field-full"><label>Officials Page &mdash; Hero Description</label><textarea id="cm-officials-hero-desc" rows="2" maxlength="500"></textarea></div>
+            <div class="field field-full"><label>Homepage &mdash; Officials Section Description</label><textarea id="cm-home-officials-desc" rows="2" maxlength="500"></textarea></div>
+            <div class="field field-full"><label>Contact Page &mdash; Hero Description</label><textarea id="cm-contact-hero-desc" rows="2" maxlength="500"></textarea></div>
+            <div class="field field-full"><label>Contact Page &mdash; Barangay Hall Card Description</label><textarea id="cm-contact-card-desc" rows="2" maxlength="500"></textarea></div>
+            <div class="field field-full"><label>Directory Page &mdash; Hero Description</label><textarea id="cm-directory-hero-desc" rows="2" maxlength="500"></textarea></div>
+            <div class="field field-full"><label>Service Standards &mdash; Service Pledge</label><textarea id="cm-charter-pledge" rows="3" maxlength="500"></textarea></div>
+          </div>
+          <div class="settings-acts">
+            <button class="btn-publish" onclick="saveContentPages()">Save Page Descriptions</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
     <section id="sec-settings" style="display:none">
       <div class="page-hdr">
         <div>
@@ -3099,7 +3272,7 @@ async function adminFetch(url, opts) {
 
 // -- Nav --------------------------------------------------------------------
 function showSection(name) {
-  ['dashboard','announcements','initiatives','forms','officials','calendar','pubservices','dirmap','dirbiz','dirorg','direm','dircats','alerts','settings'].forEach(s => {
+  ['dashboard','announcements','initiatives','forms','officials','calendar','pubservices','dirmap','dirbiz','dirorg','direm','dircats','content','alerts','settings'].forEach(s => {
     $('sec-'+s).style.display = s===name ? 'block' : 'none';
   });
   document.querySelectorAll('.nav-item[data-sec]').forEach(b => {
@@ -3117,6 +3290,7 @@ function showSection(name) {
   if (name==='dirorg') renderDirOrgList();
   if (name==='direm') renderDirEmList();
   if (name==='dircats') renderCategoriesList();
+  if (name==='content') loadSiteSettings();
   if (name==='alerts') { eaSwitchPanel('active', document.querySelector('.ea-subtab[data-panel="active"]')); loadAlerts(); }
   if (name==='settings') { resetSettingsForm(); loadSiteSettings(); loadHotlines(); }
 }
@@ -4474,7 +4648,190 @@ async function loadSiteSettings() {
       ['ss-hp-sk-subtitle',     d.sk_facebook_subtitle],
       ['ss-hp-sk-url',          d.sk_facebook_url],
     ].forEach(([id, val]) => { const el=$(id); if (el) el.value = val || ''; });
+    applyContentSettings(d);
   } catch(e) { if (e.message !== 'unauthorized') toast('Failed to load site settings', 'err'); }
+}
+
+// ── Content Management ──────────────────────────────────────────────────────
+// Text fields go through site_settings like every other setting; the logo and
+// history photos reuse the shared upload + gallery widgets.
+const SCM = { logoUrl:'', gallery:[] };
+
+function applyContentSettings(d) {
+  [
+    ['cm-barangay-name',          d.barangay_name],
+    ['cm-barangay-locality',      d.barangay_locality],
+    ['cm-footer-tagline',         d.footer_tagline],
+    ['cm-hero-title',             d.hero_title],
+    ['cm-hero-description',       d.hero_description],
+    ['cm-about-hero-title',       d.about_hero_title],
+    ['cm-about-hero-description', d.about_hero_description],
+    ['cm-history-title',          d.about_history_title],
+    ['cm-history-content',        d.about_history_content],
+    ['cm-mission-title',          d.about_mission_title],
+    ['cm-mission-text',           d.about_mission_text],
+    ['cm-vision-title',           d.about_vision_title],
+    ['cm-vision-text',            d.about_vision_text],
+    ['cm-profile-city',           d.about_profile_city],
+    ['cm-profile-province',       d.about_profile_province],
+    ['cm-profile-region',         d.about_profile_region],
+    ['cm-profile-community-type', d.about_profile_community_type],
+    ['cm-location-title',         d.about_location_title],
+    ['cm-location-description',   d.about_location_description],
+    ['cm-map-url',                d.about_map_url],
+    ['cm-map-badge',              d.about_map_badge],
+    ['cm-profile-intro',          d.about_profile_intro],
+    ['cm-profile-eyebrow',        d.about_profile_eyebrow],
+    ['cm-profile-title',          d.about_profile_title],
+    ['cm-glance-title',           d.home_glance_title],
+    ['cm-glance-item1',           d.home_glance_item1],
+    ['cm-glance-item2',           d.home_glance_item2],
+    ['cm-glance-item3',           d.home_glance_item3],
+    ['cm-glance-item4',           d.home_glance_item4],
+    ['cm-charter-pledge',         d.charter_pledge_text],
+    ['cm-contact-hero-desc',      d.contact_hero_description],
+    ['cm-contact-card-desc',      d.contact_card_description],
+    ['cm-directory-hero-desc',    d.directory_hero_description],
+    ['cm-officials-hero-desc',    d.officials_hero_description],
+    ['cm-home-officials-desc',    d.home_officials_description],
+  ].forEach(([id, val]) => { const el=$(id); if (el) el.value = val || ''; });
+
+  SCM.logoUrl = d.barangay_logo_url || '';
+  renderContentLogo();
+
+  let imgs = [];
+  try { imgs = JSON.parse(d.about_history_images || '[]') || []; } catch(e) { imgs = []; }
+  SCM.gallery = Array.isArray(imgs) ? imgs : [];
+  renderGalleryGrid('cm-history', SCM.gallery);
+
+  renderContentMapPreview();
+}
+
+function renderContentLogo() {
+  const img=$('cm-logo-preview'), note=$('cm-logo-url-note'), rm=$('cm-logo-remove');
+  if (img) {
+    if (SCM.logoUrl) { img.src = SCM.logoUrl.indexOf('http')===0 ? SCM.logoUrl : '/'+SCM.logoUrl; img.style.display=''; }
+    else { img.src=''; img.style.display='none'; }
+  }
+  if (note) note.textContent = SCM.logoUrl ? SCM.logoUrl : 'Using the built-in logo.';
+  if (rm) rm.style.display = SCM.logoUrl ? '' : 'none';
+}
+
+function clearContentLogo() {
+  SCM.logoUrl = '';
+  renderContentLogo();
+  toast('Logo cleared — click Save to apply', 'ok');
+}
+
+function renderContentMapPreview() {
+  const url=($('cm-map-url')||{}).value||'', frame=$('cm-map-preview'), empty=$('cm-map-preview-empty');
+  if (!frame) return;
+  if (url) { frame.src = url; frame.classList.add('show'); if (empty) empty.classList.add('hide'); }
+  else { frame.removeAttribute('src'); frame.classList.remove('show'); if (empty) empty.classList.remove('hide'); }
+}
+
+async function saveContentIdentity() {
+  const payload = {
+    barangay_name:      ($('cm-barangay-name')     || {}).value || '',
+    barangay_locality:  ($('cm-barangay-locality') || {}).value || '',
+    footer_tagline:     ($('cm-footer-tagline')    || {}).value || '',
+    barangay_logo_url:  SCM.logoUrl || '',
+  };
+  await saveContentGroup(payload, 'Barangay Identity saved');
+}
+
+async function saveContentHero() {
+  const payload = {
+    hero_title:       ($('cm-hero-title')       || {}).value || '',
+    hero_description: ($('cm-hero-description') || {}).value || '',
+    home_glance_title: ($('cm-glance-title') || {}).value || '',
+    home_glance_item1: ($('cm-glance-item1') || {}).value || '',
+    home_glance_item2: ($('cm-glance-item2') || {}).value || '',
+    home_glance_item3: ($('cm-glance-item3') || {}).value || '',
+    home_glance_item4: ($('cm-glance-item4') || {}).value || '',
+  };
+  await saveContentGroup(payload, 'Hero saved');
+}
+
+async function saveContentAbout() {
+  const payload = {
+    about_hero_title:             ($('cm-about-hero-title')       || {}).value || '',
+    about_hero_description:       ($('cm-about-hero-description') || {}).value || '',
+    about_history_title:          ($('cm-history-title')          || {}).value || '',
+    about_history_content:        ($('cm-history-content')        || {}).value || '',
+    about_history_images:         JSON.stringify(SCM.gallery || []),
+    about_mission_title:          ($('cm-mission-title')          || {}).value || '',
+    about_mission_text:           ($('cm-mission-text')           || {}).value || '',
+    about_vision_title:           ($('cm-vision-title')           || {}).value || '',
+    about_vision_text:            ($('cm-vision-text')            || {}).value || '',
+    about_profile_city:           ($('cm-profile-city')           || {}).value || '',
+    about_profile_province:       ($('cm-profile-province')       || {}).value || '',
+    about_profile_region:         ($('cm-profile-region')         || {}).value || '',
+    about_profile_community_type: ($('cm-profile-community-type') || {}).value || '',
+    about_profile_intro:          ($('cm-profile-intro')          || {}).value || '',
+    about_profile_eyebrow:        ($('cm-profile-eyebrow')        || {}).value || '',
+    about_profile_title:          ($('cm-profile-title')          || {}).value || '',
+  };
+  await saveContentGroup(payload, 'About Us saved');
+}
+
+async function saveContentLocation() {
+  const payload = {
+    about_location_title:       ($('cm-location-title')       || {}).value || '',
+    about_location_description: ($('cm-location-description') || {}).value || '',
+    about_map_url:              ($('cm-map-url')              || {}).value || '',
+    about_map_badge:            ($('cm-map-badge')            || {}).value || '',
+  };
+  await saveContentGroup(payload, 'Location * Map saved');
+}
+
+async function saveContentPages() {
+  const payload = {
+    officials_hero_description: ($('cm-officials-hero-desc') || {}).value || '',
+    home_officials_description: ($('cm-home-officials-desc') || {}).value || '',
+    contact_hero_description:   ($('cm-contact-hero-desc')   || {}).value || '',
+    contact_card_description:   ($('cm-contact-card-desc')   || {}).value || '',
+    directory_hero_description: ($('cm-directory-hero-desc') || {}).value || '',
+    charter_pledge_text:        ($('cm-charter-pledge')      || {}).value || '',
+  };
+  await saveContentGroup(payload, 'Page descriptions saved');
+}
+
+async function saveContentGroup(payload, okMsg) {
+  try {
+    const r = await adminFetch('/admin/api/site-settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const d = await r.json();
+    if (!r.ok) { toast(d.error || 'Save failed', 'err'); return; }
+    toast(okMsg, 'ok');
+  } catch(e) { if (e.message !== 'unauthorized') toast('Save failed', 'err'); }
+}
+
+// Listeners registered here rather than inline so they survive re-renders.
+if ($('cm-logo-file')) {
+  $('cm-logo-file').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    await uploadContentLogo(f); e.target.value = '';
+  };
+}
+if ($('cm-history-gallery-file')) {
+  $('cm-history-gallery-file').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    await uploadGalleryImage('cm-history', '/admin/api/upload/about-history-image', f);
+    e.target.value = '';
+  };
+}
+if ($('cm-map-url')) $('cm-map-url').addEventListener('input', renderContentMapPreview);
+
+async function uploadContentLogo(file) {
+  const form=new FormData(); form.append('image', file);
+  try {
+    const r=await adminFetch('/admin/api/upload/barangay-logo', {method:'POST', body:form});
+    const d=await r.json();
+    if(!r.ok){ toast(d.error||'Upload failed','err'); return; }
+    SCM.logoUrl = d.url;
+    renderContentLogo();
+    toast('Logo uploaded — click Save to apply','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
 }
 
 async function saveFooterSettings() {
@@ -5175,6 +5532,50 @@ function eaFmtDatetime(dt) {
   } catch { return dt; }
 }
 
+// Manila wall-clock "YYYY-MM-DDTHH:MM" — must match the server's _manila_now(),
+// because start/expiration are stored as Manila wall-clock strings.
+function eaManilaNow() {
+  const d = new Date();
+  const m = new Date(d.getTime() + (d.getTimezoneOffset() * 60000) + (8 * 3600000));
+  const p = n => String(n).padStart(2, '0');
+  return m.getFullYear() + '-' + p(m.getMonth()+1) + '-' + p(m.getDate()) +
+         'T' + p(m.getHours()) + ':' + p(m.getMinutes());
+}
+
+// status==='active' only means "not draft/resolved". Whether the public site
+// actually shows it also depends on the start/expiry window — the same test
+// /api/emergency-alerts/active applies. Reporting only the flag made a
+// scheduled alert look live in admin while the site correctly hid it.
+function eaPublicState(a) {
+  if (a.status !== 'active') return { key: a.status, label: a.status };
+  const now = eaManilaNow();
+  const start = (a.startDatetime || '').slice(0, 16);
+  const exp   = (a.expirationDatetime || '').slice(0, 16);
+  // Mirror the server test in api_emergency_alerts_active exactly:
+  //   start <= now AND expiration >= now, comparing as plain strings.
+  // Note an empty expiration fails ('' >= now is false), so a dateless alert
+  // is never shown publicly even though its status is 'active'.
+  if (start > now)  return { key: 'scheduled', label: 'Scheduled', when: start };
+  if (!(exp >= now)) return exp
+    ? { key: 'ended',    label: 'Ended', when: exp }
+    : { key: 'nowindow', label: 'No expiry set' };
+  return { key: 'live', label: 'Live now' };
+}
+
+function eaStateBadge(a) {
+  const s = eaPublicState(a);
+  if (s.key === 'scheduled') {
+    return `<span class="badge badge-alert-scheduled" title="Not shown on the site yet — starts ${esc(eaFmtDatetime(s.when))}">⏳ Scheduled</span>`;
+  }
+  if (s.key === 'ended') {
+    return `<span class="badge badge-alert-ended" title="Expiration has passed — no longer shown on the site">⏹ Ended</span>`;
+  }
+  if (s.key === 'nowindow') {
+    return `<span class="badge badge-alert-expired" title="No expiration date set, so the site will not display this alert. Edit it and set an expiration.">⚠ Not shown — no expiry</span>`;
+  }
+  return '<span class="badge badge-alert-active">Live now</span>';
+}
+
 function renderEaActiveList() {
   const el = $('ea-active-list');
   if (!el) return;
@@ -5189,7 +5590,7 @@ function renderEaActiveList() {
         <div style="flex:1;min-width:0">
           <div class="ea-card-title">${esc(a.title)}</div>
           <div class="ea-card-meta">
-            <span class="badge badge-alert-active">Active</span>
+            ${eaStateBadge(a)}
             <span class="badge badge-priority-${(a.priority||'advisory').toLowerCase()}">${esc(a.priority)}</span>
             <span class="cat-tag">${esc(a.alertType)}</span>
             ${a.version > 1 ? `<span style="font-size:.68rem;color:#94a3b8">v${a.version}</span>` : ''}
@@ -5335,7 +5736,15 @@ async function eaSaveCreate(status) {
     });
     const d = await r.json();
     if (r.ok) {
-      toast(status==='active' ? 'Alert activated successfully.' : 'Alert saved as draft.', 'ok');
+      // Be explicit when the alert won't be visible yet — "activated" alone
+      // reads as "it's on the site now", which is false for a future start.
+      let msg = 'Alert saved as draft.';
+      if (status === 'active') {
+        msg = (start && start.slice(0,16) > eaManilaNow())
+          ? 'Alert scheduled. It will appear on the site at ' + eaFmtDatetime(start) + '.'
+          : 'Alert activated and is now live on the site.';
+      }
+      toast(msg, 'ok');
       await loadAlerts();
       eaSwitchPanel('active', document.querySelector('.ea-subtab[data-panel="active"]'));
     } else {
@@ -6663,7 +7072,7 @@ diremDropArea.addEventListener('drop',async e=>{ e.preventDefault();diremDropAre
 $('direm-gallery-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadGalleryImage('direm','/admin/api/upload/emergency-gallery',f); e.target.value=''; };
 
 // -- Directory: shared photo-gallery widget (reused by all 4 Directory modules) --
-const DIR_STATE_BY_PREFIX = { dirmap:SDM, dirbiz:SDB, dirorg:SDO, direm:SDE };
+const DIR_STATE_BY_PREFIX = { dirmap:SDM, dirbiz:SDB, dirorg:SDO, direm:SDE, 'cm-history':SCM };
 
 function renderGalleryGrid(prefix, gallery) {
   const el = $(prefix+'-gallery-grid');

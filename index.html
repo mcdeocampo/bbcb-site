@@ -13,7 +13,7 @@
   <meta name="twitter:description" content="Official website of Barangay Bolbok, Batangas City, Batangas. Access public services, announcements, community initiatives, service standards, and contact information.">
   <meta name="twitter:image" content="images/bolbok-png.png">
   <link rel="canonical" href="https://bolbok.gov.ph/">
-  <title>Barangay Bolbok | Batangas City, Batangas</title>
+  <title data-site-title>Barangay Bolbok | Batangas City, Batangas</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -26,8 +26,8 @@
   <header class="site-header" id="top">
     <nav class="navbar container" aria-label="Main Navigation">
       <a href="index.html" class="brand" aria-label="Barangay Bolbok Home">
-        <img src="images/bolbok-png.png" alt="Barangay Bolbok Logo">
-        <span><strong>Barangay Bolbok</strong><small>Batangas City, Batangas</small></span>
+        <img src="images/bolbok-png.png" alt="Barangay Bolbok Logo" data-setting-src="barangay_logo_url">
+        <span><strong data-setting="barangay_name">Barangay Bolbok</strong><small data-setting="barangay_locality">Batangas City, Batangas</small></span>
       </a>
       <button class="menu-toggle" aria-label="Open navigation menu" aria-expanded="false">
         <span></span><span></span><span></span>
@@ -52,8 +52,8 @@
       <div class="hero-overlay"></div>
       <div class="container hero-content reveal">
         <span class="eyebrow">Welcome to the Official Website</span>
-        <h1>Barangay Bolbok</h1>
-        <p>A modern community portal for residents, visitors, and barangay officials. Access services, announcements, community initiatives, public documents, and contact information in one place.</p>
+        <h1 data-setting="hero_title">Barangay Bolbok</h1>
+        <p data-setting="hero_description">A modern community portal for residents, visitors, and barangay officials. Access services, announcements, community initiatives, public documents, and contact information in one place.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="public-services">View Public Services</a>
           <a class="btn btn-outline" href="contact.html">Contact Barangay Hall</a>
@@ -91,28 +91,28 @@
         <div class="hero-glance-card reveal delay-3">
           <div class="hgc-title">
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2" y="12" width="3" height="6" rx="1" fill="currentColor" opacity=".7"/><rect x="7" y="8" width="3" height="10" rx="1" fill="currentColor" opacity=".85"/><rect x="12" y="4" width="3" height="14" rx="1" fill="currentColor"/><rect x="17" y="1" width="1" height="17" rx=".5" fill="currentColor" opacity=".3"/></svg>
-            <span>Barangay at a Glance</span>
+            <span data-setting="home_glance_title">Barangay at a Glance</span>
             <svg class="hgc-info" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.4"/><path d="M10 9v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="7" r=".8" fill="currentColor"/></svg>
           </div>
           <div class="hgc-body">
             <div class="hgc-item">
               <svg class="hgc-icon-population" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M14 13a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm-9 13a9 9 0 0 1 18 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 26a6 6 0 0 1 5-5.9M24 26a6 6 0 0 0-5-5.9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".4"/></svg>
-              <span class="hgc-label">Population: 14,682</span>
+              <span class="hgc-label" data-setting="home_glance_item1">Population: 14,682</span>
             </div>
             <div class="hgc-divider" aria-hidden="true"></div>
             <div class="hgc-item">
               <svg class="hgc-icon-assistance" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M10 8.5c2-2.5 6-2.5 8 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 12c3.5-4.5 11-4.5 14 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".5"/><path d="M13 16c0 0 .3-.4 1-.4s1 .4 1 .4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="14" cy="19" r="1.2" fill="currentColor"/></svg>
-              <span class="hgc-label">Resident Assistance</span>
+              <span class="hgc-label" data-setting="home_glance_item2">Resident Assistance</span>
             </div>
             <div class="hgc-divider" aria-hidden="true"></div>
             <div class="hgc-item">
               <svg class="hgc-icon-documents" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M8 3h8l6 6v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6"/><path d="M16 3v7h6" stroke="currentColor" stroke-width="1.4" opacity=".45"/><path d="M11 16h6M11 20h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-              <span class="hgc-label">Public Documents</span>
+              <span class="hgc-label" data-setting="home_glance_item3">Public Documents</span>
             </div>
             <div class="hgc-divider" aria-hidden="true"></div>
             <div class="hgc-item">
               <svg class="hgc-icon-programs" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M14 3L5 8v6c0 5.5 3.9 10.6 9 11.9 5.1-1.3 9-6.4 9-11.9V8l-9-5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 14l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/></svg>
-              <span class="hgc-label">Community Programs</span>
+              <span class="hgc-label" data-setting="home_glance_item4">Community Programs</span>
             </div>
           </div>
         </div>
@@ -170,6 +170,10 @@
       <div class="container">
         <div class="section-heading reveal"><span class="eyebrow">Quick Access</span><h2>Public Services</h2><p>Frequently requested public services and assistance for residents.</p></div>
         <div class="card-grid service-preview">
+          <!-- First three cards mirror the Public Services module so they can
+               never drift from it; replaced at runtime by the script below.
+               The shipped copy stays as the fallback if that fetch fails. -->
+          <span id="svc-preview-slot"></span>
           <a class="info-card reveal" href="public-services"><span class="icon">📄</span><h3>Barangay Clearance</h3><p>Request official barangay clearance for employment, permits, and other purposes.</p></a>
           <a class="info-card reveal delay-1" href="public-services"><span class="icon">🏠</span><h3>Residency Certificate</h3><p>Secure proof of residence within Barangay Bolbok.</p></a>
           <a class="info-card reveal delay-2" href="public-services"><span class="icon">🤝</span><h3>Assistance Programs</h3><p>Access health, senior citizen, PWD, youth, and disaster response support.</p></a>
@@ -315,7 +319,7 @@
     </section>
     <section class="section-pad official-strip">
       <div class="container split-layout center">
-        <div class="reveal"><span class="eyebrow">Leadership</span><h2>Barangay Officials</h2><p>Meet the elected and appointed officials serving Barangay Bolbok.</p><a class="btn btn-primary" href="officials.html">View Officials</a></div>
+        <div class="reveal"><span class="eyebrow">Leadership</span><h2>Barangay Officials</h2><p data-setting="home_officials_description">Meet the elected and appointed officials serving Barangay Bolbok.</p><a class="btn btn-primary" href="officials.html">View Officials</a></div>
         <div class="opc-card reveal delay-1">
           <!-- Photo -->
           <div class="opc-photo">
@@ -361,7 +365,7 @@
                 <span>Community<br>Governance</span>
               </div>
             </div>
-            <div class="opc-watermark" aria-hidden="true"><img src="images/bolbok-png.png" alt=""></div>
+            <div class="opc-watermark" aria-hidden="true"><img src="images/bolbok-png.png" alt="" data-setting-src="barangay_logo_url"></div>
           </div>
         </div>
       </div>
@@ -370,7 +374,7 @@
   <footer class="site-footer">
     <div class="container footer-grid">
       <div>
-        <div class="footer-brand"><img src="images/bolbok-png.png" alt="Barangay Bolbok Logo"><strong>Barangay Bolbok</strong></div><p>Serving residents of Barangay Bolbok, Batangas City, Batangas through accessible, transparent, and community-centered public service.</p>
+        <div class="footer-brand"><img src="images/bolbok-png.png" alt="Barangay Bolbok Logo" data-setting-src="barangay_logo_url"><strong data-setting="barangay_name">Barangay Bolbok</strong></div><p data-setting="footer_tagline">Serving residents of Barangay Bolbok, Batangas City, Batangas through accessible, transparent, and community-centered public service.</p>
       </div>
       <div>
         <h3>Contact Information</h3>
@@ -414,7 +418,7 @@
     </div>
   </div>
 
-  <script src="assets/js/main.js?v=8"></script>
+  <script src="assets/js/main.js?v=9"></script>
   <script src="assets/js/emergency-alert.js?v=12"></script>
   <script>
   (function(){
@@ -514,6 +518,38 @@
         if(PP)PP.textContent=punong.position||'Punong Barangay';
         if(PQ&&punong.quote)PQ.innerHTML=esc(punong.quote).replace(/\n/g,'<br>');
       }).catch(function(){});
+    }
+
+    // Public Services preview — the first three cards come straight from the
+    // Public Services module so editing a service there updates the homepage
+    // too. The fourth card (Download Forms) points at the Downloads page
+    // rather than a service, so it stays as authored.
+    var SVC_EMOJI = {
+      clearance:'📄', residency:'🏠', indigency:'❤️', business:'💼',
+      jobseeker:'👤', blotter:'📋', health:'🏥', senior:'🧓',
+      pwd:'♿', disaster:'🛡️', youth:'⭐'
+    };
+    var slot = document.getElementById('svc-preview-slot');
+    if (slot) {
+      fetch('/api/public-services').then(function(r){return r.json();}).then(function(d){
+        var list = (d && d.services || [])
+          .filter(function(s){ return s.status === 'published' && (s.title || '').trim(); })
+          .sort(function(a,b){ return (a.displayOrder||0) - (b.displayOrder||0); })
+          .slice(0, 3);
+        if (!list.length) return;   // keep the shipped cards if nothing to show
+        var grid = slot.parentNode;
+        // drop the three placeholder cards, keeping Download Forms last
+        grid.querySelectorAll('a.info-card[href="public-services"]').forEach(function(el){ el.remove(); });
+        var html = list.map(function(s, i){
+          var delay = i ? ' delay-' + i : '';
+          return '<a class="info-card reveal visible' + delay + '" href="public-services">' +
+                 '<span class="icon">' + (SVC_EMOJI[s.icon] || '📄') + '</span>' +
+                 '<h3>' + esc(s.title) + '</h3>' +
+                 '<p>' + esc(s.shortDescription || '') + '</p></a>';
+        }).join('');
+        slot.insertAdjacentHTML('afterend', html);
+        slot.remove();   // anchor has done its job; don't leave it in the grid
+      }).catch(function(){ /* keep the shipped cards */ });
     }
   })();
   </script>

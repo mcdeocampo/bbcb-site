@@ -13,7 +13,7 @@
   <meta name="twitter:description" content="Learn about Barangay Bolbok, Batangas City, Batangas, including its history, mission, vision, profile, location, and community information.">
   <meta name="twitter:image" content="images/bolbok-png.png">
   <link rel="canonical" href="https://bolbok.gov.ph/about.html">
-  <title>Barangay Bolbok | Batangas City, Batangas</title>
+  <title data-site-title>Barangay Bolbok | Batangas City, Batangas</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -26,8 +26,8 @@
   <header class="site-header" id="top">
     <nav class="navbar container" aria-label="Main Navigation">
       <a href="index.html" class="brand" aria-label="Barangay Bolbok Home">
-        <img src="images/bolbok-png.png" alt="Barangay Bolbok Logo">
-        <span><strong>Barangay Bolbok</strong><small>Batangas City, Batangas</small></span>
+        <img src="images/bolbok-png.png" alt="Barangay Bolbok Logo" data-setting-src="barangay_logo_url">
+        <span><strong data-setting="barangay_name">Barangay Bolbok</strong><small data-setting="barangay_locality">Batangas City, Batangas</small></span>
       </a>
       <button class="menu-toggle" aria-label="Open navigation menu" aria-expanded="false">
         <span></span><span></span><span></span>
@@ -50,29 +50,31 @@
   <main><section class="page-hero section-pad-sm">
       <div class="container reveal">
         <span class="eyebrow">About Us</span>
-        <h1>About Barangay Bolbok</h1>
-        <p>Learn about the history, profile, mission, vision, and community of Barangay Bolbok.</p>
+        <h1 data-setting="about_hero_title">About Barangay Bolbok</h1>
+        <p data-setting="about_hero_description">Learn about the history, profile, mission, vision, and community of Barangay Bolbok.</p>
       </div>
     </section>
 <section class="section-pad" style="padding-top: 3rem; padding-bottom: 2rem;">
   <div class="container split-layout">
     <div class="reveal">
       <span class="eyebrow">Our Story</span>
-      <h2>Barangay History</h2>
+      <h2 data-setting="about_history_title">Barangay History</h2>
+      <div id="about-history-body">
       <p style="text-align: justify; margin-bottom: 0.85em;">Barangay Bolbok is one of the 109 barangays of Batangas City, located in the province of Batangas in the Calabarzon Region. The name <strong>"Bolbok"</strong> is derived from the Filipino/Tagalog word <em>bulbok</em>, meaning <em>to bubble up</em> or <em>to spring forth</em>, referring to the natural spring water that once served as an important source of freshwater for the community.</p>
       <p style="text-align: justify; margin-bottom: 0.85em;">According to local history, the name came from the phrase <em>"pagbulbok ng tubig,"</em> describing the springing of water from the ground. This story became part of the barangay's identity and continues to symbolize renewal, vitality, service, and community life.</p>
+      </div>
     </div>
-    <div class="history-photo-grid reveal delay-1" aria-label="Barangay Bolbok community photos">
+    <div class="history-photo-grid reveal delay-1" id="about-history-grid" aria-label="Barangay Bolbok community photos">
       <img src="images/about_1.png" alt="Barangay Bolbok spring water heritage">
       <img src="images/about_2.png" alt="Barangay Bolbok community gathering">
       <img src="images/about_3.png" alt="Barangay Bolbok youth and community">
     </div>
   </div>
 </section>
-<section class="section-pad soft-bg"><div class="container card-grid two"><div class="info-card reveal"><span class="icon">🎯</span><h3>Mission</h3><p>To provide responsive, transparent, and inclusive public service that supports the welfare, safety, and development of every resident of Barangay Bolbok.</p></div><div class="info-card reveal delay-1"><span class="icon">🌅</span><h3>Vision</h3><p>A peaceful, progressive, healthy, and united Barangay Bolbok where residents actively participate in community development.</p></div></div></section>
+<section class="section-pad soft-bg"><div class="container card-grid two"><div class="info-card reveal"><span class="icon">🎯</span><h3 data-setting="about_mission_title">Mission</h3><p data-setting="about_mission_text">To provide responsive, transparent, and inclusive public service that supports the welfare, safety, and development of every resident of Barangay Bolbok.</p></div><div class="info-card reveal delay-1"><span class="icon">🌅</span><h3 data-setting="about_vision_title">Vision</h3><p data-setting="about_vision_text">A peaceful, progressive, healthy, and united Barangay Bolbok where residents actively participate in community development.</p></div></div></section>
 <section class="section-pad about-profile-section">
   <div class="container">
-    <div class="section-heading reveal"><span class="eyebrow">Profile</span><h2>Barangay Profile</h2><p>Key facts and details about Barangay Bolbok, Batangas City, Batangas.</p></div>
+    <div class="section-heading reveal"><span class="eyebrow" data-setting="about_profile_eyebrow">Profile</span><h2 data-setting="about_profile_title">Barangay Profile</h2><p data-setting="about_profile_intro">Key facts and details about Barangay Bolbok, Batangas City, Batangas.</p></div>
     <div class="about-profile-grid">
       <div class="about-profile-card reveal">
         <div class="about-profile-icon" style="background:linear-gradient(135deg,#1565c0,#1e88e5)">
@@ -80,7 +82,7 @@
         </div>
         <div class="about-profile-content">
           <span class="about-profile-label">City</span>
-          <strong class="about-profile-value">Batangas City</strong>
+          <strong class="about-profile-value" data-setting="about_profile_city">Batangas City</strong>
         </div>
       </div>
       <div class="about-profile-card reveal delay-1">
@@ -89,7 +91,7 @@
         </div>
         <div class="about-profile-content">
           <span class="about-profile-label">Province</span>
-          <strong class="about-profile-value">Batangas</strong>
+          <strong class="about-profile-value" data-setting="about_profile_province">Batangas</strong>
         </div>
       </div>
       <div class="about-profile-card reveal delay-2">
@@ -98,7 +100,7 @@
         </div>
         <div class="about-profile-content">
           <span class="about-profile-label">Region</span>
-          <strong class="about-profile-value">Calabarzon (Region IV-A)</strong>
+          <strong class="about-profile-value" data-setting="about_profile_region">Calabarzon (Region IV-A)</strong>
         </div>
       </div>
       <div class="about-profile-card reveal delay-3">
@@ -107,7 +109,7 @@
         </div>
         <div class="about-profile-content">
           <span class="about-profile-label">Community Type</span>
-          <strong class="about-profile-value">Urban</strong>
+          <strong class="about-profile-value" data-setting="about_profile_community_type">Urban</strong>
         </div>
       </div>
     </div>
@@ -116,9 +118,10 @@
 
 <section class="section-pad about-location-section">
   <div class="container">
-    <div class="section-heading reveal"><span class="eyebrow">Location</span><h2>Location Overview</h2><p>Barangay Bolbok is part of Batangas City, Batangas and serves residents through local governance, public assistance, peace and order programs, and community services. Land Area: 249.4780 ha | 7 Puroks.</p></div>
+    <div class="section-heading reveal"><span class="eyebrow">Location</span><h2 data-setting="about_location_title">Location Overview</h2><p data-setting="about_location_description">Barangay Bolbok is part of Batangas City, Batangas and serves residents through local governance, public assistance, peace and order programs, and community services. Land Area: 249.4780 ha | 7 Puroks.</p></div>
     <div class="about-map-wrap reveal">
       <iframe
+        id="about-map-frame"
         title="Barangay Bolbok Location Map"
         src="https://www.google.com/maps?q=Barangay%20Bolbok%2C%20Batangas%20City%2C%20Batangas%2C%20Philippines&output=embed"
         loading="lazy"
@@ -127,7 +130,7 @@
       </iframe>
       <div class="about-map-badge">
         <svg viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 0 1 6 6c0 4-6 10-6 10S4 12 4 8a6 6 0 0 1 6-6Zm0 4a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" fill="currentColor"/></svg>
-        <span>Bolbok, Batangas City, Batangas</span>
+        <span data-setting="about_map_badge">Bolbok, Batangas City, Batangas</span>
       </div>
     </div>
   </div>
@@ -136,7 +139,7 @@
   <footer class="site-footer">
     <div class="container footer-grid">
       <div>
-        <div class="footer-brand"><img src="images/bolbok-png.png" alt="Barangay Bolbok Logo"><strong>Barangay Bolbok</strong></div><p>Serving residents of Barangay Bolbok, Batangas City, Batangas through accessible, transparent, and community-centered public service.</p>
+        <div class="footer-brand"><img src="images/bolbok-png.png" alt="Barangay Bolbok Logo" data-setting-src="barangay_logo_url"><strong data-setting="barangay_name">Barangay Bolbok</strong></div><p data-setting="footer_tagline">Serving residents of Barangay Bolbok, Batangas City, Batangas through accessible, transparent, and community-centered public service.</p>
       </div>
       <div>
         <h3>Contact Information</h3>
@@ -149,8 +152,65 @@
     <div class="footer-bottom" data-setting="copyright">© 2026 Barangay Bolbok, Batangas City, Batangas. All Rights Reserved.</div>
   </footer>
   <button class="back-to-top" aria-label="Back to top">↑</button>
-  <script src="assets/js/main.js"></script>
+  <script src="assets/js/main.js?v=9"></script>
   <script src="assets/js/emergency-alert.js?v=12"></script>
+  <script>
+  // Content Management — the three About Us pieces that can't be expressed as a
+  // plain data-setting attribute: multi-paragraph history prose, the history
+  // photo grid, and the map iframe src. Everything else on this page is wired
+  // through data-setting in main.js.
+  (function () {
+    fetch('/api/site-settings').then(function (r) { return r.json(); }).then(function (s) {
+      // {} means the settings read failed — indistinguishable from "all blank".
+      // Leave the page's shipped content alone rather than wiping it.
+      if (!s || !Object.keys(s).length) return;
+
+      function esc(t) {
+        return String(t == null ? '' : t)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      // History prose: a textarea, so split on blank lines into paragraphs to
+      // preserve the shipped two-paragraph look.
+      var body = document.getElementById('about-history-body');
+      if (body && s.about_history_content) {
+        var paras = s.about_history_content
+          .replace(/\r\n/g, '\n').split(/\n\s*\n/)
+          .map(function (p) { return p.trim(); })
+          .filter(Boolean);
+        if (paras.length) {
+          body.innerHTML = paras.map(function (p) {
+            return '<p style="text-align: justify; margin-bottom: 0.85em;">' +
+                   esc(p).replace(/\n/g, '<br>') + '</p>';
+          }).join('');
+        }
+      }
+
+      // History photos: replace the shipped images only when a non-empty list
+      // is configured, so an unset/!invalid value keeps the current grid.
+      var grid = document.getElementById('about-history-grid');
+      if (grid && s.about_history_images) {
+        var imgs = [];
+        try { imgs = JSON.parse(s.about_history_images) || []; } catch (e) { imgs = []; }
+        if (Array.isArray(imgs) && imgs.length) {
+          grid.innerHTML = imgs.map(function (u) {
+            var src = String(u).indexOf('http') === 0 ? u : '/' + u;
+            return '<img src="' + esc(src) + '" alt="" loading="lazy" ' +
+                   'onerror="this.remove()">';
+          }).join('');
+        }
+      }
+
+      // Map: swap only the src, keeping the iframe's existing loading /
+      // referrerpolicy / allowfullscreen attributes intact.
+      var frame = document.getElementById('about-map-frame');
+      if (frame && s.about_map_url) frame.src = s.about_map_url;
+    }).catch(function (err) {
+      console.error('[about] site-settings fetch failed:', err);
+    });
+  })();
+  </script>
 </body>
 </html>
 

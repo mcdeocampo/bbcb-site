@@ -363,6 +363,10 @@
         var core = [yr, ow].filter(Boolean).join(' ');
         el.textContent = core ? ('© ' + core + (sx ? '. ' + sx : '')) : (sx || '');
       } else {
+        // A key missing from the payload has never been configured, so leave
+        // the markup's own copy in place. A key that IS present but empty was
+        // deliberately cleared in admin and must blank the element.
+        if (!(key in s)) return;
         el.textContent = s[key] || '';
         if (el.tagName === 'A') {
           var phoneKeys = { footer_phone: 1, barangay_phone: 1, homepage_hotline_number: 1, emergency_card_number: 1, police_card_number: 1 };
@@ -384,6 +388,35 @@
       if (s[key]) { el.href = s[key]; }
       else { el.removeAttribute('href'); }
     });
+    // src attributes (logo). Unlike href, an unset value leaves the markup's
+    // own src untouched — a missing logo setting must fall back to the shipped
+    // image rather than render a broken/empty one.
+    document.querySelectorAll('[data-setting-src]').forEach(function (el) {
+      var key = el.getAttribute('data-setting-src');
+      var val = s[key];
+      if (val) el.src = val.indexOf('http') === 0 ? val : '/' + val;
+    });
+
+    // Browser tab: favicon follows the barangay logo. Replacing the node
+    // rather than just setting href, because browsers often ignore an
+    // in-place href change on an already-loaded icon.
+    if (s.barangay_logo_url) {
+      var icon = s.barangay_logo_url.indexOf('http') === 0
+        ? s.barangay_logo_url : '/' + s.barangay_logo_url;
+      document.querySelectorAll('link[rel~="icon"], link[rel="apple-touch-icon"]').forEach(function (el) {
+        var next = el.cloneNode(true);
+        next.href = icon;
+        el.parentNode.replaceChild(next, el);
+      });
+    }
+
+    // Browser tab title, composed for pages that opt in with data-site-title.
+    // Pages that manage their own title (the alert detail page) simply omit it.
+    var titleEl = document.querySelector('title[data-site-title]');
+    if (titleEl) {
+      var parts = [s.barangay_name, s.barangay_locality].filter(Boolean);
+      if (parts.length) document.title = parts.join(' | ');
+    }
     // An emergency tile exists only to dial its number, so drop the whole tile
     // when no number is configured rather than leaving a bare label.
     ['emergency_card_number', 'police_card_number'].forEach(function (key) {

@@ -1120,6 +1120,243 @@ _PUBLIC_PAGES = [
     'directory',
 ]
 
+# ── Server-side content injection ─────────────────────────────────────────────
+# The pages ship with the original barangay's name/logo/officials hardcoded as
+# the no-JS fallback. Applying the CMS values in the browser meant that stale
+# markup was painted first and only corrected two round trips later — a visible
+# ~800ms flash of the previous barangay's identity on every load. Rewriting the
+# markup here means the correct content is in the HTML as it leaves the server,
+# and the browser requests the right logo immediately instead of fetching the
+# old one and discarding it.
+
+_page_ctx_cache = {'settings': None, 'officials': None, 'ts': 0}
+PAGE_CTX_TTL = 60
+
+
+def _page_context():
+    """(settings, officials) for injection, TTL-cached.
+
+    Officials are ordered exactly as /api/officials returns them, so the
+    server-rendered markup matches what the page's own script would produce.
+
+    Without the cache this would add a Supabase round trip to *every* page
+    request. A failed load is never cached, so a transient error falls back to
+    the shipped markup rather than being pinned for the TTL.
+    """
+    now = time.time()
+    c = _page_ctx_cache
+    if c['settings'] and (now - c['ts']) < PAGE_CTX_TTL:
+        return c['settings'], c['officials']
+
+    settings = _load_site_settings()
+    officials = []
+    try:
+        officials = [o for o in _load_officials() if o.get('status') == 'published']
+        officials.sort(key=lambda x: x.get('displayOrder', 99))
+    except Exception as exc:
+        app.logger.error('_page_context officials error: %s', exc)
+
+    if settings:
+        c.update(settings=settings, officials=officials, ts=now)
+    return settings, officials
+
+
+@app.after_request
+def _bust_page_ctx_cache(response):
+    """Drop the injection cache after any successful admin write.
+
+    Hooked at the request level rather than inside each save handler so a new
+    admin module can't silently miss it and leave the public pages serving
+    stale content for up to a minute.
+    """
+    if (request.method in ('POST', 'PUT', 'PATCH', 'DELETE')
+            and request.path.startswith('/admin/')
+            and response.status_code < 400):
+        _page_ctx_cache['ts'] = 0
+    return response
+
+
+def _asset_url(val):
+    """Storage values are either absolute URLs or repo-relative paths."""
+    val = (val or '').strip()
+    if not val:
+        return ''
+    return val if val.startswith('http') else '/' + val.lstrip('/')
+
+
+# Placeholder avatar, byte-identical to the one officials.html builds in JS.
+_OFFICIAL_PLACEHOLDER_SVG = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" '
+    'height="120" aria-hidden="true" style="border-radius:50%;display:block;">'
+    '<circle cx="60" cy="60" r="60" fill="#e8f5f5"/>'
+    '<circle cx="60" cy="46" r="22" fill="#2CA6A4" opacity=".55"/>'
+    '<ellipse cx="60" cy="100" rx="36" ry="28" fill="#2CA6A4" opacity=".40"/></svg>'
+)
+
+
+def _esc(s):
+    """Match the esc() in the pages' inline scripts exactly."""
+    return (str(s or '').replace('&', '&amp;').replace('<', '&lt;')
+            .replace('>', '&gt;').replace('"', '&quot;'))
+
+
+def _esc_br(s):
+    return _esc(s).replace('\n', '<br>')
+
+
+def _set_inner_html(el, html_str):
+    import lxml.html as LH
+    frag = LH.fragment_fromstring(html_str, create_parent='div')
+    for child in list(el):
+        el.remove(child)
+    el.text = frag.text
+    for child in list(frag):
+        el.append(child)
+
+
+def _inject_officials_page(doc, settings, officials):
+    """Server-render the Officials page.
+
+    Mirrors the inline script at the bottom of officials.html one-for-one; the
+    shipped markup is the previous barangay's council, so leaving it to the
+    client meant a visible flash of the wrong officials on every load.
+    """
+    punong = next((o for o in officials if o.get('isPunong')), None)
+    others = [o for o in officials if not o.get('isPunong')]
+
+    for el in doc.xpath('//*[@id="sb-section-desc"]'):
+        _set_inner_html(el, _esc_br(settings.get('officials_sb_description', '')))
+
+    if not officials:
+        return
+
+    pa = doc.xpath('//*[@id="punong-article"]')
+    if pa and punong:
+        photo = _asset_url(punong.get('photoUrl'))
+        ph = ('<img src="%s" alt="%s" style="object-position:center top;">'
+              % (_esc(photo), _esc(punong.get('fullName')))) if photo else _OFFICIAL_PLACEHOLDER_SVG
+        _set_inner_html(pa[0],
+            '<div class="ofc-photo">' + ph + '</div>'
+            '<div class="ofc-details">'
+            '<span class="ofc-badge">Punong Barangay</span>'
+            '<h2 class="ofc-name">' + _esc(punong.get('fullName')) + '</h2>'
+            '<div class="ofc-divider"></div>'
+            '<p class="ofc-role">' + _esc_br(settings.get('officials_punong_description', '')) + '</p>'
+            '</div>')
+
+    cg = doc.xpath('//*[@id="council-grid"]')
+    if cg and others:
+        delays = ['', 'delay-1', 'delay-2', 'delay-3']
+        cards = []
+        for i, o in enumerate(others):
+            photo = _asset_url(o.get('photoUrl'))
+            ph = ('<img src="%s" alt="%s" style="width:120px;height:120px;object-fit:cover;'
+                  'object-position:center top;border-radius:50%%;display:block;">'
+                  % (_esc(photo), _esc(o.get('fullName')))) if photo else _OFFICIAL_PLACEHOLDER_SVG
+            d = delays[i % 4]
+            cards.append(
+                '<article class="official-card reveal' + ((' ' + d) if d else '') + '">'
+                + ph
+                + '<h3>' + _esc(o.get('fullName')) + '</h3>'
+                + '<span>' + _esc(o.get('position')) + '</span>'
+                + '<p>' + _esc(o.get('roleDescription', '')) + '</p></article>')
+        _set_inner_html(cg[0], ''.join(cards))
+
+
+def _inject_page(html, settings, officials):
+    """Apply CMS values to the markup. Mirrors the client-side pass in main.js
+    so the two can never disagree."""
+    import lxml.html as LH
+
+    doc = LH.fromstring(html)
+    punong = next((o for o in (officials or []) if o.get('isPunong')), None)
+
+    # Text nodes. A key absent from settings has never been configured, so the
+    # markup's own copy stays — same rule main.js follows.
+    for el in doc.xpath('//*[@data-setting]'):
+        key = el.get('data-setting')
+        if key in settings:
+            for child in list(el):
+                el.remove(child)
+            el.text = settings.get(key) or ''
+
+    for el in doc.xpath('//*[@data-setting-src]'):
+        url = _asset_url(settings.get(el.get('data-setting-src')))
+        if url:
+            el.set('src', url)
+
+    for el in doc.xpath('//*[@data-setting-href]'):
+        url = (settings.get(el.get('data-setting-href')) or '').strip()
+        if url:
+            el.set('href', url)
+
+    # <title data-site-title> — "Name | Locality"
+    parts = [settings.get('barangay_name'), settings.get('barangay_locality')]
+    parts = [p for p in parts if p]
+    if parts:
+        for el in doc.xpath('//title[@data-site-title]'):
+            el.text = ' | '.join(parts)
+
+    logo = _asset_url(settings.get('barangay_logo_url'))
+    if logo:
+        for el in doc.xpath('//link[@rel="icon" or @rel="apple-touch-icon"]'):
+            el.set('href', logo)
+
+    # Punong Barangay card on the homepage.
+    if punong:
+        photo = _asset_url(punong.get('photoUrl'))
+        name  = punong.get('fullName') or ''
+        for el in doc.xpath('//*[@id="opc-photo-img"]'):
+            if photo:
+                el.set('src', photo)
+                if name:
+                    el.set('alt', f'{name} — Punong Barangay')
+        for el in doc.xpath('//*[@id="opc-name-text"]'):
+            if name:
+                el.text = name
+        for el in doc.xpath('//*[@id="opc-pos-text"]'):
+            el.text = punong.get('position') or 'Punong Barangay'
+        quote = punong.get('quote') or ''
+        if quote:
+            for el in doc.xpath('//*[@id="opc-quote-text"]'):
+                for child in list(el):
+                    el.remove(child)
+                lines = quote.split('\n')
+                el.text = lines[0]
+                for line in lines[1:]:
+                    br = LH.Element('br')
+                    br.tail = line
+                    el.append(br)
+
+    _inject_officials_page(doc, settings, officials or [])
+
+    return LH.tostring(doc, doctype='<!DOCTYPE html>', encoding='unicode')
+
+
+def _render_page(directory, filename):
+    """Serve an HTML page with CMS content already applied."""
+    path = os.path.join(directory, filename)
+    if not os.path.exists(path):
+        abort(404)
+    try:
+        settings, officials = _page_context()
+        if not settings and not officials:
+            return send_from_directory(directory, filename)
+        with open(path, encoding='utf-8') as fh:
+            html = fh.read()
+        rendered = _inject_page(html, settings or {}, officials or [])
+    except Exception as exc:
+        # Never let injection take the site down — fall back to the raw file.
+        app.logger.error('_render_page(%s) error: %s', filename, exc)
+        return send_from_directory(directory, filename)
+
+    resp = app.make_response(rendered)
+    resp.headers['Content-Type']  = 'text/html; charset=utf-8'
+    # Content now varies with the CMS, so it must not be cached as a static file.
+    resp.headers['Cache-Control'] = 'no-cache'
+    return resp
+
+
 # Friendly URL aliases → actual file base names
 _PAGE_ALIASES = {
     'public-services':       'services',
@@ -1138,7 +1375,7 @@ def public_page(page_name):
     if name in _PUBLIC_PAGES:
         f = os.path.join(BASE_DIR, name + '.html')
         if os.path.exists(f):
-            return send_from_directory(BASE_DIR, name + '.html')
+            return _render_page(BASE_DIR, name + '.html')
     abort(404)
 
 
@@ -2163,9 +2400,49 @@ def admin_site_settings_put():
         'social_facebook_url', 'social_linkedin_url', 'social_instagram_url',
         'sk_facebook_title', 'sk_facebook_subtitle', 'sk_facebook_url',
         'officials_punong_description', 'officials_sb_description',
+        # ── Content Management ────────────────────────────────────────────
+        # Barangay identity shown in every page's header and footer.
+        'barangay_name', 'barangay_locality', 'footer_tagline', 'barangay_logo_url',
+        # Homepage hero.
+        'hero_title', 'hero_description',
+        # About Us page. about_history_images holds a JSON array of image URLs.
+        'about_hero_title', 'about_hero_description',
+        'about_history_title', 'about_history_content', 'about_history_images',
+        'about_mission_title', 'about_mission_text',
+        'about_vision_title', 'about_vision_text',
+        'about_profile_city', 'about_profile_province',
+        'about_profile_region', 'about_profile_community_type',
+        'about_location_title', 'about_location_description',
+        'about_map_url', 'about_map_badge',
+        # Section headings / page intros that name the barangay. Hardcoded
+        # until now, so they went stale whenever the barangay was renamed.
+        'about_profile_eyebrow', 'about_profile_title',
+        'home_glance_title', 'home_glance_item1', 'home_glance_item2',
+        'home_glance_item3', 'home_glance_item4',
+        'about_profile_intro', 'charter_pledge_text',
+        'contact_hero_description', 'contact_card_description',
+        'directory_hero_description',
+        'officials_hero_description', 'home_officials_description',
     }
-    _LONG_KEYS = {'officials_punong_description', 'officials_sb_description'}
-    patch = {k: _clean(v, 500 if k in _LONG_KEYS else 300) for k, v in d.items() if k in ALLOWED_KEYS}
+    _LONG_KEYS = {
+        'officials_punong_description', 'officials_sb_description',
+        'footer_tagline', 'hero_description', 'about_hero_description',
+        'about_mission_text', 'about_vision_text', 'about_location_description',
+        'about_profile_intro', 'charter_pledge_text',
+        'contact_hero_description', 'contact_card_description',
+        'directory_hero_description',
+        'officials_hero_description', 'home_officials_description',
+    }
+    # Multi-paragraph prose and the serialised image list need far more room
+    # than the 500-char _LONG_KEYS tier, which would silently truncate them.
+    _XL_KEYS = {'about_history_content', 'about_history_images'}
+
+    def _limit(key):
+        if key in _XL_KEYS:
+            return 5000
+        return 500 if key in _LONG_KEYS else 300
+
+    patch = {k: _clean(v, _limit(k)) for k, v in d.items() if k in ALLOWED_KEYS}
     if not patch:
         return jsonify({'error': 'No valid fields provided'}), 400
     _upsert_site_settings(patch)
@@ -2900,13 +3177,13 @@ def api_emergency_alert_detail(alert_id):
 
 @app.route('/emergency-alerts/<slug>')
 def emergency_alert_detail_page(slug):
-    return send_from_directory(BASE_DIR, 'emergency-alert-detail.html')
+    return _render_page(BASE_DIR, 'emergency-alert-detail.html')
 
 
 # ── Static file serving ───────────────────────────────────────────────────────
 @app.route('/')
 def index():
-    return send_from_directory(BASE_DIR, 'index.html')
+    return _render_page(BASE_DIR, 'index.html')
 
 
 @app.route('/<path:filename>')
@@ -2916,6 +3193,8 @@ def static_files(filename):
     full = os.path.join(BASE_DIR, filename)
     if not os.path.exists(full):
         abort(404)
+    if filename.endswith('.html'):
+        return _render_page(BASE_DIR, filename)
     return send_from_directory(BASE_DIR, filename)
 
 
@@ -3939,6 +4218,20 @@ def admin_upload_organization_gallery():
 @admin_required
 def admin_upload_emergency_gallery():
     return _upload_gallery_image('emergency-directory-gallery')
+
+
+# ── Content Management — image uploads ───────────────────────────────────────
+# Both reuse the same optimize/storage pipeline as every other upload above.
+@app.route('/admin/api/upload/barangay-logo', methods=['POST'])
+@admin_required
+def admin_upload_barangay_logo():
+    return _upload_gallery_image('branding')
+
+
+@app.route('/admin/api/upload/about-history-image', methods=['POST'])
+@admin_required
+def admin_upload_about_history_image():
+    return _upload_gallery_image('about-history')
 
 
 # ── Bootstrap ─────────────────────────────────────────────────────────────────

@@ -13,7 +13,7 @@
   <meta name="twitter:description" content="Explore the Barangay Bolbok community directory: public locations, local businesses, organizations, and emergency contacts for Batangas City, Batangas.">
   <meta name="twitter:image" content="images/bolbok-png.png">
   <link rel="canonical" href="https://bolbok.gov.ph/directory.html">
-  <title>Barangay Bolbok | Batangas City, Batangas</title>
+  <title data-site-title>Barangay Bolbok | Batangas City, Batangas</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -31,8 +31,8 @@
   <header class="site-header" id="top">
     <nav class="navbar container" aria-label="Main Navigation">
       <a href="index.html" class="brand" aria-label="Barangay Bolbok Home">
-        <img src="images/bolbok-png.png" alt="Barangay Bolbok Logo">
-        <span><strong>Barangay Bolbok</strong><small>Batangas City, Batangas</small></span>
+        <img src="images/bolbok-png.png" alt="Barangay Bolbok Logo" data-setting-src="barangay_logo_url">
+        <span><strong data-setting="barangay_name">Barangay Bolbok</strong><small data-setting="barangay_locality">Batangas City, Batangas</small></span>
       </a>
       <button class="menu-toggle" aria-label="Open navigation menu" aria-expanded="false">
         <span></span><span></span><span></span>
@@ -57,7 +57,7 @@
       <div class="container reveal">
         <span class="eyebrow">Community Directory</span>
         <h1>Barangay Directory</h1>
-        <p>Search, filter, and explore public locations, businesses, organizations, and emergency contacts across Barangay Bolbok — all on one interactive map.</p>
+        <p data-setting="directory_hero_description">Search, filter, and explore public locations, businesses, organizations, and emergency contacts across Barangay Bolbok — all on one interactive map.</p>
       </div>
     </section>
 
@@ -117,7 +117,7 @@
   <footer class="site-footer">
     <div class="container footer-grid">
       <div>
-        <div class="footer-brand"><img src="images/bolbok-png.png" alt="Barangay Bolbok Logo"><strong>Barangay Bolbok</strong></div><p>Serving residents of Barangay Bolbok, Batangas City, Batangas through accessible, transparent, and community-centered public service.</p>
+        <div class="footer-brand"><img src="images/bolbok-png.png" alt="Barangay Bolbok Logo" data-setting-src="barangay_logo_url"><strong data-setting="barangay_name">Barangay Bolbok</strong></div><p data-setting="footer_tagline">Serving residents of Barangay Bolbok, Batangas City, Batangas through accessible, transparent, and community-centered public service.</p>
       </div>
       <div>
         <h3>Contact Information</h3>
@@ -130,7 +130,7 @@
     <div class="footer-bottom" data-setting="copyright">© 2026 Barangay Bolbok, Batangas City, Batangas. All Rights Reserved.</div>
   </footer>
   <button class="back-to-top" aria-label="Back to top">↑</button>
-  <script src="assets/js/main.js"></script>
+  <script src="assets/js/main.js?v=9"></script>
   <script src="assets/js/emergency-alert.js?v=12"></script>
   <!-- Leaflet.js (CDN) — used only on this Directory page -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
