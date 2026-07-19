@@ -4672,6 +4672,19 @@ function applyAdminBranding(s) {
   });
   const t = document.querySelector('title[data-admin-title]');
   if (t && s.barangay_name) document.title = 'Admin | ' + s.barangay_name;
+
+  // Favicon. The node has to be replaced rather than have its href reassigned —
+  // browsers ignore an in-place href change on an already-resolved icon link.
+  if (s.barangay_logo_url) {
+    const icon = s.barangay_logo_url.indexOf('http') === 0
+      ? s.barangay_logo_url : '/' + s.barangay_logo_url;
+    document.querySelectorAll('link[rel~="icon"], link[rel="apple-touch-icon"]').forEach(el => {
+      if (el.getAttribute('href') === icon) return;   // already applied
+      const next = el.cloneNode(true);
+      next.setAttribute('href', icon);
+      el.parentNode.replaceChild(next, el);
+    });
+  }
 }
 
 async function loadAdminBranding() {
