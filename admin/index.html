@@ -5563,9 +5563,13 @@ function eaFmtDatetime(dt) {
 
 // Manila wall-clock "YYYY-MM-DDTHH:MM" — must match the server's _manila_now(),
 // because start/expiration are stored as Manila wall-clock strings.
-function eaManilaNow() {
+function eaManilaDate() {
   const d = new Date();
-  const m = new Date(d.getTime() + (d.getTimezoneOffset() * 60000) + (8 * 3600000));
+  return new Date(d.getTime() + (d.getTimezoneOffset() * 60000) + (8 * 3600000));
+}
+
+function eaManilaNow() {
+  const m = eaManilaDate();
   const p = n => String(n).padStart(2, '0');
   return m.getFullYear() + '-' + p(m.getMonth()+1) + '-' + p(m.getDate()) +
          'T' + p(m.getHours()) + ':' + p(m.getMinutes());
@@ -5704,8 +5708,15 @@ function eaResetForm() {
   if ($('ea-f-audience')) $('ea-f-audience').value = 'All Residents';
   eaToggleTargetArea();
   eaUpdatePriorityNote();
-  const now = new Date();
-  now.setMinutes(Math.ceil(now.getMinutes()/5)*5, 0, 0);
+  // Start defaults to *now* in Manila. Two things used to push it into the
+  // future, so a freshly created alert stayed invisible on the public site:
+  //   - Math.ceil rounded up to the next 5-minute mark (0-5 min in the future)
+  //   - the value was the browser's wall clock, but the server compares
+  //     against Manila, so any admin outside PH added their offset on top
+  // The server test is `start <= now_manila`, so start must be Manila time and
+  // must not be rounded up.
+  const now = eaManilaDate();
+  now.setSeconds(0, 0);
   const pad = n => String(n).padStart(2,'0');
   const fmtLocal = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   if ($('ea-f-start')) $('ea-f-start').value = fmtLocal(now);
@@ -5931,7 +5942,14 @@ function eaActivateDraft(id, title) {
       const r = await adminFetch(`/admin/api/emergency-alerts/${id}/activate`, {method:'POST'});
       const d = await r.json();
       if (r.ok) {
-        toast('Alert activated successfully.','ok');
+        // Activating a draft does not touch its dates, so a draft scheduled for
+        // later stays hidden. Report what actually happened.
+        const act = (d && d.alert) ? eaPublicState(d.alert) : null;
+        toast(act && act.key === 'scheduled'
+          ? 'Alert activated, but it is scheduled for ' + eaFmtDatetime(act.when) + ' and is not on the site yet.'
+          : act && act.key === 'nowindow'
+          ? 'Alert activated, but it has no expiration date so the site will not display it.'
+          : 'Alert activated and is now live on the site.', 'ok');
         await loadAlerts();
         eaSwitchPanel('active', document.querySelector('.ea-subtab[data-panel="active"]'));
       } else toast(d.error||'Activate failed.','err');
