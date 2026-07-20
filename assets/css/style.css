@@ -21661,8 +21661,25 @@ body[data-page="services.html"] .service-meta span a{
 /* The settled-entrance rule above is #ann-mini-list article.reveal.ann-visible
    with transform:none !important, which outranks a plain article:hover — the
    lift silently did nothing. Matching that specificity is what makes it work. */
+/* Each card wraps its content in a link. Inherit colour so the existing
+   type treatment is untouched, and fill the card so the whole surface is
+   the click target. */
+#ann-mini-list article .ann-card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+#ann-mini-list article .ann-card-link:focus-visible {
+  outline: 2px solid #0B607A;
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+/* focus-within mirrors :hover so keyboard users get the same feedback. */
 #ann-mini-list article:hover,
-#ann-mini-list article.reveal.ann-visible:hover {
+#ann-mini-list article:focus-within,
+#ann-mini-list article.reveal.ann-visible:hover,
+#ann-mini-list article.reveal.ann-visible:focus-within {
   transform: translateY(-6px) !important;
   box-shadow: 0 20px 45px rgba(0,0,0,0.12) !important;
   border-left-color: #0B607A !important;
@@ -21673,7 +21690,8 @@ body[data-page="services.html"] .service-meta span a{
   color: #0B607A;
   transition: color 300ms ease;
 }
-#ann-mini-list article:hover span {
+#ann-mini-list article:hover span,
+#ann-mini-list article:focus-within span {
   color: #008C95;
 }
 

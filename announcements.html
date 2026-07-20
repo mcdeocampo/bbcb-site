@@ -20,7 +20,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="images/bolbok-png.png">
   <link rel="icon" type="image/png" sizes="16x16" href="images/bolbok-png.png">
   <link rel="apple-touch-icon" href="images/bolbok-png.png">
-  <link rel="stylesheet" href="assets/css/style.css?v=28">
+  <link rel="stylesheet" href="assets/css/style.css?v=29">
 </head>
 <body data-page="announcements.html">
   <header class="site-header" id="top">
@@ -153,6 +153,17 @@
           (a.fullDetails?'<button class="text-link" onclick="window.__openAnnModal('+i+')" style="background:none;border:none;padding:0;cursor:pointer;font-family:inherit">Read More &#x2192;</button>':'')+
           '</div></article>';
       }).join('');
+
+      // Arriving from a homepage card (?id=...) opens that announcement
+      // directly, so the teaser leads somewhere specific rather than just
+      // dropping the reader at the top of the list.
+      try{
+        var wanted=new URLSearchParams(location.search).get('id');
+        if(wanted){
+          var idx=items.findIndex(function(a){return String(a.id)===String(wanted);});
+          if(idx>-1) window.__openAnnModal(idx);
+        }
+      }catch(e){}
     }).catch(function(){});
   })();
   </script>

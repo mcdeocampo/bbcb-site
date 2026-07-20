@@ -20,7 +20,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="images/bolbok-png.png">
   <link rel="icon" type="image/png" sizes="16x16" href="images/bolbok-png.png">
   <link rel="apple-touch-icon" href="images/bolbok-png.png">
-  <link rel="stylesheet" href="assets/css/style.css?v=31">
+  <link rel="stylesheet" href="assets/css/style.css?v=32">
 </head>
 <body data-page="index.html">
   <header class="site-header" id="top">
@@ -479,7 +479,12 @@
         if(!items.length)return;
         var DL=['delay-1','delay-2','delay-3'];
         ML.innerHTML=items.map(function(a,i){
-          return '<article class="reveal '+(DL[i]||'')+'"><span>'+esc(fmt(a.date))+'</span><h3>'+esc(a.title)+'</h3><p>'+esc(a.shortDescription||'')+'</p></article>';
+          // Wrapped in a link so the hover affordance actually leads somewhere —
+          // announcements.html opens this announcement directly via ?id=.
+          return '<article class="reveal '+(DL[i]||'')+'">'+
+            '<a class="ann-card-link" href="announcements.html?id='+encodeURIComponent(a.id)+'">'+
+            '<span>'+esc(fmt(a.date))+'</span><h3>'+esc(a.title)+'</h3>'+
+            '<p>'+esc(a.shortDescription||'')+'</p></a></article>';
         }).join('');
         observeAnnCards(ML);
       }).catch(function(){});
