@@ -1298,9 +1298,13 @@ def _build_share_card(logo_url):
         fill=(255, 255, 255, 26))
     card = Image.alpha_composite(card.convert('RGBA'), glow)
 
-    size = 430                                        # well inside the safe area
-    seal = seal.resize((size, size), Image.LANCZOS)
-    card.paste(seal, ((W - size) // 2, (H - size) // 2), seal)
+    # Fit inside a 430px box preserving the logo's own proportions — a forced
+    # square would stretch any logo that is not already 1:1.
+    box = 430
+    scale = min(box / seal.width, box / seal.height)
+    seal = seal.resize((max(1, round(seal.width * scale)),
+                        max(1, round(seal.height * scale))), Image.LANCZOS)
+    card.paste(seal, ((W - seal.width) // 2, (H - seal.height) // 2), seal)
 
     buf = io.BytesIO()
     card.convert('RGB').save(buf, 'PNG', optimize=True)
