@@ -244,7 +244,7 @@
     <section class="section-pad">
       <div class="container">
         <div class="section-heading reveal"><span class="eyebrow">Community Development</span><h2>Community Initiatives</h2></div>
-        <div class="bolbok-init-grid" id="init-preview-grid">
+        <div class="card-grid proj-card-grid" id="init-preview-grid">
 
           <!-- Road Improvement -->
           <article class="bolbok-init-card reveal delay-1">
@@ -491,15 +491,34 @@
       fetch('/api/community-initiatives').then(function(r){return r.json();}).then(function(d){
         var all=(d.initiatives||[]).filter(function(p){return p.status==='published';});
         var items=all.filter(function(p){return p.featured;});
-        if(!items.length)items=all.slice(0,4);
+        if(!items.length)items=all;
+        items=items.slice(0,4);          // grid is 2-up on desktop, so 4 fills 2x2
         if(!items.length)return;
         var DL=['delay-1','delay-2','delay-3',''];
+        // Same card as the Community Initiatives page: the uploaded photo when
+        // there is one, otherwise the category-coloured banner. The home page
+        // used to drop the image entirely, so photos set in admin never showed.
+        var CC={'Infrastructure':'blue','Health':'green','Environment':'green',
+                'Livelihood':'gold','Education':'teal','Safety':'blue',
+                'Technology':'teal','Community Program':'green','Youth Development':'teal'};
+        function src(u){return u?(u.indexOf('http')===0?u:'/'+u):'';}
         IG.innerHTML=items.map(function(p,i){
-          return '<article class="bolbok-init-card reveal '+DL[i%4]+'">'+
-            '<span class="bic-category">'+esc(p.category)+'</span>'+
-            '<h3 class="bic-title">'+esc(p.title)+'</h3>'+
-            '<p class="bic-desc">'+esc(p.shortDescription||'')+'</p>'+
-            '</article>';
+          var banner=p.imageUrl
+            ?'<img src="'+esc(src(p.imageUrl))+'" alt="'+esc(p.title)+'" style="width:100%;height:180px;object-fit:cover;border-radius:28px;">'
+            :'<div class="prog-banner prog-banner--'+(CC[p.category]||'blue')+' proj-card-banner" aria-hidden="true">'+
+              '<div class="ict-banner-label"><strong>'+esc(p.category||'')+'</strong>'+
+              (p.subtitle?'<span>'+esc(p.subtitle)+'</span>':'')+
+              '</div></div>';
+          // 'visible' is required: main.js collects .reveal elements once at
+          // load, so anything inserted later is never observed and would stay
+          // at opacity:0.
+          return '<article class="image-card proj-card reveal visible'+(DL[i%4]?' '+DL[i%4]:'')+'">'+
+            banner+
+            '<div class="proj-card-body">'+
+            '<span class="status ongoing">'+esc(p.category||'')+'</span>'+
+            '<h3>'+esc(p.title)+'</h3>'+
+            '<p>'+esc(p.shortDescription||'')+'</p>'+
+            '</div></article>';
         }).join('');
       }).catch(function(){});
     }
