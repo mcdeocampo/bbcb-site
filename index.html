@@ -169,11 +169,12 @@
     <section class="section-pad">
       <div class="container">
         <div class="section-heading reveal"><span class="eyebrow">Quick Access</span><h2>Public Services</h2><p>Frequently requested public services and assistance for residents.</p></div>
-        <div class="card-grid service-preview">
+        <div class="card-grid service-preview" id="svc-preview-grid">
           <!-- First three cards mirror the Public Services module so they can
                never drift from it; replaced at runtime by the script below.
-               The shipped copy stays as the fallback if that fetch fails. -->
-          <span id="svc-preview-slot"></span>
+               The shipped copy stays as the fallback if that fetch fails.
+               Nothing but cards may live in here: any other direct child takes
+               a grid cell and pushes the row out of alignment. -->
           <a class="info-card reveal" href="public-services"><span class="icon">📄</span><h3>Barangay Clearance</h3><p>Request official barangay clearance for employment, permits, and other purposes.</p></a>
           <a class="info-card reveal delay-1" href="public-services"><span class="icon">🏠</span><h3>Residency Certificate</h3><p>Secure proof of residence within Barangay Bolbok.</p></a>
           <a class="info-card reveal delay-2" href="public-services"><span class="icon">🤝</span><h3>Assistance Programs</h3><p>Access health, senior citizen, PWD, youth, and disaster response support.</p></a>
@@ -493,17 +494,16 @@
       jobseeker:'👤', blotter:'📋', health:'🏥', senior:'🧓',
       pwd:'♿', disaster:'🛡️', youth:'⭐'
     };
-    var slot = document.getElementById('svc-preview-slot');
-    if (slot) {
+    var svcGrid = document.getElementById('svc-preview-grid');
+    if (svcGrid) {
       fetch('/api/public-services').then(function(r){return r.json();}).then(function(d){
         var list = (d && d.services || [])
           .filter(function(s){ return s.status === 'published' && (s.title || '').trim(); })
           .sort(function(a,b){ return (a.displayOrder||0) - (b.displayOrder||0); })
           .slice(0, 3);
         if (!list.length) return;   // keep the shipped cards if nothing to show
-        var grid = slot.parentNode;
         // drop the three placeholder cards, keeping Download Forms last
-        grid.querySelectorAll('a.info-card[href="public-services"]').forEach(function(el){ el.remove(); });
+        svcGrid.querySelectorAll('a.info-card[href="public-services"]').forEach(function(el){ el.remove(); });
         var html = list.map(function(s, i){
           var delay = i ? ' delay-' + i : '';
           return '<a class="info-card reveal visible' + delay + '" href="public-services">' +
@@ -511,8 +511,8 @@
                  '<h3>' + esc(s.title) + '</h3>' +
                  '<p>' + esc(s.shortDescription || '') + '</p></a>';
         }).join('');
-        slot.insertAdjacentHTML('afterend', html);
-        slot.remove();   // anchor has done its job; don't leave it in the grid
+        // Prepend so the live services lead and Download Forms stays last.
+        svcGrid.insertAdjacentHTML('afterbegin', html);
       }).catch(function(){ /* keep the shipped cards */ });
     }
   })();
