@@ -1263,6 +1263,84 @@ def _inject_officials_page(doc, settings, officials):
         _set_inner_html(cg[0], ''.join(cards))
 
 
+def _inject_social_meta(doc, settings, shipped, logo, title_parts):
+    """Bring og:/twitter: tags in line with the configured barangay.
+
+    Facebook and the other crawlers fetch the raw HTML and never run our
+    JavaScript, so a shared link kept showing the barangay the markup was
+    written for. Two separate faults: the text was hardcoded, and og:image was
+    a relative path, which crawlers cannot resolve — it needs an absolute URL.
+    """
+    try:
+        base = request.url_root.rstrip('/')
+        page_url = request.base_url
+    except Exception:
+        base = ''
+        page_url = ''
+
+    def absolute(u):
+        u = (u or '').strip()
+        if not u:
+            return ''
+        if u.startswith(('http://', 'https://')):
+            return u
+        return base + '/' + u.lstrip('/')
+
+    # Swap the shipped barangay name/locality for the configured ones inside
+    # the meta text. Keyed off what the markup actually shipped with, so this
+    # keeps working whatever the site is renamed to next.
+    renames = []
+    for key in ('barangay_name', 'barangay_locality'):
+        old, new = shipped.get(key), (settings.get(key) or '').strip()
+        if old and new and old != new:
+            renames.append((old, new))
+
+    meta_xpath = ('//meta[@property="og:title" or @property="og:description"'
+                  ' or @name="twitter:title" or @name="twitter:description"'
+                  ' or @name="description"]')
+    if renames:
+        for el in doc.xpath(meta_xpath):
+            content = el.get('content') or ''
+            for old, new in renames:
+                content = content.replace(old, new)
+            el.set('content', content)
+
+    # A crawler cannot resolve "images/logo.png"; make every social image and
+    # the canonical/og URL absolute.
+    social_img = absolute(logo)
+    for el in doc.xpath('//meta[@property="og:image" or @name="twitter:image"]'):
+        current = absolute(el.get('content'))
+        el.set('content', social_img or current)
+
+    if page_url:
+        og_url = doc.xpath('//meta[@property="og:url"]')
+        if og_url:
+            og_url[0].set('content', page_url)
+        else:
+            head = doc.xpath('//head')
+            if head:
+                import lxml.html as LH
+                tag = LH.Element('meta')
+                tag.set('property', 'og:url')
+                tag.set('content', page_url)
+                head[0].append(tag)
+
+    # og:site_name is what Facebook prints above the headline.
+    if title_parts:
+        site_name = title_parts[0]
+        existing = doc.xpath('//meta[@property="og:site_name"]')
+        if existing:
+            existing[0].set('content', site_name)
+        else:
+            head = doc.xpath('//head')
+            if head:
+                import lxml.html as LH
+                tag = LH.Element('meta')
+                tag.set('property', 'og:site_name')
+                tag.set('content', site_name)
+                head[0].append(tag)
+
+
 def _inject_page(html, settings, officials):
     """Apply CMS values to the markup. Mirrors the client-side pass in main.js
     so the two can never disagree."""
@@ -1270,6 +1348,16 @@ def _inject_page(html, settings, officials):
 
     doc = LH.fromstring(html)
     punong = next((o for o in (officials or []) if o.get('isPunong')), None)
+
+    # Capture the barangay name/locality the markup shipped with, before the
+    # loop below overwrites them. Social crawlers read the raw HTML and never
+    # run our JavaScript, so the og:/twitter: tags have to be corrected here —
+    # otherwise a shared link keeps advertising the previous barangay.
+    _shipped = {}
+    for _key in ('barangay_name', 'barangay_locality'):
+        _el = doc.xpath('//*[@data-setting="%s"]' % _key)
+        if _el and (_el[0].text or '').strip():
+            _shipped[_key] = _el[0].text.strip()
 
     # Text nodes. A key absent from settings has never been configured, so the
     # markup's own copy stays — same rule main.js follows.
@@ -1301,6 +1389,8 @@ def _inject_page(html, settings, officials):
     if logo:
         for el in doc.xpath('//link[@rel="icon" or @rel="apple-touch-icon"]'):
             el.set('href', logo)
+
+    _inject_social_meta(doc, settings, _shipped, logo, parts)
 
     # Punong Barangay card on the homepage.
     if punong:
