@@ -1263,6 +1263,75 @@ def _inject_officials_page(doc, settings, officials):
         _set_inner_html(cg[0], ''.join(cards))
 
 
+# Facebook and the other crawlers render a 1.91:1 card. A square seal handed
+# to them gets centre-cropped, cutting the ring text off top and bottom, so a
+# proper landscape card is composed from the current logo instead. Generated on
+# demand and cached against the logo URL, so it can never fall out of step with
+# whatever branding is configured.
+_share_card_cache = {'url': None, 'png': None}
+SHARE_CARD_W, SHARE_CARD_H = 1200, 630
+
+
+def _build_share_card(logo_url):
+    import io
+    import urllib.request as _u
+    from PIL import Image, ImageDraw
+
+    raw = _u.urlopen(logo_url, timeout=20).read()
+    seal = Image.open(io.BytesIO(raw)).convert('RGBA')
+
+    W, H = SHARE_CARD_W, SHARE_CARD_H
+    top, bottom = (13, 92, 118), (8, 52, 74)          # site header teal -> navy
+    card = Image.new('RGB', (W, H))
+    draw = ImageDraw.Draw(card)
+    for y in range(H):
+        f = y / (H - 1)
+        draw.line([(0, y), (W, y)], fill=(
+            int(top[0] + (bottom[0] - top[0]) * f),
+            int(top[1] + (bottom[1] - top[1]) * f),
+            int(top[2] + (bottom[2] - top[2]) * f)))
+
+    # Soft pool of light so a dark seal still separates from the ground.
+    glow = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    ImageDraw.Draw(glow).ellipse(
+        [W // 2 - 330, H // 2 - 330, W // 2 + 330, H // 2 + 330],
+        fill=(255, 255, 255, 26))
+    card = Image.alpha_composite(card.convert('RGBA'), glow)
+
+    size = 430                                        # well inside the safe area
+    seal = seal.resize((size, size), Image.LANCZOS)
+    card.paste(seal, ((W - size) // 2, (H - size) // 2), seal)
+
+    buf = io.BytesIO()
+    card.convert('RGB').save(buf, 'PNG', optimize=True)
+    return buf.getvalue()
+
+
+@app.route('/share-card.png')
+def share_card():
+    settings, _ = _page_context()
+    logo = _asset_url((settings or {}).get('barangay_logo_url'))
+    if not logo:
+        abort(404)
+    if not logo.startswith(('http://', 'https://')):
+        logo = request.url_root.rstrip('/') + logo
+
+    if _share_card_cache['url'] != logo or not _share_card_cache['png']:
+        try:
+            _share_card_cache['png'] = _build_share_card(logo)
+            _share_card_cache['url'] = logo
+        except Exception as exc:
+            # Fall back to the plain logo rather than serving nothing; a cropped
+            # card still beats a card with no image at all.
+            app.logger.error('share card build failed: %s', exc)
+            return redirect(logo)
+
+    resp = app.make_response(_share_card_cache['png'])
+    resp.headers['Content-Type'] = 'image/png'
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    return resp
+
+
 def _inject_social_meta(doc, settings, shipped, logo, title_parts):
     """Bring og:/twitter: tags in line with the configured barangay.
 
@@ -1305,12 +1374,24 @@ def _inject_social_meta(doc, settings, shipped, logo, title_parts):
                 content = content.replace(old, new)
             el.set('content', content)
 
-    # A crawler cannot resolve "images/logo.png"; make every social image and
-    # the canonical/og URL absolute.
-    social_img = absolute(logo)
+    # A crawler cannot resolve "images/logo.png"; every social image needs an
+    # absolute URL. Point them at the generated 1.91:1 card so the seal is not
+    # centre-cropped, falling back to the logo if no logo is configured at all.
+    social_img = absolute('/share-card.png') if logo else ''
     for el in doc.xpath('//meta[@property="og:image" or @name="twitter:image"]'):
         current = absolute(el.get('content'))
         el.set('content', social_img or current)
+    if social_img:
+        head = doc.xpath('//head')
+        for prop, val in (('og:image:width', str(SHARE_CARD_W)),
+                          ('og:image:height', str(SHARE_CARD_H))):
+            if doc.xpath('//meta[@property="%s"]' % prop) or not head:
+                continue
+            import lxml.html as LH
+            tag = LH.Element('meta')
+            tag.set('property', prop)
+            tag.set('content', val)
+            head[0].append(tag)
 
     if page_url:
         og_url = doc.xpath('//meta[@property="og:url"]')
