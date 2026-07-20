@@ -1380,9 +1380,53 @@ def public_page(page_name):
 
 
 # ── Admin page serving ────────────────────────────────────────────────────────
+def _render_admin_shell(path):
+    """Serve the admin panel with the favicon and title already correct.
+
+    applyAdminBranding() swaps these client-side too, but the browser resolves
+    and commits the favicon while parsing <head>; replacing the link node
+    afterwards leaves the tab showing whatever was hardcoded. The icon has to be
+    right in the markup as it leaves the server.
+
+    Deliberately a targeted substitution rather than the lxml pass used for the
+    public pages — the admin document is ~400KB with a 215KB inline script, and
+    parsing it on every request would cost far more than it's worth.
+    """
+    settings, _ = _page_context()
+    if not settings:
+        return send_from_directory(os.path.dirname(path), os.path.basename(path))
+
+    with open(path, encoding='utf-8') as fh:
+        html = fh.read()
+
+    logo = _asset_url(settings.get('barangay_logo_url'))
+    if logo:
+        html = re.sub(
+            r'(<link\b[^>]*\brel="[^"]*icon[^"]*"[^>]*\bhref=")[^"]*(")',
+            lambda m: m.group(1) + logo + m.group(2),
+            html, count=0)
+
+    name = (settings.get('barangay_name') or '').strip()
+    if name:
+        html = re.sub(r'(<title\b[^>]*\bdata-admin-title\b[^>]*>)[^<]*(</title>)',
+                      lambda m: m.group(1) + 'Admin | ' + name + m.group(2),
+                      html, count=1)
+
+    resp = app.make_response(html)
+    resp.headers['Content-Type']  = 'text/html; charset=utf-8'
+    resp.headers['Cache-Control'] = 'no-cache'
+    return resp
+
+
 @app.route('/admin')
 def admin_index():
-    return send_from_directory(os.path.join(BASE_DIR, 'admin'), 'index.html')
+    admin_dir = os.path.join(BASE_DIR, 'admin')
+    try:
+        return _render_admin_shell(os.path.join(admin_dir, 'index.html'))
+    except Exception as exc:
+        # Never let branding injection lock the admin out.
+        app.logger.error('_render_admin_shell error: %s', exc)
+        return send_from_directory(admin_dir, 'index.html')
 
 
 @app.route('/admin/<path:filename>')
