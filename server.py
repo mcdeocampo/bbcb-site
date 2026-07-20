@@ -1269,7 +1269,7 @@ def _inject_officials_page(doc, settings, officials):
 # demand and cached against the logo URL, so it can never fall out of step with
 # whatever branding is configured.
 _share_card_cache = {'url': None, 'png': None}
-SHARE_CARD_W, SHARE_CARD_H = 1200, 630
+SHARE_CARD_W, SHARE_CARD_H = 440, 440
 
 
 def _build_share_card(logo_url):
@@ -1280,31 +1280,16 @@ def _build_share_card(logo_url):
     raw = _u.urlopen(logo_url, timeout=20).read()
     seal = Image.open(io.BytesIO(raw)).convert('RGBA')
 
-    W, H = SHARE_CARD_W, SHARE_CARD_H
-    top, bottom = (13, 92, 118), (8, 52, 74)          # site header teal -> navy
-    card = Image.new('RGB', (W, H))
-    draw = ImageDraw.Draw(card)
-    for y in range(H):
-        f = y / (H - 1)
-        draw.line([(0, y), (W, y)], fill=(
-            int(top[0] + (bottom[0] - top[0]) * f),
-            int(top[1] + (bottom[1] - top[1]) * f),
-            int(top[2] + (bottom[2] - top[2]) * f)))
-
-    # Soft pool of light so a dark seal still separates from the ground.
-    glow = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-    ImageDraw.Draw(glow).ellipse(
-        [W // 2 - 330, H // 2 - 330, W // 2 + 330, H // 2 + 330],
-        fill=(255, 255, 255, 26))
-    card = Image.alpha_composite(card.convert('RGBA'), glow)
-
-    # Fit inside a 430px box preserving the logo's own proportions — a forced
-    # square would stretch any logo that is not already 1:1.
-    box = 430
-    scale = min(box / seal.width, box / seal.height)
+    # Fitted inside a 440px square on white. Square keeps the seal uncropped in
+    # the compact card, and the white ground stops clients that ignore PNG
+    # transparency from rendering it on black.
+    box, pad = SHARE_CARD_W, 24
+    inner = box - pad * 2
+    scale = min(inner / seal.width, inner / seal.height)
     seal = seal.resize((max(1, round(seal.width * scale)),
                         max(1, round(seal.height * scale))), Image.LANCZOS)
-    card.paste(seal, ((W - seal.width) // 2, (H - seal.height) // 2), seal)
+    card = Image.new('RGBA', (box, box), (255, 255, 255, 255))
+    card.paste(seal, ((box - seal.width) // 2, (box - seal.height) // 2), seal)
 
     buf = io.BytesIO()
     card.convert('RGB').save(buf, 'PNG', optimize=True)
