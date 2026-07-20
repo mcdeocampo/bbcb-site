@@ -21590,3 +21590,48 @@ body[data-page="services.html"] .service-meta span a{
   text-decoration:underline;
 }
 
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Header fit — the barangay name is editable in admin, so the brand can be any
+   length. .brand was flex:0 0 auto with min-width:max-content while .nav-menu
+   could shrink below its own content, so a longer name made the nav links spill
+   leftward out of their container and render on top of the title.
+
+   Selectors are .site-header-scoped with !important to match the existing
+   header-tuning stack, which uses that specificity and would otherwise win.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+@media (min-width: 1181px) {
+  /* The brand yields before the nav, and ellipses rather than overlapping, so
+     no name length can reproduce the collision. */
+  .site-header .navbar .brand {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+  }
+  .site-header .navbar .brand > span {
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+  .site-header .navbar .brand strong,
+  .site-header .navbar .brand small {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  /* Links must never render outside their own box. */
+  .site-header .navbar .nav-menu {
+    min-width: max-content !important;
+    flex: 0 0 auto !important;
+  }
+}
+
+/* The container is capped at 1180px through this range, so the row is tightest
+   here — reclaims ~40px so a long barangay name fits without truncating. */
+@media (min-width: 1181px) and (max-width: 1420px) {
+  /* 24px of inline padding on the bar itself was the biggest single saving
+     available, and costs less visually than cramping the links further. */
+  .site-header .navbar { gap: 18px !important; padding-left: 12px !important; padding-right: 12px !important; }
+  .site-header .navbar .nav-menu { gap: 2px !important; }
+  .site-header .navbar .nav-link { padding-left: 4px !important; padding-right: 4px !important; }
+  .site-header .brand img,
+  header .brand img { width: 52px !important; height: 52px !important; }
+}
