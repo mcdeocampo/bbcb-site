@@ -475,10 +475,7 @@ main > section.section-pad:nth-of-type(odd):not(.page-hero):not(.gradient-panel)
 main > section:not(.page-hero)::before{
   content:"";
   position:absolute;
-  /* Was -54px, which hung the circle past the section (and so past the
-     viewport) edge, where it got clipped into a hard-edged slab instead of
-     reading as ambient decoration. Kept inside so it renders complete. */
-  inset:auto auto 10% 0;
+  inset:auto auto 10% -54px;
   width:170px;
   height:170px;
   border-radius:50%;
@@ -490,9 +487,7 @@ main > section:not(.page-hero)::before{
 main > section:not(.page-hero)::after{
   content:"";
   position:absolute;
-  /* Was -46px; same clipping problem as ::before above. This is the pale
-     mint block that showed beside the Community Initiatives cards. */
-  inset:12% 0 auto auto;
+  inset:12% -46px auto auto;
   width:160px;
   height:160px;
   border-radius:50%;
@@ -665,13 +660,13 @@ main > section > .container{position:relative;z-index:1}
   main > section:not(.page-hero)::before{
     width:120px;
     height:120px;
-    left:0;          /* was -40px — kept inside, see the base rule */
+    left:-40px;
     bottom:6%;
   }
   main > section:not(.page-hero)::after{
     width:110px;
     height:110px;
-    right:0;         /* was -34px */
+    right:-34px;
     top:10%;
   }
   .split-layout > .reveal,
