@@ -2712,7 +2712,7 @@ def admin_site_settings_put():
         # Homepage section intros. Each names the barangay, so they went stale
         # on a rename the same way the page descriptions above did.
         'home_services_description', 'home_announcements_description',
-        'home_calendar_description',
+        'home_calendar_description', 'home_initiatives_description',
     }
     _LONG_KEYS = {
         'officials_punong_description', 'officials_sb_description',
@@ -2723,7 +2723,7 @@ def admin_site_settings_put():
         'directory_hero_description',
         'officials_hero_description', 'home_officials_description',
         'home_services_description', 'home_announcements_description',
-        'home_calendar_description',
+        'home_calendar_description', 'home_initiatives_description',
     }
     # Multi-paragraph prose and the serialised image list need far more room
     # than the 500-char _LONG_KEYS tier, which would silently truncate them.

@@ -1652,6 +1652,7 @@ a{text-decoration:none;color:inherit}
             <div class="field field-full"><label>Public Services</label><textarea id="cm-home-services-description" rows="2" maxlength="500"></textarea></div>
             <div class="field field-full"><label>Announcements</label><textarea id="cm-home-announcements-description" rows="2" maxlength="500"></textarea></div>
             <div class="field field-full"><label>Barangay Calendar</label><textarea id="cm-home-calendar-description" rows="2" maxlength="500"></textarea></div>
+            <div class="field field-full"><label>Community Initiatives</label><textarea id="cm-home-initiatives-description" rows="2" maxlength="500"></textarea></div>
           </div>
           <div class="settings-acts">
             <button class="btn-publish" onclick="saveContentHero()">Save Hero</button>
@@ -4714,6 +4715,7 @@ function applyContentSettings(d) {
     ['cm-home-services-description',      d.home_services_description],
     ['cm-home-announcements-description', d.home_announcements_description],
     ['cm-home-calendar-description',      d.home_calendar_description],
+    ['cm-home-initiatives-description',   d.home_initiatives_description],
     ['cm-about-hero-title',       d.about_hero_title],
     ['cm-about-hero-description', d.about_hero_description],
     ['cm-history-title',          d.about_history_title],
@@ -4805,6 +4807,7 @@ async function saveContentHero() {
     home_services_description:      ($('cm-home-services-description')      || {}).value || '',
     home_announcements_description: ($('cm-home-announcements-description') || {}).value || '',
     home_calendar_description:      ($('cm-home-calendar-description')      || {}).value || '',
+    home_initiatives_description:   ($('cm-home-initiatives-description')   || {}).value || '',
   };
   await saveContentGroup(payload, 'Hero saved');
 }
