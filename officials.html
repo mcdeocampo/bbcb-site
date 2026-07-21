@@ -154,14 +154,25 @@
       fetch('/api/site-settings').then(function(r){return r.json();})
     ]).then(function(results){
       var d=results[0],s=results[1];
-      var all=(d.officials||[]).filter(function(o){return o.status==='published';});
+      // A malformed response is not data — leave the shipped markup alone.
+      if(!d||!d.officials)return;
+      var all=d.officials.filter(function(o){return o.status==='published';});
       var punongDesc=s.officials_punong_description||'';
       var sbDesc=s.officials_sb_description||'';
       var sbEl=document.getElementById('sb-section-desc');
       if(sbEl)sbEl.innerHTML=esc(sbDesc).replace(/\n/g,'<br>');
-      if(!all.length)return;
       var punong=null,others=[];
       all.forEach(function(o){if(o.isPunong)punong=o;else others.push(o);});
+      // A successful response is authoritative, including when it is empty:
+      // unpublishing every official must clear the page, not silently leave the
+      // shipped markup on display. Only a failed fetch keeps the static
+      // fallback, and that is handled by the .catch() below.
+      if(PA&&!punong){
+        PA.innerHTML='<p class="ofc-empty">No Punong Barangay is currently published.</p>';
+      }
+      if(CG&&!others.length){
+        CG.innerHTML='<p class="ofc-empty">No council members are currently published.</p>';
+      }
       if(PA&&punong){
         var ph=punong.photoUrl?'<img src="'+esc(src(punong.photoUrl))+'" alt="'+esc(punong.fullName)+'" style="object-position:center top;">':PH;
         PA.innerHTML='<div class="ofc-photo">'+ph+'</div>'+

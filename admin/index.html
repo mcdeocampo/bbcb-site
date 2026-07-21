@@ -1645,6 +1645,14 @@ a{text-decoration:none;color:inherit}
             <div class="field"><label>Item 3</label><input type="text" id="cm-glance-item3" maxlength="120"></div>
             <div class="field"><label>Item 4</label><input type="text" id="cm-glance-item4" maxlength="120"></div>
           </div>
+
+          <div class="settings-subgroup"><div class="settings-subtitle">Homepage Section Intros</div></div>
+          <p class="settings-desc">The one-line description under each section heading on the homepage.</p>
+          <div class="form-grid">
+            <div class="field field-full"><label>Public Services</label><textarea id="cm-home-services-description" rows="2" maxlength="500"></textarea></div>
+            <div class="field field-full"><label>Announcements</label><textarea id="cm-home-announcements-description" rows="2" maxlength="500"></textarea></div>
+            <div class="field field-full"><label>Barangay Calendar</label><textarea id="cm-home-calendar-description" rows="2" maxlength="500"></textarea></div>
+          </div>
           <div class="settings-acts">
             <button class="btn-publish" onclick="saveContentHero()">Save Hero</button>
           </div>
@@ -4703,6 +4711,9 @@ function applyContentSettings(d) {
     ['cm-footer-tagline',         d.footer_tagline],
     ['cm-hero-title',             d.hero_title],
     ['cm-hero-description',       d.hero_description],
+    ['cm-home-services-description',      d.home_services_description],
+    ['cm-home-announcements-description', d.home_announcements_description],
+    ['cm-home-calendar-description',      d.home_calendar_description],
     ['cm-about-hero-title',       d.about_hero_title],
     ['cm-about-hero-description', d.about_hero_description],
     ['cm-history-title',          d.about_history_title],
@@ -4791,6 +4802,9 @@ async function saveContentHero() {
     home_glance_item2: ($('cm-glance-item2') || {}).value || '',
     home_glance_item3: ($('cm-glance-item3') || {}).value || '',
     home_glance_item4: ($('cm-glance-item4') || {}).value || '',
+    home_services_description:      ($('cm-home-services-description')      || {}).value || '',
+    home_announcements_description: ($('cm-home-announcements-description') || {}).value || '',
+    home_calendar_description:      ($('cm-home-calendar-description')      || {}).value || '',
   };
   await saveContentGroup(payload, 'Hero saved');
 }

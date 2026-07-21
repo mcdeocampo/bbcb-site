@@ -795,11 +795,59 @@ def _load_pubservice_children(service_id):
     }
 
 
+def _load_pubservice_children_bulk(service_ids):
+    """Children for many services at once, keyed by service_id.
+
+    The per-service _load_pubservice_children costs three queries; calling it in
+    a loop made listing N services cost 1 + 3N sequential round trips. This
+    fetches each child table once and groups in Python, so the cost is a flat
+    three queries regardless of service count.
+
+    Each table is fetched independently so one failing table degrades to empty
+    for that field only, matching the per-service helper's behaviour.
+    """
+    empty = {'requirements': [], 'steps': [], 'files': []}
+    if not service_ids:
+        return {}
+
+    def fetch(table):
+        try:
+            return (supabase.table(table)
+                    .select('*').in_('service_id', service_ids)
+                    .order('display_order').execute().data or [])
+        except Exception as exc:
+            app.logger.error('_load_pubservice_children_bulk %s error: %s', table, exc)
+            return []
+
+    reqs  = fetch('public_service_requirements')
+    steps = fetch('public_service_steps')
+    files = fetch('public_service_files')
+
+    out = {sid: {'requirements': [], 'steps': [], 'files': []} for sid in service_ids}
+    # Rows arrive ordered by display_order, so appending preserves per-service order.
+    for r in reqs:
+        out.get(r.get('service_id'), empty)['requirements'].append(r.get('requirement', ''))
+    for s in steps:
+        out.get(s.get('service_id'), empty)['steps'].append(s.get('step_description', ''))
+    for f in files:
+        out.get(f.get('service_id'), empty)['files'].append({
+            'filename': f.get('filename', ''),
+            'filepath': f.get('filepath', ''),
+            'filesize': f.get('filesize', 0),
+        })
+    return out
+
+
 def _load_pubservices_full():
-    """All services with their requirements/steps/files inlined — one round trip for callers."""
+    """All services with their requirements/steps/files inlined.
+
+    Four queries total (services + three child tables), not 1 + 3N.
+    """
     services = _load_pubservices()
+    children = _load_pubservice_children_bulk([svc['id'] for svc in services])
     for svc in services:
-        svc.update(_load_pubservice_children(svc['id']))
+        svc.update(children.get(svc['id'],
+                                {'requirements': [], 'steps': [], 'files': []}))
     return services
 
 
@@ -1149,14 +1197,19 @@ def _page_context():
         return c['settings'], c['officials']
 
     settings = _load_site_settings()
-    officials = []
+    # None means "could not load" and must leave the shipped markup alone; an
+    # empty list means "nothing is published" and is authoritative. Collapsing
+    # both to [] would make a transient database error blank the officials page.
+    officials = None
     try:
         officials = [o for o in _load_officials() if o.get('status') == 'published']
         officials.sort(key=lambda x: x.get('displayOrder', 99))
     except Exception as exc:
         app.logger.error('_page_context officials error: %s', exc)
 
-    if settings:
+    # Only cache a fully successful read. Caching a failure would pin the
+    # fallback markup for the whole TTL instead of retrying on the next request.
+    if settings and officials is not None:
         c.update(settings=settings, officials=officials, ts=now)
     return settings, officials
 
@@ -1227,10 +1280,22 @@ def _inject_officials_page(doc, settings, officials):
     for el in doc.xpath('//*[@id="sb-section-desc"]'):
         _set_inner_html(el, _esc_br(settings.get('officials_sb_description', '')))
 
-    if not officials:
-        return
-
+    # An empty published list is a real state, not a failure: unpublishing every
+    # official must clear the page rather than leave the shipped markup showing
+    # a council that is no longer current. _render_page falls back to the raw
+    # file when the load itself fails, so reaching here means the data is good.
     pa = doc.xpath('//*[@id="punong-article"]')
+    if pa and not punong:
+        _set_inner_html(pa[0],
+            '<p class="ofc-empty">No Punong Barangay is currently published.</p>')
+
+    cg = (doc.xpath('//*[@id="council-grid"]')
+          or doc.xpath('//*[contains(concat(" ", normalize-space(@class), " "),'
+                       ' " officials-council-grid ")]'))
+    if cg and not others:
+        _set_inner_html(cg[0],
+            '<p class="ofc-empty">No council members are currently published.</p>')
+
     if pa and punong:
         photo = _asset_url(punong.get('photoUrl'))
         ph = ('<img src="%s" alt="%s" style="object-position:center top;">'
@@ -1244,7 +1309,6 @@ def _inject_officials_page(doc, settings, officials):
             '<p class="ofc-role">' + _esc_br(settings.get('officials_punong_description', '')) + '</p>'
             '</div>')
 
-    cg = doc.xpath('//*[@id="council-grid"]')
     if cg and others:
         delays = ['', 'delay-1', 'delay-2', 'delay-3']
         cards = []
@@ -1488,7 +1552,8 @@ def _inject_page(html, settings, officials):
                     br.tail = line
                     el.append(br)
 
-    _inject_officials_page(doc, settings, officials or [])
+    if officials is not None:
+        _inject_officials_page(doc, settings, officials)
 
     return LH.tostring(doc, doctype='<!DOCTYPE html>', encoding='unicode')
 
@@ -1500,11 +1565,11 @@ def _render_page(directory, filename):
         abort(404)
     try:
         settings, officials = _page_context()
-        if not settings and not officials:
+        if not settings and officials is None:
             return send_from_directory(directory, filename)
         with open(path, encoding='utf-8') as fh:
             html = fh.read()
-        rendered = _inject_page(html, settings or {}, officials or [])
+        rendered = _inject_page(html, settings or {}, officials)
     except Exception as exc:
         # Never let injection take the site down — fall back to the raw file.
         app.logger.error('_render_page(%s) error: %s', filename, exc)
@@ -2644,6 +2709,10 @@ def admin_site_settings_put():
         'contact_hero_description', 'contact_card_description',
         'directory_hero_description',
         'officials_hero_description', 'home_officials_description',
+        # Homepage section intros. Each names the barangay, so they went stale
+        # on a rename the same way the page descriptions above did.
+        'home_services_description', 'home_announcements_description',
+        'home_calendar_description',
     }
     _LONG_KEYS = {
         'officials_punong_description', 'officials_sb_description',
@@ -2653,6 +2722,8 @@ def admin_site_settings_put():
         'contact_hero_description', 'contact_card_description',
         'directory_hero_description',
         'officials_hero_description', 'home_officials_description',
+        'home_services_description', 'home_announcements_description',
+        'home_calendar_description',
     }
     # Multi-paragraph prose and the serialised image list need far more room
     # than the 500-char _LONG_KEYS tier, which would silently truncate them.
@@ -2666,7 +2737,20 @@ def admin_site_settings_put():
     patch = {k: _clean(v, _limit(k)) for k, v in d.items() if k in ALLOWED_KEYS}
     if not patch:
         return jsonify({'error': 'No valid fields provided'}), 400
-    _upsert_site_settings(patch)
+    try:
+        _upsert_site_settings(patch)
+    except Exception:
+        import traceback
+        app.logger.error('[settings] FAILED to save: %s', traceback.format_exc())
+        return jsonify({'error': 'Database write failed — check the server logs'}), 500
+    # Confirm the write by re-reading. A silent no-op would otherwise report
+    # success to the admin while the site kept serving the old values.
+    saved = _load_site_settings()
+    failed = [k for k, v in patch.items() if saved.get(k) != v]
+    if failed:
+        app.logger.error('[settings] keys not confirmed in DB after write: %s', failed)
+        return jsonify({'error': 'Save appeared to succeed but the database does not '
+                                 'reflect the new values for: %s' % ', '.join(failed)}), 500
     return jsonify({'ok': True, 'updated': list(patch.keys())})
 
 
