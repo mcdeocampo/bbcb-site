@@ -13536,7 +13536,14 @@ body[data-page="index.html"] .info-card{
     margin-top: 18px !important;
   }
 
-  body[data-page="index.html"] a[href*="announcements"],
+  /* Tap-target sizing for the small text/button links that point at the
+     Announcements page. The attribute selector also matches two structural
+     elements it was never meant to touch — the nav link, and each homepage
+     announcement card (whose href is announcements.html?id=…). Forcing those
+     to inline-flex laid the card's date, title and description out in a row,
+     squeezing the title into a ~87px column on phones. Excluded by class so
+     the sizing intent is preserved for the links that actually need it. */
+  body[data-page="index.html"] a[href*="announcements"]:not(.nav-link):not(.ann-card-link),
   body[data-page="index.html"] .view-all a,
   body[data-page="index.html"] .section-actions a{
     min-height: 38px !important;
